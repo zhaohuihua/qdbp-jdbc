@@ -14,7 +14,8 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 public interface CrudFragmentBuilder extends QueryFragmentBuilder {
 
     /**
-     * 生成Insert字段值占位符列表SQL语句
+     * 生成Insert字段值占位符列表SQL语句<br>
+     * :$1$FieldName, :$2$FieldName, ..., :$n$FieldName
      * 
      * @param entity 字段变量映射表
      * @return SQL语句
@@ -23,7 +24,7 @@ public interface CrudFragmentBuilder extends QueryFragmentBuilder {
 
     /**
      * 生成Update字段值占位符列表SQL语句<br>
-     * 格式: SET COLUMN_NAME1=:fieldName$U$1, COLUMN_NAME2=:fieldName$U$2<br>
+     * 格式: SET COLUMN_NAME1=:$1$FieldName, COLUMN_NAME2=:$2$FieldName, ..., COLUMN_NAMEn=$n$FieldName<br>
      * 
      * @param entity Update对象
      * @return SQL语句
@@ -32,7 +33,7 @@ public interface CrudFragmentBuilder extends QueryFragmentBuilder {
 
     /**
      * 生成Update字段值占位符列表SQL语句<br>
-     * 格式: SET COLUMN_NAME1=:fieldName$U$1, COLUMN_NAME2=:fieldName$U$2<br>
+     * 格式: SET COLUMN_NAME1=:$1$FieldName, COLUMN_NAME2=:$2$FieldName, ..., COLUMN_NAMEn=$n$FieldName<br>
      * 
      * @param entity Update对象
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀

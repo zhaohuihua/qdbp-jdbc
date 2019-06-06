@@ -29,7 +29,7 @@ import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 生成SQL的工具类
+ * 表关联SQL片段生成帮助类
  *
  * @author 赵卉华
  * @version 190601

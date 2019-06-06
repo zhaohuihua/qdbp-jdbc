@@ -35,7 +35,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
         if (daoCache.containsKey(clazz)) {
             return (BaseCrudDao<T>) daoCache.get(clazz);
         } else {
-            CrudFragmentBuilder sqlBuilder = buildSqlBuilder(clazz);
+            CrudFragmentBuilder sqlBuilder = buildSqlFragmentBuilder(clazz);
             ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
             BaseCrudDao<T> instance = new BaseCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
             daoCache.put(clazz, instance);
@@ -53,7 +53,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
     }
 
     @Override
-    public CrudFragmentBuilder buildSqlBuilder(Class<?> clazz) {
+    public CrudFragmentBuilder buildSqlFragmentBuilder(Class<?> clazz) {
         if (sqlBuilderCache.containsKey(clazz)) {
             return sqlBuilderCache.get(clazz);
         } else {

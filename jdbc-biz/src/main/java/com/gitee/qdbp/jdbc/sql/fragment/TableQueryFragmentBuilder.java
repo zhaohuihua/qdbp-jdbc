@@ -26,12 +26,12 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 生成SQL的工具类
+ * 表查询SQL片段生成帮助类
  *
  * @author 赵卉华
  * @version 190601
  */
-public abstract class SqlFragmentBuilder implements QueryFragmentBuilder {
+public abstract class TableQueryFragmentBuilder implements QueryFragmentBuilder {
 
     protected final List<FieldColumn> columns;
     protected final Map<String, String> fieldColumnMap;
@@ -39,7 +39,7 @@ public abstract class SqlFragmentBuilder implements QueryFragmentBuilder {
     protected final SqlDialect dialect;
 
     /** 构造函数 **/
-    public SqlFragmentBuilder(List<FieldColumn> columns, SqlDialect dialect) {
+    public TableQueryFragmentBuilder(List<FieldColumn> columns, SqlDialect dialect) {
         if (VerifyTools.isBlank(columns)) {
             throw new IllegalArgumentException("columns is empty");
         }

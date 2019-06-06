@@ -39,8 +39,8 @@ public interface BaseCrudBuilder {
     /** 使用默认的数据库类型构造数据库言处理类 **/
     SqlDialect buildDialect();
 
-    /** 构造SQL帮助类 **/
-    CrudFragmentBuilder buildSqlBuilder(Class<?> clazz);
+    /** 构造SQL片段帮助类 **/
+    CrudFragmentBuilder buildSqlFragmentBuilder(Class<?> clazz);
 
     /** 根据数据源查找数据库信息 **/
     DbVersion findDbVersion();

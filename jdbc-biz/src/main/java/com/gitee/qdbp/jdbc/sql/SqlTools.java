@@ -5,7 +5,7 @@ import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * SQL工具类
+ * 与数据库方言无关的SQL静态工具类
  *
  * @author zhaohuihua
  * @version 190601

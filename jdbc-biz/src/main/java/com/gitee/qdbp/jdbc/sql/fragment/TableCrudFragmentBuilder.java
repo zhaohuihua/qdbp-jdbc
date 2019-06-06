@@ -16,12 +16,12 @@ import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 单表增删改查片段生成工具类
+ * 单表增删改查SQL片段生成帮助类
  *
  * @author 赵卉华
  * @version 190601
  */
-public class TableCrudFragmentBuilder extends SqlFragmentBuilder implements CrudFragmentBuilder {
+public class TableCrudFragmentBuilder extends TableQueryFragmentBuilder implements CrudFragmentBuilder {
 
     private final Class<?> clazz;
     private final String tableName;
