@@ -3,7 +3,7 @@ package com.gitee.qdbp.jdbc.plugins;
 import com.gitee.qdbp.able.model.db.WhereCondition;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentBuilder;
 
 /**
  * Where SQL Builder
@@ -28,6 +28,6 @@ public interface WhereSqlBuilder<T extends WhereCondition> {
      * @return SQL语句
      * @throws UnsupportedFieldExeption
      */
-    SqlBuffer buildSql(T condition, SqlBuilder sqlBuilder) throws UnsupportedFieldExeption;
+    SqlBuffer buildSql(T condition, QueryFragmentBuilder sqlBuilder) throws UnsupportedFieldExeption;
 
 }
