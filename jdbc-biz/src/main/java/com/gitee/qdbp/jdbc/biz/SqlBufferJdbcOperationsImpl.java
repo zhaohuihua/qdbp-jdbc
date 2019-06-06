@@ -25,7 +25,6 @@ import com.gitee.qdbp.able.model.paging.Paging;
 import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -178,58 +177,6 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         String sql = sb.getNamedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.queryForList(sql, params);
-    }
-
-    @Override
-    public PartList<Map<String, Object>> queryForList(SqlBuffer qsb, SqlBuffer csb, Paging paging, SqlDialect dialect)
-            throws DataAccessException {
-        if (!paging.isPaging()) { // 不分页
-            List<Map<String, Object>> list = query(qsb, new ColumnMapRowMapper());
-            return list == null ? null : new PartList<>(list, list.size());
-        } else { // 分页
-            // 先查询总数据量
-            Integer total = null;
-            if (paging.isNeedCount()) {
-                total = queryForObject(csb, Integer.class);
-            }
-            // 再查询数据列表
-            List<Map<String, Object>> list;
-            if (total != null && total == 0) {
-                list = new ArrayList<>(); // 已知无数据, 不需要再查询
-            } else {
-                // 处理分页
-                dialect.processPagingSql(qsb, paging);
-                // 查询数据列表
-                list = query(qsb, new ColumnMapRowMapper());
-            }
-            return new PartList<>(list, total == null ? list.size() : total);
-        }
-    }
-
-    @Override
-    public <T> PartList<T> queryForList(SqlBuffer qsb, SqlBuffer csb, Paging paging, SqlDialect dialect,
-            Class<T> elementType) throws DataAccessException {
-        if (!paging.isPaging()) { // 不分页
-            List<T> list = queryForList(qsb, elementType);
-            return list == null ? null : new PartList<>(list, list.size());
-        } else { // 分页
-            // 先查询总数据量
-            Integer total = null;
-            if (paging.isNeedCount()) {
-                total = queryForObject(csb, Integer.class);
-            }
-            // 再查询数据列表
-            List<T> list;
-            if (total != null && total == 0) {
-                list = new ArrayList<T>(); // 已知无数据, 不需要再查询
-            } else {
-                // 处理分页
-                dialect.processPagingSql(qsb, paging);
-                // 查询数据列表
-                list = queryForList(qsb, elementType);
-            }
-            return new PartList<>(list, total == null ? list.size() : total);
-        }
     }
 
     @Override

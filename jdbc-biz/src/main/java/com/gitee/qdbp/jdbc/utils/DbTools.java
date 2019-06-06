@@ -6,17 +6,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.gitee.qdbp.able.model.paging.Paging;
+import com.gitee.qdbp.able.model.paging.PartList;
+import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -34,9 +40,13 @@ public abstract class DbTools {
     /** Entity的表名缓存 **/
     private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
 
-    public static DbVersion findDbVersion(JdbcOperations jdbcOperations) {
-        DbVersionFinder finder = DbPluginContainer.global.getDbVersionFinder();
-        return finder.findDbVersion(jdbcOperations);
+    /**
+     * 获取数据库方言处理类
+     * 
+     * @return 方言处理类
+     */
+    public static SqlDialect getSqlDialect() {
+        return DbPluginContainer.global.getSqlDialect();
     }
 
     /**
@@ -60,6 +70,17 @@ public abstract class DbTools {
      */
     public static String formatSql(SqlBuffer sql, int indent) {
         return formatSql(sql.toString(), indent);
+    }
+
+    /**
+     * 查找数据库版本信息
+     * 
+     * @param jdbcOperations JDBC操作类
+     * @return 数据库版本信息
+     */
+    public static DbVersion findDbVersion(JdbcOperations jdbcOperations) {
+        DbVersionFinder finder = DbPluginContainer.global.getDbVersionFinder();
+        return finder.findDbVersion(jdbcOperations);
     }
 
     /**
@@ -264,6 +285,77 @@ public abstract class DbTools {
         }
         // 3. 利用fastjson工具进行Map到JavaObject的转换
         return TypeUtils.castToJavaBean(result, clazz);
+    }
+
+    /**
+     * 分页查询
+     * 
+     * @param jdbc JDBC查询接口
+     * @param qsb 数据查询SQL语句
+     * @param csb 总数统计SQL语句
+     * @param paging 分页条件
+     * @return a PartList that contains a Map per row and total rows.
+     * @throws DataAccessException if the query fails
+     */
+    public static PartList<Map<String, Object>> queryForList(SqlBufferJdbcOperations jdbc, SqlBuffer qsb, SqlBuffer csb,
+            Paging paging) throws DataAccessException {
+        if (!paging.isPaging()) { // 不分页
+            List<Map<String, Object>> list = jdbc.query(qsb, new ColumnMapRowMapper());
+            return list == null ? null : new PartList<>(list, list.size());
+        } else { // 分页
+            // 先查询总数据量
+            Integer total = null;
+            if (paging.isNeedCount()) {
+                total = jdbc.queryForObject(csb, Integer.class);
+            }
+            // 再查询数据列表
+            List<Map<String, Object>> list;
+            if (total != null && total == 0) {
+                list = new ArrayList<>(); // 已知无数据, 不需要再查询
+            } else {
+                SqlDialect dialect = getSqlDialect();
+                // 处理分页
+                dialect.processPagingSql(qsb, paging);
+                // 查询数据列表
+                list = jdbc.query(qsb, new ColumnMapRowMapper());
+            }
+            return new PartList<>(list, total == null ? list.size() : total);
+        }
+    }
+
+    /**
+     * 分页查询
+     * 
+     * @param qsb 数据查询SQL语句
+     * @param csb 总数统计SQL语句
+     * @param paging 分页条件
+     * @return a PartList that contains a Map per row and total rows.
+     * @throws DataAccessException if the query fails
+     */
+    public static <T> PartList<T> queryForList(SqlBufferJdbcOperations jdbc, SqlBuffer qsb, SqlBuffer csb,
+            Paging paging, Class<T> elementType) throws DataAccessException {
+        if (!paging.isPaging()) { // 不分页
+            List<T> list = jdbc.queryForList(qsb, elementType);
+            return list == null ? null : new PartList<>(list, list.size());
+        } else { // 分页
+            // 先查询总数据量
+            Integer total = null;
+            if (paging.isNeedCount()) {
+                total = jdbc.queryForObject(csb, Integer.class);
+            }
+            // 再查询数据列表
+            List<T> list;
+            if (total != null && total == 0) {
+                list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+            } else {
+                SqlDialect dialect = getSqlDialect();
+                // 处理分页
+                dialect.processPagingSql(qsb, paging);
+                // 查询数据列表
+                list = jdbc.queryForList(qsb, elementType);
+            }
+            return new PartList<>(list, total == null ? list.size() : total);
+        }
     }
 
     /** 分页/排序对象的通用字段 **/

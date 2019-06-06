@@ -13,6 +13,7 @@ import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.model.ordering.OrderPaging;
 import com.gitee.qdbp.able.model.ordering.Ordering;
+import com.gitee.qdbp.able.model.paging.PageList;
 import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.api.BaseCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
@@ -23,8 +24,9 @@ import com.gitee.qdbp.jdbc.condition.DbWhere.EmptyDbWhere;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -40,16 +42,20 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
     private static Logger log = LoggerFactory.getLogger(BaseCrudDaoImpl.class);
 
     private Class<T> clazz;
-    private SqlBuilder sqlBuilder;
+    private String tableName;
+    private PrimaryKey primaryKey;
+    private CrudFragmentBuilder sqlBuilder;
     private ModelDataExecutor modelDataExecutor;
-    private SqlBufferJdbcOperations baseJdbcOperations;
+    private SqlBufferJdbcOperations jdbc;
 
-    BaseCrudDaoImpl(Class<T> clazz, SqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+    BaseCrudDaoImpl(Class<T> clazz, CrudFragmentBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
             SqlBufferJdbcOperations baseJdbcOperations) {
         this.clazz = clazz;
+        this.tableName = DbTools.parseTableName(clazz);
+        this.primaryKey = DbTools.parsePrimaryKey(clazz);
         this.sqlBuilder = sqlBuilder;
         this.modelDataExecutor = modelDataExecutor;
-        this.baseJdbcOperations = baseJdbcOperations;
+        this.jdbc = baseJdbcOperations;
     }
 
     @Override
@@ -58,7 +64,7 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
             throw new IllegalArgumentException("id is null");
         }
 
-        String primaryField = sqlBuilder.getPrimaryKey().getFieldName();
+        String primaryField = primaryKey.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "=", id);
         return this.find(where);
@@ -73,11 +79,11 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         buffer.append(' ', sqlBuilder.buildWhereSql(where));
 
-        Map<String, Object> map = baseJdbcOperations.queryForMap(buffer);
+        Map<String, Object> map = jdbc.queryForMap(buffer);
         return map == null ? null : DbTools.resultToBean(map, clazz);
     }
 
@@ -94,18 +100,18 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         // SELECT ... FROM
         buffer.append("SELECT");
         buffer.append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         buffer.append(' ', sqlBuilder.buildWhereSql(where));
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
         }
 
-        return baseJdbcOperations.queryForList(buffer, clazz);
+        return jdbc.queryForList(buffer, clazz);
     }
 
     @Override
-    public PartList<T> list(DbWhere where, OrderPaging odpg) {
+    public PageList<T> list(DbWhere where, OrderPaging odpg) {
         // DbWhere readyWhere = checkWhere(where); // 带分页查询列表, 允许条件为空, 因此不检查
         DbWhere readyWhere = where;
         if (where == null || where instanceof EmptyDbWhere) {
@@ -118,11 +124,11 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         return this.doList(wsb, odpg);
     }
 
-    private PartList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
+    private PageList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
         SqlBuffer qsb = new SqlBuffer();
         // SELECT ... FROM
         qsb.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        qsb.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        qsb.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         qsb.append(' ', wsb);
 
@@ -135,12 +141,13 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         SqlBuffer csb = new SqlBuffer();
         if (odpg.isPaging() && odpg.isNeedCount()) {
             // SELECT COUNT(*) FROM
-            csb.append("SELECT").append(' ', "COUNT(*)").append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+            csb.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlBuilder.buildFromSql());
             // WHERE ...
             csb.append(' ', wsb);
         }
 
-        return baseJdbcOperations.queryForList(qsb, csb, odpg, sqlBuilder.getDialect(), clazz);
+        PartList<T> list = DbTools.queryForList(jdbc, qsb, csb, odpg, clazz);
+        return list == null ? null : new PageList<T>(list, list.getTotal());
     }
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
@@ -167,14 +174,14 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
             buffer.append("DISTINCT", ' ');
         }
         buffer.append(sqlBuilder.buildFieldsSql(fieldName));
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         buffer.append(' ', sqlBuilder.buildWhereSql(where));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
         }
-        return baseJdbcOperations.query(buffer, new FirstColumnMapper<>(valueClazz));
+        return jdbc.query(buffer, new FirstColumnMapper<>(valueClazz));
     }
 
     @Override
@@ -197,9 +204,10 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
     private List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) throws ServiceException {
         Set<String> selectFields = sqlBuilder.getFieldColumnMap().keySet();
-        final SqlBuffer buffer = sqlBuilder.getDialect().buildFindChildrenSql(startCodes, codeField, parentField,
-            selectFields, where, orderings, sqlBuilder);
-        return baseJdbcOperations.queryForList(buffer, clazz);
+        SqlDialect dialect = DbTools.getSqlDialect();
+        SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
+            orderings, sqlBuilder);
+        return jdbc.queryForList(buffer, clazz);
     }
 
     @Override
@@ -226,9 +234,10 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
     private List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
             DbWhere where, List<Ordering> orderings) throws ServiceException {
         Set<String> selectFields = ConvertTools.toSet(codeField);
-        SqlBuffer buffer = sqlBuilder.getDialect().buildFindChildrenSql(startCodes, codeField, parentField,
-            selectFields, where, orderings, sqlBuilder);
-        return baseJdbcOperations.query(buffer, FIRST_COLUMN_STRING_MAPPER);
+        SqlDialect dialect = DbTools.getSqlDialect();
+        SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
+            orderings, sqlBuilder);
+        return jdbc.query(buffer, FIRST_COLUMN_STRING_MAPPER);
     }
 
     @Override
@@ -241,11 +250,11 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
     private int doCount(DbWhere readyWhere) throws ServiceException {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ...
-        buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         buffer.append(' ', sqlBuilder.buildWhereSql(readyWhere));
 
-        return baseJdbcOperations.queryForObject(buffer, Integer.class);
+        return jdbc.queryForObject(buffer, Integer.class);
     }
 
     @Override
@@ -267,13 +276,13 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         // SELECT ... FROM
         buffer.append("SELECT");
         buffer.append(' ', fields).append(',').append("COUNT(*)");
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
         buffer.append(' ', sqlBuilder.buildWhereSql(readyWhere));
         // GROUP BY ...
         buffer.append(' ', "GROUP BY").append(' ', fields);
 
-        List<KeyValue<Integer>> list = baseJdbcOperations.query(buffer, KEY_INTEGER_MAPPER);
+        List<KeyValue<Integer>> list = jdbc.query(buffer, KEY_INTEGER_MAPPER);
         return KeyValue.toMap(list);
     }
 
@@ -330,10 +339,9 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
             throw new IllegalArgumentException("entity can't be empty");
         }
 
-        String tableName = sqlBuilder.getTableName();
         String id = null;
         // 通过注解查找主键生成方式
-        PrimaryKey pk = sqlBuilder.getPrimaryKey();
+        PrimaryKey pk = this.primaryKey;
         if (pk == null) {
             log.debug("PrimaryKeyInfoNotFound, class={}", entity.getClass());
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
@@ -362,7 +370,7 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         buffer.append(valuesSqlBuffer);
         buffer.append(')');
 
-        baseJdbcOperations.update(buffer);
+        jdbc.update(buffer);
         return id;
     }
 
@@ -372,9 +380,9 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
 
         DbWhere where = new DbWhere();
         // 查找主键
-        PrimaryKey pk = sqlBuilder.getPrimaryKey();
+        PrimaryKey pk = this.primaryKey;
         if (pk == null) {
-            log.debug("PrimaryKeyAnnotationNotFound, class={}", entity.getClass());
+            log.debug("PrimaryKeyNotFound, class={}", clazz);
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND);
         }
         List<DbField> temp = readyEntity.fields(pk.getFieldName());
@@ -435,14 +443,14 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
 
     private int doUpdate(DbUpdate readyEntity, DbWhere readyWhere, boolean errorOnUnaffected) throws ServiceException {
         SqlBuffer buffer = new SqlBuffer();
-        buffer.append("UPDATE").append(' ', sqlBuilder.getTableName());
+        buffer.append("UPDATE").append(' ', tableName);
         buffer.append(' ', sqlBuilder.buildUpdateSetSql(readyEntity));
 
         if (VerifyTools.isNotBlank(readyWhere)) {
             buffer.append(' ', sqlBuilder.buildWhereSql(readyWhere));
         }
 
-        int rows = baseJdbcOperations.update(buffer);
+        int rows = jdbc.update(buffer);
 
         if (rows == 0) {
             String desc = "Failed to update, affected rows is 0. ";
@@ -466,8 +474,13 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         if (VerifyTools.isBlank(ids)) {
             throw new IllegalArgumentException("ids can't be empty");
         }
+        PrimaryKey pk = this.primaryKey;
+        if (pk == null) {
+            log.debug("PrimaryKeyNotFound, class={}", clazz);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND);
+        }
 
-        String primaryField = sqlBuilder.getPrimaryKey().getFieldName();
+        String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
         modelDataExecutor.fillDataEffectiveFlag(where);
@@ -497,8 +510,13 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
         if (VerifyTools.isBlank(ids)) {
             throw new IllegalArgumentException("ids can't be empty");
         }
+        PrimaryKey pk = this.primaryKey;
+        if (pk == null) {
+            log.debug("PrimaryKeyNotFound, class={}", clazz);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND);
+        }
 
-        String primaryField = sqlBuilder.getPrimaryKey().getFieldName();
+        String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
         return this.doDelete(where, true, false, errorOnUnaffected);
@@ -528,17 +546,17 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
                 if (fillUpdateParams) {
                     modelDataExecutor.fillUpdateParams(ud);
                 }
-                buffer.append("UPDATE").append(' ', sqlBuilder.getTableName());
+                buffer.append("UPDATE").append(' ', tableName);
                 buffer.append(' ', sqlBuilder.buildUpdateSetSql(ud));
             } else { // 不支持逻辑删除
                 throw new ServiceException(DbErrorCode.UNSUPPORTED_LOGICAL_DELETE);
             }
         } else {
-            buffer.append("DELETE").append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+            buffer.append("DELETE").append(' ', "FROM").append(' ', tableName);
         }
         buffer.append(' ', sqlBuilder.buildWhereSql(readyWhere));
 
-        int rows = baseJdbcOperations.update(buffer);
+        int rows = jdbc.update(buffer);
 
         if (rows == 0) {
             String desc = "Failed to delete, affected rows is 0. ";

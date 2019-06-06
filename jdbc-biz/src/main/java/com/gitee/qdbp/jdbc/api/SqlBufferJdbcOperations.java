@@ -11,10 +11,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import com.gitee.qdbp.able.model.paging.Paging;
-import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlDialect;
 
 /**
  * SqlBuffer数据库操作类<br>
@@ -147,35 +144,6 @@ public interface SqlBufferJdbcOperations {
      * @see org.springframework.jdbc.core.JdbcTemplate#queryForList(String)
      */
     List<Map<String, Object>> queryForList(SqlBuffer sb) throws DataAccessException;
-
-    /**
-     * 分页查询
-     * 
-     * @param qsb 数据查询SQL语句
-     * @param csb 总数统计SQL语句
-     * @param paging 分页条件
-     * @param dialect 数据库方言处理类
-     * @return a PartList that contains a Map per row and total rows.
-     * @throws DataAccessException if the query fails
-     */
-    PartList<Map<String, Object>> queryForList(SqlBuffer qsb, SqlBuffer csb, Paging paging, SqlDialect dialect)
-            throws DataAccessException;
-    
-    /**
-     * 分页查询
-     * 
-     * @param qsb 数据查询SQL语句
-     * @param csb 总数统计SQL语句
-     * @param paging 分页条件
-     * @param dialect 数据库方言处理类
-     * @param elementType the required type of element in the result list
-     * (for example, {@code Integer.class})
-     * @return a PartList that contains a Map per row and total rows.
-     * @throws DataAccessException if the query fails
-     * @see com.gitee.qdbp.jdbc.utils.DbTools#mapToJavaBean(Map, Class)
-     */
-    <T> PartList<T> queryForList(SqlBuffer qsb, SqlBuffer csb, Paging paging, SqlDialect dialect, Class<T> elementType)
-            throws DataAccessException;
 
     /**
      * Query given SQL to create a prepared statement from SQL and a

@@ -7,8 +7,10 @@ import com.gitee.qdbp.jdbc.api.BaseCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
-import com.gitee.qdbp.jdbc.sql.SqlDialect;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -24,7 +26,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
     private Map<Class<?>, BaseCrudDao<?>> daoCache = new HashMap<>();
-    private Map<Class<?>, SqlBuilder> sqlBuilderCache = new HashMap<>();
+    private Map<Class<?>, CrudFragmentBuilder> sqlBuilderCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
@@ -33,7 +35,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
         if (daoCache.containsKey(clazz)) {
             return (BaseCrudDao<T>) daoCache.get(clazz);
         } else {
-            SqlBuilder sqlBuilder = buildSqlBuilder(clazz);
+            CrudFragmentBuilder sqlBuilder = buildSqlBuilder(clazz);
             ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
             BaseCrudDao<T> instance = new BaseCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
             daoCache.put(clazz, instance);
@@ -45,17 +47,17 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
     public SqlDialect buildDialect() {
         if (sqlDialect == null) {
             DbVersion dbVersion = findDbVersion();
-            sqlDialect = new SqlDialect(dbVersion);
+            sqlDialect = new SimpleSqlDialect(dbVersion);
         }
         return sqlDialect;
     }
 
     @Override
-    public SqlBuilder buildSqlBuilder(Class<?> clazz) {
+    public CrudFragmentBuilder buildSqlBuilder(Class<?> clazz) {
         if (sqlBuilderCache.containsKey(clazz)) {
             return sqlBuilderCache.get(clazz);
         } else {
-            SqlBuilder instance = new SqlBuilder(clazz, buildDialect());
+            CrudFragmentBuilder instance = new TableCrudFragmentBuilder(clazz, buildDialect());
             sqlBuilderCache.put(clazz, instance);
             return instance;
         }

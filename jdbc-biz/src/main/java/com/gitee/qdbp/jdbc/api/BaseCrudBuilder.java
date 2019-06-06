@@ -1,8 +1,8 @@
 package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
-import com.gitee.qdbp.jdbc.sql.SqlDialect;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
 
 /**
  * 基础增删改查对象的构造器<br>
@@ -39,8 +39,8 @@ public interface BaseCrudBuilder {
     /** 使用默认的数据库类型构造数据库言处理类 **/
     SqlDialect buildDialect();
 
-    /** 使用默认的数据库类型构造SQL帮助类 **/
-    SqlBuilder buildSqlBuilder(Class<?> clazz);
+    /** 构造SQL帮助类 **/
+    CrudFragmentBuilder buildSqlBuilder(Class<?> clazz);
 
     /** 根据数据源查找数据库信息 **/
     DbVersion findDbVersion();

@@ -5,7 +5,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.model.ordering.OrderPaging;
 import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.able.model.paging.PartList;
+import com.gitee.qdbp.able.model.paging.PageList;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 
@@ -68,7 +68,7 @@ public interface BaseCrudDao<T> {
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @return 列表数据
      */
-    PartList<T> list(DbWhere where, OrderPaging odpg) throws ServiceException;
+    PageList<T> list(DbWhere where, OrderPaging odpg) throws ServiceException;
 
     /**
      * 主要功能: 根据条件查询某个字段的值<br>
