@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import com.gitee.qdbp.able.model.db.OrderByCondition;
 import com.gitee.qdbp.able.model.db.WhereCondition;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 
 /**
  * 自定义插件容器
@@ -17,7 +15,7 @@ public class DbPluginContainer {
 
     public static final DbPluginContainer global = new DbPluginContainer();
 
-    private SqlFormatter sqlFormatter = new SimpleSqlFormatter();
+    private SqlFormatter sqlFormatter;
 
     public void registerSqlFormatter(SqlFormatter sqlFormatter) {
         this.sqlFormatter = sqlFormatter;
@@ -27,7 +25,17 @@ public class DbPluginContainer {
         return sqlFormatter;
     }
 
-    private TableInfoScans tableInfoScans = new SimpleTableInfoScans();
+    private SqlDialect SqlDialect;
+
+    public void registerSqlDialect(SqlDialect SqlDialect) {
+        this.SqlDialect = SqlDialect;
+    }
+
+    public SqlDialect getSqlDialect() {
+        return SqlDialect;
+    }
+
+    private TableInfoScans tableInfoScans;
 
     public void registerTableInfoScans(TableInfoScans tableInfoScans) {
         this.tableInfoScans = tableInfoScans;
@@ -69,6 +77,7 @@ public class DbPluginContainer {
 
     @SuppressWarnings("unchecked")
     public <T extends WhereCondition, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<T> type) {
+        // JDK8+
         // public <T extends WhereCondition, C extends T, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<C> type) {
         for (WhereSqlBuilder<? extends WhereCondition> item : whereSqlBuilders) {
             if (item.supported() == type) {
