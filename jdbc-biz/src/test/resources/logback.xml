@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<configuration>
+	<!-- %p级别 %m消息 %c.%M包+方法 %F:%L文件+行 -->
+	<property name="pattern"
+		value="%d{yyyy-MM-dd HH:mm:ss.SSS} | %p | %m | %thread | %c.%M | %F:%L %n" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder charset="UTF-8">
+			<pattern>${pattern}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- 业务日志记录  -->
+	<logger name="com.gitee.qdbp" level="DEBUG" additivity="true">
+		<appender-ref ref="ASYNC" />
+	</logger>
+
+	<root level="INFO">
+		<!-- 控制台输出 -->
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>
