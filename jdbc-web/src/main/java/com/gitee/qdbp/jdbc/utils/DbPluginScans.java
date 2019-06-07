@@ -10,7 +10,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-import com.gitee.qdbp.jdbc.biz.CoreJdbcFactoryImpl;
+import com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.OrderBySqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
@@ -20,7 +20,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 public class DbPluginScans implements ApplicationContextAware {
 
     /** 日志对象 **/
-    private static final Logger log = LoggerFactory.getLogger(CoreJdbcFactoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(CoreJdbcBootImpl.class);
 
     private ApplicationContext context;
 

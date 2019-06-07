@@ -2,8 +2,8 @@ package com.gitee.qdbp.jdbc.biz;
 
 import java.util.HashMap;
 import java.util.Map;
-import com.gitee.qdbp.jdbc.api.CoreJdbcFactory;
-import com.gitee.qdbp.jdbc.api.CrudDao;
+import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
+import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -20,26 +20,26 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190601
  */
-public class CoreJdbcFactoryImpl implements CoreJdbcFactory {
+public class CoreJdbcBootImpl implements CoreJdbcBoot {
 
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
-    private Map<Class<?>, CrudDao<?>> daoCache = new HashMap<>();
+    private Map<Class<?>, EasyCrudDao<?>> daoCache = new HashMap<>();
     private Map<Class<?>, CrudFragmentHelper> crudHelperCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
     @SuppressWarnings("unchecked")
-    public <T> CrudDao<T> buildCrudDao(Class<T> clazz) {
+    public <T> EasyCrudDao<T> buildCrudDao(Class<T> clazz) {
         if (daoCache.containsKey(clazz)) {
-            return (CrudDao<T>) daoCache.get(clazz);
+            return (EasyCrudDao<T>) daoCache.get(clazz);
         } else {
             CrudFragmentHelper sqlHelper = buildSqlFragmentHelper(clazz);
             CrudSqlBuilder sqlBuilder = new CrudSqlBuilder(sqlHelper);
             ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
-            CrudDao<T> instance = new SimpleCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
+            EasyCrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
             daoCache.put(clazz, instance);
             return instance;
         }

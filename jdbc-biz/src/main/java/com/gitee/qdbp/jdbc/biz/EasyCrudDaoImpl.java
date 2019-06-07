@@ -11,7 +11,7 @@ import com.gitee.qdbp.able.model.ordering.OrderPaging;
 import com.gitee.qdbp.able.model.ordering.Ordering;
 import com.gitee.qdbp.able.model.paging.PageList;
 import com.gitee.qdbp.able.model.paging.PartList;
-import com.gitee.qdbp.jdbc.api.CrudDao;
+import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.DbField;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
@@ -37,16 +37,16 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class SimpleCrudDaoImpl<T> implements CrudDao<T> {
+public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
-    private static Logger log = LoggerFactory.getLogger(SimpleCrudDaoImpl.class);
+    private static Logger log = LoggerFactory.getLogger(EasyCrudDaoImpl.class);
 
     private Class<T> clazz;
     private CrudSqlBuilder sqlBuilder;
     private ModelDataExecutor modelDataExecutor;
     private SqlBufferJdbcOperations jdbc;
 
-    SimpleCrudDaoImpl(Class<T> clazz, CrudSqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+    EasyCrudDaoImpl(Class<T> clazz, CrudSqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
             SqlBufferJdbcOperations baseJdbcOperations) {
         this.clazz = clazz;
         this.sqlBuilder = sqlBuilder;

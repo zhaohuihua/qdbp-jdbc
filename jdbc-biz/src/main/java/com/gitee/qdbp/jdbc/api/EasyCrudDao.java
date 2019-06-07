@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.condition.DbWhere;
  * @author 赵卉华
  * @version 190601
  */
-public interface CrudDao<T> {
+public interface EasyCrudDao<T> {
 
     /**
      * 主要功能: 根据主键编号获取对象<br>

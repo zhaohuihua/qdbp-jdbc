@@ -10,8 +10,8 @@ import com.gitee.qdbp.able.model.ordering.OrderPaging;
 import com.gitee.qdbp.able.model.ordering.Ordering;
 import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.api.JoinQueryer;
-import com.gitee.qdbp.jdbc.biz.SimpleCrudDaoImpl.FirstColumnMapper;
+import com.gitee.qdbp.jdbc.api.EasyJoinQueryer;
+import com.gitee.qdbp.jdbc.biz.EasyCrudDaoImpl.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.condition.DbWhere.EmptyDbWhere;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -27,16 +27,16 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190606
  */
-public class SimpleJoinQueryerImpl implements JoinQueryer {
+public class EasyJoinQueryerImpl implements EasyJoinQueryer {
 
-    private static Logger log = LoggerFactory.getLogger(SimpleJoinQueryerImpl.class);
+    private static Logger log = LoggerFactory.getLogger(EasyJoinQueryerImpl.class);
 
     private TableJoin tables;
     private TableQueryFragmentHelper sqlBuilder;
     private ModelDataExecutor modelDataExecutor;
     private SqlBufferJdbcOperations baseJdbcOperations;
 
-    SimpleJoinQueryerImpl(TableJoin tables, TableQueryFragmentHelper sqlBuilder,
+    EasyJoinQueryerImpl(TableJoin tables, TableQueryFragmentHelper sqlBuilder,
             ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations baseJdbcOperations) {
         this.tables = tables;
         this.sqlBuilder = sqlBuilder;
