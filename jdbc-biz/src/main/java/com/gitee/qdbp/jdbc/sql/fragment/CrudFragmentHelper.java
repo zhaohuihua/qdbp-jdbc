@@ -11,7 +11,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @author zhaohuihua
  * @version 190606
  */
-public interface CrudFragmentBuilder extends QueryFragmentBuilder {
+public interface CrudFragmentHelper extends QueryFragmentHelper {
 
     /**
      * 生成Insert字段值占位符列表SQL语句<br>

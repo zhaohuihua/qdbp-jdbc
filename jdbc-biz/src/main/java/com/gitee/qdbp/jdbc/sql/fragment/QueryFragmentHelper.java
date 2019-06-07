@@ -16,7 +16,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @author zhaohuihua
  * @version 190606
  */
-public interface QueryFragmentBuilder {
+public interface QueryFragmentHelper {
 
     /**
      * DbWhere转换为Where SQL语句

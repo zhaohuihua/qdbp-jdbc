@@ -11,7 +11,7 @@ import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -247,7 +247,7 @@ public class SimpleSqlDialect implements SqlDialect {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentBuilder builder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper builder) {
         DbType dbType = dbVersion.getDbType();
         if (VerifyTools.isBlank(startCodes)) {
             throw new IllegalArgumentException("startCodes can't be blank");
@@ -293,7 +293,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     private SqlBuffer oracleRecursive(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentBuilder sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
@@ -346,7 +346,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     private SqlBuffer normalRecursive(String keyword, List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentBuilder sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
 
         // @formatter:off
         String sqlTemplate = "{keyword} recursive_sub_table(_temp_) AS ( "
@@ -399,7 +399,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     private SqlBuffer productionRecursive(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentBuilder sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
 
         String selectFieldSql = sqlBuilder.buildFieldsSql(selectFields).toString();
         String whereSql = null;

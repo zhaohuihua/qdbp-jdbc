@@ -34,7 +34,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class TableJoinFragmentBuilder implements QueryFragmentBuilder {
+public class TableJoinFragmentHelper implements QueryFragmentHelper {
 
     
     private final List<FieldColumn> columns;
@@ -43,7 +43,7 @@ public class TableJoinFragmentBuilder implements QueryFragmentBuilder {
     private final SqlDialect dialect;
 
     /** 构造函数 **/
-    public TableJoinFragmentBuilder(Class<?> clazz, SqlDialect dialect) {
+    public TableJoinFragmentHelper(Class<?> clazz, SqlDialect dialect) {
         List<FieldColumn> columns = DbTools.parseFieldColumns(clazz);
         if (VerifyTools.isBlank(columns)) {
             throw new IllegalArgumentException("columns is empty");

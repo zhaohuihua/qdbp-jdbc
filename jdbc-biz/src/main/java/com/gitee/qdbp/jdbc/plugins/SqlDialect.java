@@ -6,7 +6,7 @@ import com.gitee.qdbp.able.model.ordering.Ordering;
 import com.gitee.qdbp.able.model.paging.Paging;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 
 /**
  * 数据库方言处理接口
@@ -101,6 +101,6 @@ public interface SqlDialect {
      * @return SQL语句
      */
     SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentBuilder builder);
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper builder);
 
 }

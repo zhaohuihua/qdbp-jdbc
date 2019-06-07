@@ -3,7 +3,7 @@ package com.gitee.qdbp.jdbc.plugins;
 import com.gitee.qdbp.able.model.db.OrderByCondition;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 
 /**
  * OrderBy SQL Builder
@@ -28,5 +28,5 @@ public interface OrderBySqlBuilder<T extends OrderByCondition> {
      * @return SQL语句
      * @throws UnsupportedFieldExeption
      */
-    SqlBuffer buildSql(T condition, QueryFragmentBuilder sqlBuilder) throws UnsupportedFieldExeption;
+    SqlBuffer buildSql(T condition, QueryFragmentHelper sqlBuilder) throws UnsupportedFieldExeption;
 }

@@ -26,7 +26,7 @@ import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -44,11 +44,11 @@ public class BaseCrudDaoImpl<T> implements BaseCrudDao<T> {
     private Class<T> clazz;
     private String tableName;
     private PrimaryKey primaryKey;
-    private CrudFragmentBuilder sqlBuilder;
+    private CrudFragmentHelper sqlBuilder;
     private ModelDataExecutor modelDataExecutor;
     private SqlBufferJdbcOperations jdbc;
 
-    BaseCrudDaoImpl(Class<T> clazz, CrudFragmentBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+    BaseCrudDaoImpl(Class<T> clazz, CrudFragmentHelper sqlBuilder, ModelDataExecutor modelDataExecutor,
             SqlBufferJdbcOperations baseJdbcOperations) {
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);

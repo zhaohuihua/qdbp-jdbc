@@ -2,7 +2,7 @@ package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
-import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 
 /**
  * 基础增删改查对象的构造器<br>
@@ -40,7 +40,7 @@ public interface BaseCrudBuilder {
     SqlDialect buildDialect();
 
     /** 构造SQL片段帮助类 **/
-    CrudFragmentBuilder buildSqlFragmentBuilder(Class<?> clazz);
+    CrudFragmentHelper buildSqlFragmentHelper(Class<?> clazz);
 
     /** 根据数据源查找数据库信息 **/
     DbVersion findDbVersion();

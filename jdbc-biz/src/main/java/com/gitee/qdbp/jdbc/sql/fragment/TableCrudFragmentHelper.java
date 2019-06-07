@@ -21,14 +21,14 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class TableCrudFragmentBuilder extends TableQueryFragmentBuilder implements CrudFragmentBuilder {
+public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements CrudFragmentHelper {
 
     private final Class<?> clazz;
     private final String tableName;
     private final PrimaryKey primaryKey;
 
     /** 构造函数 **/
-    public TableCrudFragmentBuilder(Class<?> clazz, SqlDialect dialect) {
+    public TableCrudFragmentHelper(Class<?> clazz, SqlDialect dialect) {
         super(DbTools.parseFieldColumns(clazz), dialect);
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);

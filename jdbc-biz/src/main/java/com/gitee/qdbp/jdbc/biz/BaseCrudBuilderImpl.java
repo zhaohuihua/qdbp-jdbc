@@ -9,8 +9,8 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
-import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentBuilder;
-import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -26,7 +26,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
     private Map<Class<?>, BaseCrudDao<?>> daoCache = new HashMap<>();
-    private Map<Class<?>, CrudFragmentBuilder> sqlBuilderCache = new HashMap<>();
+    private Map<Class<?>, CrudFragmentHelper> sqlBuilderCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
@@ -35,7 +35,7 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
         if (daoCache.containsKey(clazz)) {
             return (BaseCrudDao<T>) daoCache.get(clazz);
         } else {
-            CrudFragmentBuilder sqlBuilder = buildSqlFragmentBuilder(clazz);
+            CrudFragmentHelper sqlBuilder = buildSqlFragmentHelper(clazz);
             ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
             BaseCrudDao<T> instance = new BaseCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
             daoCache.put(clazz, instance);
@@ -53,11 +53,11 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
     }
 
     @Override
-    public CrudFragmentBuilder buildSqlFragmentBuilder(Class<?> clazz) {
+    public CrudFragmentHelper buildSqlFragmentHelper(Class<?> clazz) {
         if (sqlBuilderCache.containsKey(clazz)) {
             return sqlBuilderCache.get(clazz);
         } else {
-            CrudFragmentBuilder instance = new TableCrudFragmentBuilder(clazz, buildDialect());
+            CrudFragmentHelper instance = new TableCrudFragmentHelper(clazz, buildDialect());
             sqlBuilderCache.put(clazz, instance);
             return instance;
         }
