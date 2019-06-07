@@ -97,10 +97,10 @@ public interface SqlDialect {
      * @param selectFields 查询字段列表
      * @param where 查询条件
      * @param orderings 排序条件
-     * @param builder 生成SQL的帮助类
+     * @param helper 生成SQL片段的帮助类
      * @return SQL语句
      */
     SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper builder);
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper helper);
 
 }

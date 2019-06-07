@@ -2,13 +2,14 @@ package com.gitee.qdbp.jdbc.biz;
 
 import java.util.HashMap;
 import java.util.Map;
-import com.gitee.qdbp.jdbc.api.BaseCrudBuilder;
-import com.gitee.qdbp.jdbc.api.BaseCrudDao;
+import com.gitee.qdbp.jdbc.api.CoreJdbcFactory;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
+import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -19,25 +20,26 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190601
  */
-public class BaseCrudBuilderImpl implements BaseCrudBuilder {
+public class CoreJdbcFactoryImpl implements CoreJdbcFactory {
 
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
-    private Map<Class<?>, BaseCrudDao<?>> daoCache = new HashMap<>();
-    private Map<Class<?>, CrudFragmentHelper> sqlBuilderCache = new HashMap<>();
+    private Map<Class<?>, CrudDao<?>> daoCache = new HashMap<>();
+    private Map<Class<?>, CrudFragmentHelper> crudHelperCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
     @SuppressWarnings("unchecked")
-    public <T> BaseCrudDao<T> buildDao(Class<T> clazz) {
+    public <T> CrudDao<T> buildCrudDao(Class<T> clazz) {
         if (daoCache.containsKey(clazz)) {
-            return (BaseCrudDao<T>) daoCache.get(clazz);
+            return (CrudDao<T>) daoCache.get(clazz);
         } else {
-            CrudFragmentHelper sqlBuilder = buildSqlFragmentHelper(clazz);
+            CrudFragmentHelper sqlHelper = buildSqlFragmentHelper(clazz);
+            CrudSqlBuilder sqlBuilder = new CrudSqlBuilder(sqlHelper);
             ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
-            BaseCrudDao<T> instance = new BaseCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
+            CrudDao<T> instance = new SimpleCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
             daoCache.put(clazz, instance);
             return instance;
         }
@@ -54,11 +56,11 @@ public class BaseCrudBuilderImpl implements BaseCrudBuilder {
 
     @Override
     public CrudFragmentHelper buildSqlFragmentHelper(Class<?> clazz) {
-        if (sqlBuilderCache.containsKey(clazz)) {
-            return sqlBuilderCache.get(clazz);
+        if (crudHelperCache.containsKey(clazz)) {
+            return crudHelperCache.get(clazz);
         } else {
             CrudFragmentHelper instance = new TableCrudFragmentHelper(clazz, buildDialect());
-            sqlBuilderCache.put(clazz, instance);
+            crudHelperCache.put(clazz, instance);
             return instance;
         }
     }

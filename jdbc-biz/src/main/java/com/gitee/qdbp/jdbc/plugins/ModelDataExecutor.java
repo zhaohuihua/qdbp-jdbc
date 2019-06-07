@@ -26,7 +26,7 @@ public class ModelDataExecutor {
             throw new IllegalArgumentException("columns is empty");
         }
         this.fieldColumnMap = DbTools.toFieldColumnMap(columns);
-        this.modelDataHandler = DbPluginContainer.global.getModelDataHandler();
+        this.modelDataHandler = DbTools.getModelDataHandler();
     }
 
     public ModelDataExecutor(List<FieldColumn> columns, ModelDataHandler modelDataHandler) {

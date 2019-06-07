@@ -153,11 +153,34 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         return StringTools.concat('.', tableAlias, columnName);
     }
 
-    /**
-     * 通过注解获取主键
-     * 
-     * @return 主键
-     */
+    /** {@inheritDoc} **/
+    @Override
+    public List<String> getFieldNames() {
+        List<String> list = new ArrayList<>();
+        for (FieldColumn item : columns) {
+            list.add(item.getFieldName());
+        }
+        return list;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public List<String> getColumnNames() {
+        List<String> list = new ArrayList<>();
+        for (FieldColumn item : columns) {
+            list.add(item.getColumnName());
+        }
+        return list;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String getTableName() {
+        return tableName;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
     public PrimaryKey getPrimaryKey() {
         return primaryKey;
     }

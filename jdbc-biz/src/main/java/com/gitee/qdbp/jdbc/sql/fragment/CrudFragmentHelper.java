@@ -3,6 +3,7 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -12,6 +13,20 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @version 190606
  */
 public interface CrudFragmentHelper extends QueryFragmentHelper {
+
+    /**
+     * 获取表名
+     * 
+     * @return 表名
+     */
+    String getTableName();
+
+    /**
+     * 获取主键
+     * 
+     * @return 主键, 有可能为空
+     */
+    PrimaryKey getPrimaryKey();
 
     /**
      * 生成Insert字段值占位符列表SQL语句<br>

@@ -165,4 +165,18 @@ public interface QueryFragmentHelper {
      */
     Map<String, String> getColumnFieldMap();
 
+    /**
+     * 获取字段名列表
+     * 
+     * @return 字段名列表
+     */
+    List<String> getFieldNames();
+
+    /**
+     * 获取数据库列名列表
+     * 
+     * @return 列名列表
+     */
+    List<String> getColumnNames();
+
 }
