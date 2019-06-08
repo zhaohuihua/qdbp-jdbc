@@ -13,6 +13,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.jdbc.condition.TableJoin;
+import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
+import com.gitee.qdbp.jdbc.condition.TableJoin.TableItem;
+import com.gitee.qdbp.jdbc.fields.AllFields;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
@@ -24,6 +28,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -132,6 +137,102 @@ public abstract class DbTools {
         return pk;
     }
 
+    /** TableJoin的列名缓存 **/
+    private static Map<String, List<FieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
+
+    private static String buildCacheKey(TableJoin tables) {
+        StringBuilder buffer = new StringBuilder();
+        TableItem major = tables.getMajor();
+        buffer.append(parseTableName(major.getTableType()));
+        if (VerifyTools.isNotBlank(major.getTableAlias())) {
+            buffer.append(' ').append(major.getTableAlias().toUpperCase());
+        }
+        List<JoinItem> joins = tables.getJoins();
+        if (VerifyTools.isNotBlank(joins)) {
+            for (JoinItem item : joins) {
+                buffer.append('-').append(parseTableName(item.getTableType()));
+                if (VerifyTools.isNotBlank(item.getTableAlias())) {
+                    buffer.append(' ').append(item.getTableAlias().toUpperCase());
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private static List<FieldColumn> scanColumnList(TableItem table) {
+        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        List<FieldColumn> fields = scans.scanColumnList(table.getTableType());
+        String tableAlias = table.getTableAlias();
+        if (VerifyTools.isNotBlank(tableAlias)) {
+            for (FieldColumn item : fields) {
+                item.setTableAlias(tableAlias);
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * 扫描获取字段名和数据库列名的映射表
+     * 
+     * @param tables 表关联对象
+     * @return AllFields: fieldName - columnName
+     */
+    public static List<FieldColumn> parseFieldColumns(TableJoin tables) {
+        if (tables == null) {
+            throw new IllegalArgumentException("tables is null");
+        }
+        String cacheKey = buildCacheKey(tables);
+        if (joinColumnsCache.containsKey(cacheKey)) {
+            return joinColumnsCache.get(cacheKey);
+        }
+        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        TableItem major = tables.getMajor();
+        List<JoinItem> joins = tables.getJoins();
+        List<FieldColumn> all = new ArrayList<>();
+        { // 添加主表的字段
+            List<FieldColumn> fields = scanColumnList(major);
+            all.addAll(fields);
+        }
+        if (VerifyTools.isNotBlank(joins)) {
+            // 添加关联表的字段
+            for (JoinItem item : joins) {
+                List<FieldColumn> fields = scans.scanColumnList(item.getTableType());
+                all.addAll(fields);
+            }
+        }
+        // 处理重名字段: 设置columnAlias
+        // 1.先统计字段出现次数
+        Map<String, Integer> countMaps = new HashMap<>();
+        for (FieldColumn field : all) {
+            String fieldName = field.getFieldName();
+            if (countMaps.containsKey(fieldName)) {
+                countMaps.put(fieldName, countMaps.get(fieldName) + 1);
+            } else {
+                countMaps.put(fieldName, 1);
+            }
+        }
+        // 2.如果出现多次则设置columnAlias=tableAlias_columnName
+        for (FieldColumn field : all) {
+            String fieldName = field.getFieldName();
+            if (countMaps.get(fieldName) > 1) {
+                String columnAlias = StringTools.concat('_', field.getTableAlias(), field.getColumnName());
+                field.setColumnAlias(columnAlias);
+            }
+        }
+        joinColumnsCache.put(cacheKey, all);
+        return all;
+    }
+
+    /**
+     * 扫描获取字段名和数据库列名的映射表
+     * 
+     * @param tables 表关联对象
+     * @return AllFields: fieldName - columnName
+     */
+    public static AllFields parseToAllFields(TableJoin tables) {
+        return new AllFields(parseFieldColumns(tables));
+    }
+
     /** Entity的列名缓存 **/
     private static Map<Class<?>, List<FieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
 
@@ -153,6 +254,16 @@ public abstract class DbTools {
         List<FieldColumn> all = scans.scanColumnList(clazz);
         entityColumnsCache.put(clazz, all);
         return all;
+    }
+
+    /**
+     * 扫描获取字段名和数据库列名的映射表
+     * 
+     * @param clazz 类型
+     * @return AllFields: fieldName - columnName
+     */
+    public static AllFields parseToAllFields(Class<?> clazz) {
+        return new AllFields(parseFieldColumns(clazz));
     }
 
     /**
