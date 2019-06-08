@@ -6,8 +6,7 @@ import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
-import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
-import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
  * 基础表连接查询操作
@@ -17,9 +16,8 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
  */
 public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJoinQuery<T>  {
 
-    EasyJoinQueryImpl(TableJoin tables, Class<T> resultType, QuerySqlBuilder sqlBuilder,
-            ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations jdbcOperations) {
-        super(resultType, sqlBuilder, modelDataExecutor, jdbcOperations);
+    EasyJoinQueryImpl(TableJoin tables, Class<T> resultType, SqlBufferJdbcOperations jdbcOperations) {
+        super(resultType, DbTools.getCrudSqlBuilder(tables), DbTools.getModelDataExecutor(tables), jdbcOperations);
         List<JoinItem> joins = tables.getJoins();
         for (JoinItem item : joins) {
             modelDataExecutor.fillDataEffectiveFlag(item.getWhere());

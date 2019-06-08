@@ -14,7 +14,6 @@ import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
-import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -36,12 +35,11 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
 
     private Class<T> clazz;
 
-    EasyCrudDaoImpl(Class<T> clazz, CrudSqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
-            SqlBufferJdbcOperations jdbcOperations) {
-        super(clazz, sqlBuilder, modelDataExecutor, jdbcOperations);
+    EasyCrudDaoImpl(Class<T> clazz, SqlBufferJdbcOperations jdbcOperations) {
+        super(clazz, DbTools.getCrudSqlBuilder(clazz), DbTools.getModelDataExecutor(clazz), jdbcOperations);
         this.clazz = clazz;
     }
-    
+
     private CrudSqlBuilder builder() {
         return (CrudSqlBuilder) this.sqlBuilder;
     }

@@ -4,12 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
+import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
-import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
-import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -23,32 +21,32 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private DbVersion dbVersion;
-    private Map<Class<?>, EasyCrudDao<?>> daoCache = new HashMap<>();
-    private Map<Class<?>, CrudFragmentHelper> crudHelperCache = new HashMap<>();
+    private Map<Class<?>, EasyCrudDao<?>> crudDaoCache = new HashMap<>();
+    private Map<String, EasyJoinQuery<?>> joinQueryCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
     @SuppressWarnings("unchecked")
     public <T> EasyCrudDao<T> buildCrudDao(Class<T> clazz) {
-        if (daoCache.containsKey(clazz)) {
-            return (EasyCrudDao<T>) daoCache.get(clazz);
+        if (crudDaoCache.containsKey(clazz)) {
+            return (EasyCrudDao<T>) crudDaoCache.get(clazz);
         } else {
-            CrudFragmentHelper sqlHelper = buildSqlFragmentHelper(clazz);
-            CrudSqlBuilder sqlBuilder = new CrudSqlBuilder(sqlHelper);
-            ModelDataExecutor modelExecutor = new ModelDataExecutor(clazz);
-            EasyCrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBuilder, modelExecutor, sqlBufferJdbcOperations);
-            daoCache.put(clazz, instance);
+            EasyCrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
+            crudDaoCache.put(clazz, instance);
             return instance;
         }
     }
 
+    /** {@inheritDoc} **/
     @Override
-    public CrudFragmentHelper buildSqlFragmentHelper(Class<?> clazz) {
-        if (crudHelperCache.containsKey(clazz)) {
-            return crudHelperCache.get(clazz);
+    @SuppressWarnings("unchecked")
+    public <T> EasyJoinQuery<T> buildJoinQuery(TableJoin tables, Class<T> resultType) {
+        String cacheKey = DbTools.buildCacheKey(tables);
+        if (joinQueryCache.containsKey(cacheKey)) {
+            return (EasyJoinQuery<T>) joinQueryCache.get(cacheKey);
         } else {
-            CrudFragmentHelper instance = new TableCrudFragmentHelper(clazz);
-            crudHelperCache.put(clazz, instance);
+            EasyJoinQuery<T> instance = new EasyJoinQueryImpl<>(tables, resultType, sqlBufferJdbcOperations);
+            joinQueryCache.put(cacheKey, instance);
             return instance;
         }
     }

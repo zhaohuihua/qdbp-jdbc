@@ -22,11 +22,17 @@ import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.TableJoinFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -43,12 +49,42 @@ public abstract class DbTools {
     private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
 
     /**
-     * 获取实体业务处理接口
+     * 获取实体业务执行接口
      * 
-     * @return 实体业务处理类
+     * @param clazz
+     * @return 实体业务执行类
      */
-    public static ModelDataHandler getModelDataHandler() {
-        return DbPluginContainer.global.getModelDataHandler();
+    public static ModelDataExecutor getModelDataExecutor(Class<?> clazz) {
+        List<FieldColumn> columns = parseFieldColumns(clazz);
+        if (VerifyTools.isBlank(columns)) {
+            throw new IllegalArgumentException("columns is empty");
+        }
+        ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
+        return new ModelDataExecutor(columns, handler);
+    }
+
+    /**
+     * 获取实体业务执行接口
+     * 
+     * @return 实体业务执行类
+     */
+    public static ModelDataExecutor getModelDataExecutor(TableJoin tables) {
+        List<FieldColumn> columns = parseFieldColumns(tables);
+        if (VerifyTools.isBlank(columns)) {
+            throw new IllegalArgumentException("columns is empty");
+        }
+        ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
+        return new ModelDataExecutor(columns, handler);
+    }
+
+    public static CrudSqlBuilder getCrudSqlBuilder(Class<?> clazz) {
+        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz);
+        return new CrudSqlBuilder(sqlHelper);
+    }
+
+    public static QuerySqlBuilder getCrudSqlBuilder(TableJoin tables) {
+        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables);
+        return new QuerySqlBuilder(sqlHelper);
     }
 
     /**
@@ -140,7 +176,7 @@ public abstract class DbTools {
     /** TableJoin的列名缓存 **/
     private static Map<String, List<FieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
 
-    private static String buildCacheKey(TableJoin tables) {
+    public static String buildCacheKey(TableJoin tables) {
         StringBuilder buffer = new StringBuilder();
         TableItem major = tables.getMajor();
         buffer.append(parseTableName(major.getTableType()));

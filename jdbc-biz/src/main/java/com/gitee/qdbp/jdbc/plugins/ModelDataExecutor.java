@@ -6,7 +6,6 @@ import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 实体业务处理接口<br>
@@ -20,20 +19,11 @@ public class ModelDataExecutor {
     private Map<String, String> fieldColumnMap;
     private ModelDataHandler modelDataHandler;
 
-    public ModelDataExecutor(Class<?> clazz) {
-        List<FieldColumn> columns = DbTools.parseFieldColumns(clazz);
-        if (VerifyTools.isBlank(columns)) {
-            throw new IllegalArgumentException("columns is empty");
-        }
-        this.fieldColumnMap = DbTools.toFieldColumnMap(columns);
-        this.modelDataHandler = DbTools.getModelDataHandler();
-    }
-
     public ModelDataExecutor(List<FieldColumn> columns, ModelDataHandler modelDataHandler) {
         this.fieldColumnMap = DbTools.toFieldColumnMap(columns);
         this.modelDataHandler = modelDataHandler;
     }
-    
+
     /** 生成主键编号 **/
     public String generatePrimaryKeyCode(String tableName) {
         return modelDataHandler.generatePrimaryKeyCode(tableName);
