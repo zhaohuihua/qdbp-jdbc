@@ -14,13 +14,13 @@ import com.gitee.qdbp.tools.utils.NamingTools;
  * 我觉得应该是新建一个结果类, 有SysUser user, SysUserRole userRole, SysRole role三个字段(子对象), 分别保存来自三个表的查询结果!<br>
  * 如果查询结果不需要关注SYS_USER_ROLE这个关联表, 也可以建SysUser user, SysRole role两个字段(子对象)的类来保存查询结果<br>
  * 实现思路:<br>
- * 增加一个参数owner, 用于指定表数据保存至结果类的哪个子对象<br>
+ * 增加一个参数resultField, 用于指定表数据保存至结果类的哪个字段(子对象)<br>
  * 生成的查询语句的查询字段, 对于重名字段加上表别名作为前缀, 生成列别名, 如U_ID, U_REMARK, UR_ID, UR_REMARK, R_ID, R_REMARK<br>
- * 查询结果根据列别名找到字段名和表别名; 再根据表别名找到owner, 根据字段名填充数据<br>
+ * 查询结果根据列别名找到字段名和表别名; 再根据表别名找到resultField, 根据字段名填充数据<br>
  * <pre>
  * // 最容易理解的代码写法:
  * new TableJoin(SysUser.class, "u", "user")
- *     .innerJoin(SysUserRole.class, "ur") // 未指定owner, 不会作为查询字段, 也就不会保存查询结果
+ *     .innerJoin(SysUserRole.class, "ur") // 未指定resultField, 不会作为查询字段, 也就不会保存查询结果
  *     .on("u.id", "=", "ur.userId")
  *     .and("ur.dataState", "=", 1)
  *     .innerJoin(SysRole.class, "r", "role")
@@ -42,48 +42,48 @@ public class TableJoin implements Serializable {
     /** 当前关联表 **/
     private JoinItem current;
 
-    public TableJoin(Class<?> clazz, String alias) {
-        this.major = new TableItem(clazz, alias);
+    public TableJoin(Class<?> tableType, String tableAlias) {
+        this.major = new TableItem(tableType, tableAlias);
     }
 
     /** 增加InnerJoin表连接 **/
-    public JoinStart innerJoin(Class<?> clazz, String alias) {
-        return joinStart(clazz, alias, JoinType.InnerJoin);
+    public JoinStart innerJoin(Class<?> tableType, String tableAlias) {
+        return joinStart(tableType, tableAlias, JoinType.InnerJoin);
     }
 
     /** 增加LeftJoin表连接 **/
-    public JoinStart leftJoin(Class<?> clazz, String alias) {
-        return joinStart(clazz, alias, JoinType.LeftJoin);
+    public JoinStart leftJoin(Class<?> tableType, String tableAlias) {
+        return joinStart(tableType, tableAlias, JoinType.LeftJoin);
     }
 
     /** 增加RightJoin表连接 **/
-    public JoinStart rightJoin(Class<?> clazz, String alias) {
-        return joinStart(clazz, alias, JoinType.RightJoin);
+    public JoinStart rightJoin(Class<?> tableType, String tableAlias) {
+        return joinStart(tableType, tableAlias, JoinType.RightJoin);
     }
 
     /** 增加FullJoin表连接 **/
-    public JoinStart fullJoin(Class<?> clazz, String alias) {
-        return joinStart(clazz, alias, JoinType.FullJoin);
+    public JoinStart fullJoin(Class<?> tableType, String tableAlias) {
+        return joinStart(tableType, tableAlias, JoinType.FullJoin);
     }
 
     /** 增加InnerJoin表连接 **/
-    public JoinStart innerJoin(Class<?> clazz, String alias, String owner) {
-        return joinStart(clazz, alias, owner, JoinType.InnerJoin);
+    public JoinStart innerJoin(Class<?> tableType, String tableAlias, String resultField) {
+        return joinStart(tableType, tableAlias, resultField, JoinType.InnerJoin);
     }
 
     /** 增加LeftJoin表连接 **/
-    public JoinStart leftJoin(Class<?> clazz, String alias, String owner) {
-        return joinStart(clazz, alias, owner, JoinType.LeftJoin);
+    public JoinStart leftJoin(Class<?> tableType, String tableAlias, String resultField) {
+        return joinStart(tableType, tableAlias, resultField, JoinType.LeftJoin);
     }
 
     /** 增加RightJoin表连接 **/
-    public JoinStart rightJoin(Class<?> clazz, String alias, String owner) {
-        return joinStart(clazz, alias, owner, JoinType.RightJoin);
+    public JoinStart rightJoin(Class<?> tableType, String tableAlias, String resultField) {
+        return joinStart(tableType, tableAlias, resultField, JoinType.RightJoin);
     }
 
     /** 增加FullJoin表连接 **/
-    public JoinStart fullJoin(Class<?> clazz, String alias, String owner) {
-        return joinStart(clazz, alias, owner, JoinType.FullJoin);
+    public JoinStart fullJoin(Class<?> tableType, String tableAlias, String resultField) {
+        return joinStart(tableType, tableAlias, resultField, JoinType.FullJoin);
     }
 
     /** 主表 **/
@@ -106,13 +106,13 @@ public class TableJoin implements Serializable {
         this.joins = joins;
     }
 
-    protected JoinStart joinStart(Class<?> clazz, String alias, JoinType type) {
-        return this.joinStart(clazz, alias, null, type);
+    protected JoinStart joinStart(Class<?> tableType, String tableAlias, JoinType type) {
+        return this.joinStart(tableType, tableAlias, null, type);
     }
 
-    protected JoinStart joinStart(Class<?> clazz, String alias, String owner, JoinType type) {
+    protected JoinStart joinStart(Class<?> tableType, String tableAlias, String resultField, JoinType type) {
         DbWhere where = new DbWhere();
-        this.current = new JoinItem(clazz, alias, owner, JoinType.InnerJoin, where);
+        this.current = new JoinItem(tableType, tableAlias, resultField, JoinType.InnerJoin, where);
         this.joins.add(this.current);
         return new JoinStart(this);
     }
@@ -130,51 +130,51 @@ public class TableJoin implements Serializable {
         /** serialVersionUID **/
         private static final long serialVersionUID = 1L;
         /** 表类型 **/
-        private Class<?> table;
+        private Class<?> tableType;
         /** 别名 **/
-        private String alias;
-        /** 数据保存至结果类的哪个子对象 **/
-        private String owner;
+        private String tabletableAlias;
+        /** 数据保存至结果类的哪个字段(子对象) **/
+        private String resultField;
 
-        protected TableItem(Class<?> table, String alias) {
-            this.table = table;
-            this.alias = alias;
+        protected TableItem(Class<?> tableType, String tabletableAlias) {
+            this.tableType = tableType;
+            this.tabletableAlias = tabletableAlias;
         }
 
-        protected TableItem(Class<?> table, String alias, String owner) {
-            this.table = table;
-            this.alias = alias;
-            this.owner = owner;
+        protected TableItem(Class<?> tableType, String tabletableAlias, String resultField) {
+            this.tableType = tableType;
+            this.tabletableAlias = tabletableAlias;
+            this.resultField = resultField;
         }
 
         /** 表类型 **/
-        public Class<?> getTable() {
-            return table;
+        public Class<?> getTableType() {
+            return tableType;
         }
 
         /** 表类型 **/
-        public void setTable(Class<?> table) {
-            this.table = table;
+        public void setTableType(Class<?> tableType) {
+            this.tableType = tableType;
         }
 
         /** 别名 **/
-        public String getAlias() {
-            return alias;
+        public String getTableAlias() {
+            return tabletableAlias;
         }
 
         /** 别名 **/
-        public void setAlias(String alias) {
-            this.alias = alias;
+        public void setTableAlias(String tableAlias) {
+            this.tabletableAlias = tableAlias;
         }
 
-        /** 数据保存至结果类的哪个子对象 **/
-        public String getowner() {
-            return owner;
+        /** 数据保存至结果类的哪个字段(子对象) **/
+        public String getResultField() {
+            return resultField;
         }
 
-        /** 数据保存至结果类的哪个子对象 **/
-        public void setowner(String owner) {
-            this.owner = owner;
+        /** 数据保存至结果类的哪个字段(子对象) **/
+        public void setResultField(String resultField) {
+            this.resultField = resultField;
         }
 
     }
@@ -184,30 +184,30 @@ public class TableJoin implements Serializable {
         /** serialVersionUID **/
         private static final long serialVersionUID = 1L;
         /** 连接类型 **/
-        private JoinType type;
+        private JoinType joinType;
         /** 连接条件 **/
         private DbWhere where;
 
-        protected JoinItem(Class<?> clazz, String alias, JoinType type, DbWhere where) {
-            super(clazz, alias);
-            this.type = type;
+        protected JoinItem(Class<?> tableType, String tableAlias, JoinType joinType, DbWhere where) {
+            super(tableType, tableAlias);
+            this.joinType = joinType;
             this.where = where;
         }
 
-        protected JoinItem(Class<?> clazz, String alias, String owner, JoinType type, DbWhere where) {
-            super(clazz, alias, owner);
-            this.type = type;
+        protected JoinItem(Class<?> tableType, String tableAlias, String resultField, JoinType joinType, DbWhere where) {
+            super(tableType, tableAlias, resultField);
+            this.joinType = joinType;
             this.where = where;
         }
 
         /** 连接类型 **/
-        public JoinType getType() {
-            return type;
+        public JoinType getJoinType() {
+            return joinType;
         }
 
         /** 连接类型 **/
-        public void setType(JoinType type) {
-            this.type = type;
+        public void setJoinType(JoinType type) {
+            this.joinType = type;
         }
 
         /** 连接条件 **/
@@ -257,43 +257,43 @@ public class TableJoin implements Serializable {
         }
 
         /** 增加InnerJoin表连接 **/
-        public JoinStart innerJoin(Class<?> clazz, String alias) {
-            return this.join.joinStart(clazz, alias, JoinType.InnerJoin);
+        public JoinStart innerJoin(Class<?> tableType, String tableAlias) {
+            return this.join.joinStart(tableType, tableAlias, JoinType.InnerJoin);
         }
 
         /** 增加LeftJoin表连接 **/
-        public JoinStart leftJoin(Class<?> clazz, String alias) {
-            return this.join.joinStart(clazz, alias, JoinType.LeftJoin);
+        public JoinStart leftJoin(Class<?> tableType, String tableAlias) {
+            return this.join.joinStart(tableType, tableAlias, JoinType.LeftJoin);
         }
 
         /** 增加RightJoin表连接 **/
-        public JoinStart rightJoin(Class<?> clazz, String alias) {
-            return this.join.joinStart(clazz, alias, JoinType.RightJoin);
+        public JoinStart rightJoin(Class<?> tableType, String tableAlias) {
+            return this.join.joinStart(tableType, tableAlias, JoinType.RightJoin);
         }
 
         /** 增加FullJoin表连接 **/
-        public JoinStart fullJoin(Class<?> clazz, String alias) {
-            return this.join.joinStart(clazz, alias, JoinType.FullJoin);
+        public JoinStart fullJoin(Class<?> tableType, String tableAlias) {
+            return this.join.joinStart(tableType, tableAlias, JoinType.FullJoin);
         }
 
         /** 增加InnerJoin表连接 **/
-        public JoinStart innerJoin(Class<?> clazz, String alias, String owner) {
-            return this.join.joinStart(clazz, alias, owner, JoinType.InnerJoin);
+        public JoinStart innerJoin(Class<?> tableType, String tableAlias, String resultField) {
+            return this.join.joinStart(tableType, tableAlias, resultField, JoinType.InnerJoin);
         }
 
         /** 增加LeftJoin表连接 **/
-        public JoinStart leftJoin(Class<?> clazz, String alias, String owner) {
-            return this.join.joinStart(clazz, alias, owner, JoinType.LeftJoin);
+        public JoinStart leftJoin(Class<?> tableType, String tableAlias, String resultField) {
+            return this.join.joinStart(tableType, tableAlias, resultField, JoinType.LeftJoin);
         }
 
         /** 增加RightJoin表连接 **/
-        public JoinStart rightJoin(Class<?> clazz, String alias, String owner) {
-            return this.join.joinStart(clazz, alias, owner, JoinType.RightJoin);
+        public JoinStart rightJoin(Class<?> tableType, String tableAlias, String resultField) {
+            return this.join.joinStart(tableType, tableAlias, resultField, JoinType.RightJoin);
         }
 
         /** 增加FullJoin表连接 **/
-        public JoinStart fullJoin(Class<?> clazz, String alias, String owner) {
-            return this.join.joinStart(clazz, alias, owner, JoinType.FullJoin);
+        public JoinStart fullJoin(Class<?> tableType, String tableAlias, String resultField) {
+            return this.join.joinStart(tableType, tableAlias, resultField, JoinType.FullJoin);
         }
     }
 
