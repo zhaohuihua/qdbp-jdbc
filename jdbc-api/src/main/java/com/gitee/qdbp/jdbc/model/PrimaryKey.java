@@ -21,9 +21,4 @@ public class PrimaryKey extends FieldColumn {
         super(fieldName, columnName);
     }
 
-    /** 构造函数 **/
-    public PrimaryKey(String fieldName, String columnName, String columnText) {
-        super(fieldName, columnName, columnText);
-    }
-
 }
