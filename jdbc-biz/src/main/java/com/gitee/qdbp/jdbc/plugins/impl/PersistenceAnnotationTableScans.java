@@ -94,11 +94,11 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
                 || useMissAnnotationField && primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName);
         if (isPrimaryKey) {
             if (column != null) {
-                return new PrimaryKey(column.getFieldName(), column.getColumnName(), column.getColumnText());
+                return column.to(PrimaryKey.class);
             } else {
                 column = scanColumn(field, clazz);
                 if (column != null) {
-                    return new PrimaryKey(column.getFieldName(), column.getColumnName(), column.getColumnText());
+                    return column.to(PrimaryKey.class);
                 } else {
                     String columnName = fieldName;
                     if (nameConverter != null) {

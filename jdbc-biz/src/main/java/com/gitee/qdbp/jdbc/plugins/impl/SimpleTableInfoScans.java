@@ -64,7 +64,7 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
         String fieldName = field.getName();
         if (primaryKeyMatcher.matches(fieldName)) {
             if (column != null) {
-                return new PrimaryKey(column.getFieldName(), column.getColumnName(), column.getColumnText());
+                return column.to(PrimaryKey.class);
             } else {
                 return new PrimaryKey(fieldName, nameConverter.fieldNameToColumnName(fieldName));
             }
