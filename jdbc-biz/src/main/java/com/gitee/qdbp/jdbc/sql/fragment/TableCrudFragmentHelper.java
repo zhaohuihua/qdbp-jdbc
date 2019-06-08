@@ -11,7 +11,6 @@ import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

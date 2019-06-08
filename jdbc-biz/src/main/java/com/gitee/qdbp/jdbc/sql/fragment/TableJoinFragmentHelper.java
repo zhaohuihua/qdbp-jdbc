@@ -2,13 +2,14 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.Arrays;
 import java.util.List;
+import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
+import com.gitee.qdbp.jdbc.condition.TableJoin.JoinType;
 import com.gitee.qdbp.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -30,7 +31,27 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
     /** {@inheritDoc} **/
     public SqlBuffer buildFromSql(boolean whole) {
         SqlBuffer buffer = new SqlBuffer();
-        buffer.append();
+        // 主表
+        TableItem major = tables.getMajor();
+        buffer.append(DbTools.parseTableName(major.getTableType()));
+        if (VerifyTools.isNotBlank(major.getTableAlias())) {
+            buffer.append(' ').append(major.getTableAlias().toUpperCase());
+        }
+        List<JoinItem> joins = tables.getJoins();
+        if (VerifyTools.isNotBlank(joins)) {
+            for (JoinItem item : joins) { // 关联表
+                JoinType joinType = VerifyTools.nvl(item.getJoinType(), JoinType.InnerJoin);
+                buffer.append(' ').append(joinType.toSqlString()); // 关联类型
+                buffer.append(' ').append(DbTools.parseTableName(item.getTableType()));
+                if (VerifyTools.isNotBlank(item.getTableAlias())) { // 表别名
+                    buffer.append(' ').append(item.getTableAlias().toUpperCase());
+                }
+                DbWhere where = item.getWhere();
+                if (where != null && !where.isEmpty()) { // 关联条件
+                    buffer.append(' ').append("ON").append(buildWhereSql(where, false));
+                }
+            }
+        }
         if (whole) {
             buffer.prepend("FROM", ' ');
         }

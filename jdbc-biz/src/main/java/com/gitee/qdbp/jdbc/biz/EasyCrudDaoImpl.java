@@ -5,29 +5,22 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
-import com.gitee.qdbp.able.model.ordering.OrderPaging;
 import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.able.model.paging.PageList;
-import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.DbField;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.condition.DbWhere.EmptyDbWhere;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
-import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.jdbc.utils.PagingQuery;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -37,27 +30,26 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
+public class EasyCrudDaoImpl<T> extends EasyTableQueryerImpl<T> implements EasyCrudDao<T> {
 
     private static Logger log = LoggerFactory.getLogger(EasyCrudDaoImpl.class);
 
     private Class<T> clazz;
-    private CrudSqlBuilder sqlBuilder;
-    private ModelDataExecutor modelDataExecutor;
-    private SqlBufferJdbcOperations jdbc;
 
     EasyCrudDaoImpl(Class<T> clazz, CrudSqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
-            SqlBufferJdbcOperations baseJdbcOperations) {
+            SqlBufferJdbcOperations jdbcOperations) {
+        super(clazz, sqlBuilder, modelDataExecutor, jdbcOperations);
         this.clazz = clazz;
-        this.sqlBuilder = sqlBuilder;
-        this.modelDataExecutor = modelDataExecutor;
-        this.jdbc = baseJdbcOperations;
+    }
+    
+    private CrudSqlBuilder builder() {
+        return (CrudSqlBuilder) this.sqlBuilder;
     }
 
     @Override
     public T findById(String id) {
         VerifyTools.requireNotBlank(id, "id");
-        PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
+        PrimaryKey pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedFindById, class=" + clazz);
         }
@@ -65,76 +57,6 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
         DbWhere where = new DbWhere();
         where.on(primaryField, "=", id);
         return this.find(where);
-    }
-
-    @Override
-    public T find(DbWhere where) {
-        if (where == null || where.isEmpty()) {
-            throw new IllegalArgumentException("where can't be empty");
-        }
-        modelDataExecutor.fillDataEffectiveFlag(where);
-        SqlBuffer buffer = sqlBuilder.buildFindSql(where);
-        Map<String, Object> map = jdbc.queryForMap(buffer);
-        return map == null ? null : DbTools.resultToBean(map, clazz);
-    }
-
-    @Override
-    public List<T> listAll() {
-        return listAll(null);
-    }
-
-    @Override
-    public List<T> listAll(List<Ordering> orderings) {
-        DbWhere where = new DbWhere();
-        modelDataExecutor.fillDataEffectiveFlag(where);
-        SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
-        return jdbc.queryForList(buffer, clazz);
-    }
-
-    @Override
-    public PageList<T> list(DbWhere where, OrderPaging odpg) {
-        // DbWhere readyWhere = checkWhere(where); // 带分页查询列表, 允许条件为空, 因此不检查
-        DbWhere readyWhere = where;
-        if (where == null || where instanceof EmptyDbWhere) {
-            readyWhere = new DbWhere();
-        }
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
-
-        // WHERE条件
-        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere);
-        return this.doList(wsb, odpg);
-    }
-
-    private PageList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
-        SqlBuffer qsb = sqlBuilder.buildListSql(wsb, odpg.getOrderings());
-        SqlBuffer csb = null;
-        if (odpg.isPaging() && odpg.isNeedCount()) {
-            csb = sqlBuilder.buildCountSql(wsb);
-        }
-
-        PartList<T> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, clazz);
-        return list == null ? null : new PageList<T>(list, list.getTotal());
-    }
-
-    public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
-        DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
-        List<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
-        return VerifyTools.isBlank(list) ? null : list.get(0);
-    }
-
-    @Override
-    public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
-            Class<V> valueClazz) throws ServiceException {
-        DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
-        return doListFieldValues(fieldName, distinct, readyWhere, null, valueClazz);
-    }
-
-    private <V> List<V> doListFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
-            Class<V> valueClazz) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildListFieldValuesSql(fieldName, distinct, where, orderings);
-        return jdbc.query(buffer, new FirstColumnMapper<>(valueClazz));
     }
 
     @Override
@@ -156,12 +78,12 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
     private List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) throws ServiceException {
-        CrudFragmentHelper sqlHelper = sqlBuilder.helper();
+        CrudFragmentHelper sqlHelper = builder().helper();
         List<String> selectFields = sqlHelper.getFieldNames();
         SqlDialect dialect = DbTools.getSqlDialect();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
-        return jdbc.queryForList(buffer, clazz);
+        return jdbc.queryForList(buffer, resultType);
     }
 
     @Override
@@ -187,41 +109,13 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
     private List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
             DbWhere where, List<Ordering> orderings) throws ServiceException {
-        CrudFragmentHelper sqlHelper = sqlBuilder.helper();
+        CrudFragmentHelper sqlHelper = builder().helper();
         Set<String> selectFields = ConvertTools.toSet(codeField);
         SqlDialect dialect = DbTools.getSqlDialect();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
         return jdbc.query(buffer, FIRST_COLUMN_STRING_MAPPER);
     }
-
-    @Override
-    public int count(DbWhere where) throws ServiceException {
-        DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
-        return doCount(readyWhere);
-    }
-
-    private int doCount(DbWhere readyWhere) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildCountSql(readyWhere);
-        return jdbc.queryForObject(buffer, Integer.class);
-    }
-
-    @Override
-    public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
-        VerifyTools.requireNotBlank(groupBy, "groupBy");
-        DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
-        return this.doGroupCount(groupBy, readyWhere);
-    }
-
-    private Map<String, Integer> doGroupCount(String groupBy, DbWhere readyWhere) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildGroupCountSql(groupBy, readyWhere);
-        List<KeyValue<Integer>> list = jdbc.query(buffer, KEY_INTEGER_MAPPER);
-        return KeyValue.toMap(list);
-    }
-
-    private static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
 
     private static FirstColumnMapper<String> FIRST_COLUMN_STRING_MAPPER = new FirstColumnMapper<>(String.class);
 
@@ -236,10 +130,10 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     public String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException {
         VerifyTools.requireNotBlank(entity, "entity");
 
-        String tableName = sqlBuilder.helper().getTableName();
+        String tableName = builder().helper().getTableName();
         String id = null;
         // 查找主键
-        PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
+        PrimaryKey pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             log.debug("PrimaryKeyInfoNotFound, class={}", clazz);
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
@@ -253,7 +147,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
             modelDataExecutor.fillCreteParams(entity);
         }
 
-        SqlBuffer buffer = sqlBuilder.buildInsertSql(entity);
+        SqlBuffer buffer = builder().buildInsertSql(entity);
 
         jdbc.update(buffer);
         return id;
@@ -262,7 +156,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     @Override
     public int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         // 查找主键
-        PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
+        PrimaryKey pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedUpdateById, class=" + clazz);
         }
@@ -323,7 +217,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     }
 
     private int doUpdate(DbUpdate readyEntity, DbWhere readyWhere, boolean errorOnUnaffected) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildUpdateSql(readyEntity, readyWhere);
+        SqlBuffer buffer = builder().buildUpdateSql(readyEntity, readyWhere);
 
         int rows = jdbc.update(buffer);
 
@@ -347,7 +241,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
+        PrimaryKey pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }
@@ -380,7 +274,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     @Override
     public int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
+        PrimaryKey pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }
@@ -415,12 +309,12 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
                 if (fillUpdateParams) {
                     modelDataExecutor.fillUpdateParams(ud);
                 }
-                buffer = sqlBuilder.buildUpdateSql(ud, readyWhere);
+                buffer = builder().buildUpdateSql(ud, readyWhere);
             } else { // 不支持逻辑删除
                 throw new ServiceException(DbErrorCode.UNSUPPORTED_LOGICAL_DELETE);
             }
         } else {
-            buffer = sqlBuilder.buildDeleteSql(readyWhere);
+            buffer = builder().buildDeleteSql(readyWhere);
         }
 
         int rows = jdbc.update(buffer);
@@ -439,16 +333,6 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
             }
         }
         return rows;
-    }
-
-    private DbWhere checkWhere(DbWhere where) {
-        if (where == null || (where.isEmpty() && !(where instanceof EmptyDbWhere))) {
-            throw new IllegalArgumentException("where can't be empty, please use DbWhere.NONE");
-        } else if (where instanceof EmptyDbWhere) {
-            return new DbWhere();
-        } else {
-            return where;
-        }
     }
 
 }
