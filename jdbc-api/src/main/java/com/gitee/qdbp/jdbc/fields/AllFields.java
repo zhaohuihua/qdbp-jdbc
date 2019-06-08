@@ -1,8 +1,8 @@
 package com.gitee.qdbp.jdbc.fields;
 
 import java.util.List;
-import java.util.Objects;
 import com.gitee.qdbp.jdbc.model.FieldColumn;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 全字段容器
@@ -32,22 +32,30 @@ public class AllFields extends BaseFields {
     }
 
     public FilterFields include(String... fieldNames) {
-        Objects.requireNonNull(fieldNames, "fieldNames");
+        VerifyTools.requireNotBlank(fieldNames, "fieldNames");
 
         return new IncludeFields(this, fieldNames);
     }
 
     public FilterFields exclude(String... fieldNames) {
-        Objects.requireNonNull(fieldNames, "fieldNames");
+        VerifyTools.requireNotBlank(fieldNames, "fieldNames");
 
         return new ExcludeFields(this, fieldNames);
     }
 
+    /** {@inheritDoc} **/
     @Override
     public FieldColumn get(String name) {
         return super.get(name);
     }
 
+    /** {@inheritDoc} **/
+    @Override
+    public List<FieldColumn> getAll(String name) {
+        return super.getAll(name);
+    }
+
+    /** {@inheritDoc} **/
     @Override
     public void setItems(List<FieldColumn> fields) {
         if (this.readonly) {
@@ -56,6 +64,7 @@ public class AllFields extends BaseFields {
         super.setItems(fields);
     }
 
+    /** {@inheritDoc} **/
     @Override
     public void add(FieldColumn... fields) {
         if (this.readonly) {
@@ -64,19 +73,30 @@ public class AllFields extends BaseFields {
         super.add(fields);
     }
 
+    /** {@inheritDoc} **/
     @Override
-    public void add(String fieldName, String columnName, String columnText) {
+    public void add(String fieldName, String columnName) {
         if (this.readonly) {
             throw new UnsupportedOperationException();
         }
-        super.add(fieldName, columnName, columnText);
+        super.add(fieldName, columnName);
     }
 
+    /** {@inheritDoc} **/
     @Override
-    public void del(String... fieldNames) {
+    public boolean del(String fieldName) {
         if (this.readonly) {
             throw new UnsupportedOperationException();
         }
-        super.del(fieldNames);
+        return super.del(fieldName);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public int delAll(String fieldName) {
+        if (this.readonly) {
+            throw new UnsupportedOperationException();
+        }
+        return super.delAll(fieldName);
     }
 }
