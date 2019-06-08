@@ -67,7 +67,8 @@ public class DbWhere extends DbItems {
     public static final DbWhere NONE = new EmptyDbWhere();
 
     /**
-     * Where条件
+     * Where条件<br>
+     * 字段名可以带表别名, 如where.on("u.id", "=", entity.getId());<br>
      * 
      * @param fieldName 字段名称
      * @param operate 目前支持如下操作:<br>

@@ -26,11 +26,9 @@ public class SubWhere extends DbWhere {
     }
 
     public SubWhere(DbWhere parent, String logicType, boolean positive) {
+        VerifyTools.requireNotBlank(logicType, "logicType");
         this.parent = parent;
         this.positive = positive;
-        if (VerifyTools.isBlank(logicType)) {
-            throw new IllegalArgumentException("Logic type can't be blank.");
-        }
 
         if ("AND".equalsIgnoreCase(logicType)) {
             this.logicType = "AND";

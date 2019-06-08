@@ -75,7 +75,7 @@ abstract class DbItems implements DbFields, Serializable {
         while (itr.hasNext()) {
             DbCondition item = itr.next();
             if (item instanceof DbField) {
-                if (fieldName.equals(((DbField) item).getFieldName())) {
+                if (((DbField) item).matchesWithField(fieldName)) {
                     itr.remove();
                 }
             } else if (item instanceof DbFields) {
@@ -96,9 +96,7 @@ abstract class DbItems implements DbFields, Serializable {
 
     /** 是否存在指定的字段 **/
     public boolean contains(String fieldName) {
-        if (VerifyTools.isBlank(fieldName)) {
-            throw new IllegalArgumentException("fileName is blank");
-        }
+        VerifyTools.requireNotBlank(fieldName, "fieldName");
         Iterator<DbCondition> itr = this.items.iterator();
         while (itr.hasNext()) {
             DbCondition item = itr.next();
