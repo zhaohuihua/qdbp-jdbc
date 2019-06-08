@@ -32,14 +32,14 @@ public class EasyJoinQueryerImpl implements EasyJoinQueryer {
     private static Logger log = LoggerFactory.getLogger(EasyJoinQueryerImpl.class);
 
     private TableJoin tables;
-    private TableQueryFragmentHelper sqlBuilder;
+    private TableQueryFragmentHelper sqlHelper;
     private ModelDataExecutor modelDataExecutor;
     private SqlBufferJdbcOperations baseJdbcOperations;
 
     EasyJoinQueryerImpl(TableJoin tables, TableQueryFragmentHelper sqlBuilder,
             ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations baseJdbcOperations) {
         this.tables = tables;
-        this.sqlBuilder = sqlBuilder;
+        this.sqlHelper = sqlBuilder;
         this.modelDataExecutor = modelDataExecutor;
         this.baseJdbcOperations = baseJdbcOperations;
         for (Item item : tables) {
@@ -55,10 +55,10 @@ public class EasyJoinQueryerImpl implements EasyJoinQueryer {
         modelDataExecutor.fillDataEffectiveFlag(where);
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        buffer.append(' ', "FROM").append(' ', sqlHelper.getTableName());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlHelper.buildWhereSql(where));
 
         Map<String, Object> map = baseJdbcOperations.queryForMap(buffer);
         return map == null ? null : DbTools.resultToBean(map, resultType);
@@ -76,12 +76,12 @@ public class EasyJoinQueryerImpl implements EasyJoinQueryer {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT");
-        buffer.append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(' ', sqlHelper.buildFieldsSql());
+        buffer.append(' ', "FROM").append(' ', sqlHelper.getTableName());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlHelper.buildWhereSql(where));
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            buffer.append(' ', sqlHelper.buildOrderBySql(orderings));
         }
 
         return baseJdbcOperations.queryForList(buffer, resultType);
@@ -97,33 +97,33 @@ public class EasyJoinQueryerImpl implements EasyJoinQueryer {
         entityTools.fillDataEffectiveFlag(readyWhere);
 
         // WHERE条件
-        SqlBuffer wsb = sqlBuilder.buildWhereSql(readyWhere);
+        SqlBuffer wsb = sqlHelper.buildWhereSql(readyWhere);
         return this.doList(wsb, odpg);
     }
 
     private PartList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
         SqlBuffer qsb = new SqlBuffer();
         // SELECT ... FROM
-        qsb.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        qsb.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        qsb.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        qsb.append(' ', "FROM").append(' ', sqlHelper.getTableName());
         // WHERE ...
         qsb.append(' ', wsb);
 
         // ORDER BY ...
         List<Ordering> orderings = odpg.getOrderings();
         if (VerifyTools.isNotBlank(orderings)) {
-            qsb.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            qsb.append(' ', sqlHelper.buildOrderBySql(orderings));
         }
 
         SqlBuffer csb = new SqlBuffer();
         if (odpg.isPaging() && odpg.isNeedCount()) {
             // SELECT COUNT(*) FROM
-            csb.append("SELECT").append(' ', "COUNT(*)").append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+            csb.append("SELECT").append(' ', "COUNT(*)").append(' ', "FROM").append(' ', sqlHelper.getTableName());
             // WHERE ...
             csb.append(' ', wsb);
         }
 
-        return baseJdbcOperations.queryForList(qsb, csb, odpg, sqlBuilder.getDialect(), resultType);
+        return baseJdbcOperations.queryForList(qsb, csb, odpg, sqlHelper.getDialect(), resultType);
     }
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
@@ -149,13 +149,13 @@ public class EasyJoinQueryerImpl implements EasyJoinQueryer {
         if (distinct) {
             buffer.append("DISTINCT", ' ');
         }
-        buffer.append(sqlBuilder.buildFieldsSql(fieldName));
-        buffer.append(' ', "FROM").append(' ', sqlBuilder.getTableName());
+        buffer.append(sqlHelper.buildFieldsSql(fieldName));
+        buffer.append(' ', "FROM").append(' ', sqlHelper.getTableName());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlHelper.buildWhereSql(where));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            buffer.append(' ', sqlHelper.buildOrderBySql(orderings));
         }
         return baseJdbcOperations.query(buffer, new FirstColumnMapper<>(valueClazz));
     }

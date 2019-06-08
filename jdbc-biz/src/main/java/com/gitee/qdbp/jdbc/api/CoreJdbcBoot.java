@@ -1,7 +1,6 @@
 package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 
 /**
@@ -35,9 +34,6 @@ public interface CoreJdbcBoot {
 
     /** 查找当前数据源的数据库版本信息 **/
     DbVersion findDbVersion();
-
-    /** 构造数据库方言处理类 **/
-    SqlDialect buildDialect();
 
     /** 构造基础增删改查对象 **/
     <T> EasyCrudDao<T> buildCrudDao(Class<T> clazz);

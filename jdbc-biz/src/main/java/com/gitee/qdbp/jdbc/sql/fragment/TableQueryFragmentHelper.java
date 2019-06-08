@@ -23,6 +23,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -36,14 +37,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     protected final List<FieldColumn> columns;
     protected final Map<String, String> fieldColumnMap;
     protected final Map<String, String> columnFieldMap;
-    protected final SqlDialect dialect;
 
     /** 构造函数 **/
-    public TableQueryFragmentHelper(List<FieldColumn> columns, SqlDialect dialect) {
-        if (VerifyTools.isBlank(columns)) {
-            throw new IllegalArgumentException("columns is empty");
-        }
-        this.dialect = dialect;
+    public TableQueryFragmentHelper(List<FieldColumn> columns) {
+        VerifyTools.requireNotBlank(columns, "columns");
         this.columns = columns;
         this.fieldColumnMap = DbTools.toFieldColumnMap(columns);
         this.columnFieldMap = DbTools.toColumnFieldMap(columns);
@@ -187,6 +184,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         } else if ("IsNotNull".equals(operateType)) {
             buffer.append(columnName).append(' ', "IS NOT NULL");
         } else {
+            SqlDialect dialect = DbTools.getSqlDialect();
             if ("GreaterThen".equals(operateType)) {
                 buffer.append(columnName).append(">").addVariable(fieldName, fieldValue);
             } else if ("GreaterEqualsThen".equals(operateType)) {
@@ -304,6 +302,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 continue;
             }
             if (usePinyin) { // 根据数据库类型转换为拼音排序表达式
+                SqlDialect dialect = DbTools.getSqlDialect();
                 columnName = dialect.toPinyinOrderByExpression(columnName);
             }
             if (first) {
@@ -336,7 +335,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            buffer.append(item.getColumnName());
+            appendColumn(buffer, item);
         }
         return buffer;
     }
@@ -382,19 +381,27 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            buffer.append(item.getColumnName());
+            appendColumn(buffer, item);
         }
         return buffer;
+    }
+
+    private void appendColumn(SqlBuffer buffer, FieldColumn column) {
+        // 表别名
+        if (VerifyTools.isNotBlank(column.getTableAlias())) {
+            buffer.append(column.getTableAlias()).append('.');
+        }
+        // 列名
+        buffer.append(column.getColumnName());
+        // 列别名
+        if (VerifyTools.isNotBlank(column.getColumnAlias())) {
+            buffer.append(' ').append("AS").append(' ').append(column.getColumnAlias());
+        }
     }
 
     /** {@inheritDoc} **/
     public SqlBuffer buildFromSql() {
         return buildFromSql(true);
-    }
-
-    /** 返回数据库言处理类 **/
-    public SqlDialect getDialect() {
-        return this.dialect;
     }
 
     /** {@inheritDoc} **/
@@ -403,13 +410,68 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
             return false;
         }
-        return fieldColumnMap.containsKey(fieldName);
+        for (FieldColumn item : this.columns) {
+            if (item.matchesWithField(fieldName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public List<String> getFieldNames() {
+        List<String> list = new ArrayList<>();
+        for (FieldColumn item : columns) {
+            list.add(StringTools.concat('.', item.getTableAlias(), item.getFieldName()));
+        }
+        return list;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public List<String> getColumnNames() {
+        List<String> list = new ArrayList<>();
+        for (FieldColumn item : columns) {
+            list.add(toFullColumnName(item));
+        }
+        return list;
+    }
+
+    private String toFullColumnName(FieldColumn column) {
+        StringBuilder buffer = new StringBuilder();
+        // 表别名
+        if (VerifyTools.isNotBlank(column.getTableAlias())) {
+            buffer.append(column.getTableAlias()).append('.');
+        }
+        // 列名
+        buffer.append(column.getColumnName());
+        // 列别名
+        if (VerifyTools.isNotBlank(column.getColumnAlias())) {
+            buffer.append(' ').append("AS").append(' ').append(column.getColumnAlias());
+        }
+        return buffer.toString();
     }
 
     /** {@inheritDoc} **/
     @Override
     public String getColumnName(String fieldName) {
         return getColumnName(fieldName, false);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
+        for (FieldColumn item : this.columns) {
+            if (item.matchesWithField(fieldName)) {
+                return toFullColumnName(item);
+            }
+        }
+        if (throwOnNotFound) {
+            throw ufe("-", fieldName);
+        } else {
+            return null;
+        }
     }
 
     /** {@inheritDoc} **/

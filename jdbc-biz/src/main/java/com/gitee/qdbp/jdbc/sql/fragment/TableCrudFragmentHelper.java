@@ -9,7 +9,6 @@ import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.FieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKey;
-import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -28,8 +27,8 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     private final PrimaryKey primaryKey;
 
     /** 构造函数 **/
-    public TableCrudFragmentHelper(Class<?> clazz, SqlDialect dialect) {
-        super(DbTools.parseFieldColumns(clazz), dialect);
+    public TableCrudFragmentHelper(Class<?> clazz) {
+        super(DbTools.parseFieldColumns(clazz));
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);
         this.primaryKey = DbTools.parsePrimaryKey(clazz);
@@ -38,9 +37,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldExeption {
-        if (VerifyTools.isBlank(entity)) {
-            throw new IllegalArgumentException("entity is empty");
-        }
+        VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
         for (String fieldName : entity.keySet()) {
@@ -75,9 +72,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldExeption {
-        if (VerifyTools.isBlank(entity)) {
-            throw new IllegalArgumentException("entity is empty");
-        }
+        VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
         SqlBuffer buffer = new SqlBuffer();
@@ -132,45 +127,6 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
             buffer.prepend("FROM", ' ');
         }
         return buffer;
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
-        int dotIndex = fieldName.lastIndexOf('.');
-        String tableAlias = null;
-        String realFieldName = fieldName;
-        if (dotIndex == 0) {
-            realFieldName = fieldName.substring(dotIndex + 1);
-        } else if (dotIndex > 0) {
-            tableAlias = fieldName.substring(0, dotIndex);
-            realFieldName = fieldName.substring(dotIndex + 1);
-        }
-        String columnName = fieldColumnMap.get(realFieldName);
-        if (VerifyTools.isBlank(columnName) && throwOnNotFound) {
-            throw ufe("-", fieldName);
-        }
-        return StringTools.concat('.', tableAlias, columnName);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public List<String> getFieldNames() {
-        List<String> list = new ArrayList<>();
-        for (FieldColumn item : columns) {
-            list.add(item.getFieldName());
-        }
-        return list;
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public List<String> getColumnNames() {
-        List<String> list = new ArrayList<>();
-        for (FieldColumn item : columns) {
-            list.add(item.getColumnName());
-        }
-        return list;
     }
 
     /** {@inheritDoc} **/

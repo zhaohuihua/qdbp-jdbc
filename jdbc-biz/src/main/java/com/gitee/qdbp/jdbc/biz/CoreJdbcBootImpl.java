@@ -7,8 +7,6 @@ import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
-import com.gitee.qdbp.jdbc.plugins.SqlDialect;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
@@ -25,7 +23,6 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private DbVersion dbVersion;
-    private SqlDialect sqlDialect;
     private Map<Class<?>, EasyCrudDao<?>> daoCache = new HashMap<>();
     private Map<Class<?>, CrudFragmentHelper> crudHelperCache = new HashMap<>();
 
@@ -46,20 +43,11 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     }
 
     @Override
-    public SqlDialect buildDialect() {
-        if (sqlDialect == null) {
-            DbVersion dbVersion = findDbVersion();
-            sqlDialect = new SimpleSqlDialect(dbVersion);
-        }
-        return sqlDialect;
-    }
-
-    @Override
     public CrudFragmentHelper buildSqlFragmentHelper(Class<?> clazz) {
         if (crudHelperCache.containsKey(clazz)) {
             return crudHelperCache.get(clazz);
         } else {
-            CrudFragmentHelper instance = new TableCrudFragmentHelper(clazz, buildDialect());
+            CrudFragmentHelper instance = new TableCrudFragmentHelper(clazz);
             crudHelperCache.put(clazz, instance);
             return instance;
         }
