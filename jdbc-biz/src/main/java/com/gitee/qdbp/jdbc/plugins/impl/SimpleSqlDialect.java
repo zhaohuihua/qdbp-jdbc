@@ -249,9 +249,7 @@ public class SimpleSqlDialect implements SqlDialect {
     public SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper builder) {
         DbType dbType = dbVersion.getDbType();
-        if (VerifyTools.isBlank(startCodes)) {
-            throw new IllegalArgumentException("startCodes can't be blank");
-        }
+        VerifyTools.requireNotBlank(startCodes, "startCodes");
 
         if (dbType == DbType.Oracle) {
             return oracleRecursive(startCodes, codeField, parentField, selectFields, where, orderings, builder);
