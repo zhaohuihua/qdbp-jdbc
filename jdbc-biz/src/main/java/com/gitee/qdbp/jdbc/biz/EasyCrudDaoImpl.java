@@ -56,9 +56,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
     @Override
     public T findById(String id) {
-        if (VerifyTools.isBlank(id)) {
-            throw new IllegalArgumentException("id is null");
-        }
+        VerifyTools.requireNotBlank(id, "id");
         PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedFindById, class=" + clazz);
@@ -211,9 +209,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
     @Override
     public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
-        if (VerifyTools.isBlank(groupBy)) {
-            throw new IllegalArgumentException("groupBy can't be blank");
-        }
+        VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
         modelDataExecutor.fillDataEffectiveFlag(readyWhere);
         return this.doGroupCount(groupBy, readyWhere);
@@ -231,18 +227,14 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
     @Override
     public String insert(T entity, boolean fillCreateParams) throws ServiceException {
-        if (VerifyTools.isBlank(entity)) {
-            throw new IllegalArgumentException("entity can't be empty");
-        }
+        VerifyTools.requireNotBlank(entity, "entity");
         Map<String, Object> readyEntity = DbTools.beanToMap(entity);
         return insert(readyEntity, fillCreateParams);
     }
 
     @Override
     public String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException {
-        if (VerifyTools.isBlank(entity)) {
-            throw new IllegalArgumentException("entity can't be empty");
-        }
+        VerifyTools.requireNotBlank(entity, "entity");
 
         String tableName = sqlBuilder.helper().getTableName();
         String id = null;
@@ -291,9 +283,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
         where.on(pk.getFieldName(), "=", id);
         readyEntity.remove(pk.getFieldName());
 
-        if (VerifyTools.isBlank(readyEntity)) {
-            throw new IllegalArgumentException("entity can't be empty");
-        }
+        VerifyTools.requireNotBlank(readyEntity, "readyEntity");
 
         modelDataExecutor.fillDataEffectiveFlag(where);
         if (fillUpdateParams) {
@@ -356,9 +346,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
     @Override
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
-        if (VerifyTools.isBlank(ids)) {
-            throw new IllegalArgumentException("ids can't be empty");
-        }
+        VerifyTools.requireNotBlank(ids, "ids");
         PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
@@ -391,9 +379,7 @@ public class EasyCrudDaoImpl<T> implements EasyCrudDao<T> {
 
     @Override
     public int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException {
-        if (VerifyTools.isBlank(ids)) {
-            throw new IllegalArgumentException("ids can't be empty");
-        }
+        VerifyTools.requireNotBlank(ids, "ids");
         PrimaryKey pk = sqlBuilder.helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
