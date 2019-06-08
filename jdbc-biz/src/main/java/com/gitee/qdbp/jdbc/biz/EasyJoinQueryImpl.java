@@ -2,7 +2,7 @@
 package com.gitee.qdbp.jdbc.biz;
 
 import java.util.List;
-import com.gitee.qdbp.jdbc.api.EasyJoinQueryer;
+import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
@@ -15,9 +15,9 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
  * @author 赵卉华
  * @version 190606
  */
-public class EasyJoinQueryerImpl<T> extends EasyTableQueryerImpl<T> implements EasyJoinQueryer<T>  {
+public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJoinQuery<T>  {
 
-    EasyJoinQueryerImpl(TableJoin tables, Class<T> resultType, QuerySqlBuilder sqlBuilder,
+    EasyJoinQueryImpl(TableJoin tables, Class<T> resultType, QuerySqlBuilder sqlBuilder,
             ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations jdbcOperations) {
         super(resultType, sqlBuilder, modelDataExecutor, jdbcOperations);
         List<JoinItem> joins = tables.getJoins();

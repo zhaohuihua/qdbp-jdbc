@@ -27,14 +27,14 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190608
  */
-public abstract class EasyTableQueryerImpl<T>{
+public abstract class EasyTableQueryImpl<T>{
 
     protected Class<T> resultType;
     protected QuerySqlBuilder sqlBuilder;
     protected ModelDataExecutor modelDataExecutor;
     protected SqlBufferJdbcOperations jdbc;
 
-    EasyTableQueryerImpl(Class<T> resultType, QuerySqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+    EasyTableQueryImpl(Class<T> resultType, QuerySqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
             SqlBufferJdbcOperations jdbcOperations) {
         this.resultType = resultType;
         this.sqlBuilder = sqlBuilder;

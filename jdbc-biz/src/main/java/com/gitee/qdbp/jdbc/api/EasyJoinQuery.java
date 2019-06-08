@@ -16,7 +16,7 @@ import com.gitee.qdbp.jdbc.condition.DbWhere;
  * @author zhaohuihua
  * @version 190608
  */
-public interface EasyJoinQueryer<T> {
+public interface EasyJoinQuery<T> {
 
     /**
      * 根据查询条件获取对象<br>

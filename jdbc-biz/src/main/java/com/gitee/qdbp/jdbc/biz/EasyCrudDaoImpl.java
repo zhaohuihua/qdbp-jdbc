@@ -30,7 +30,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class EasyCrudDaoImpl<T> extends EasyTableQueryerImpl<T> implements EasyCrudDao<T> {
+public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCrudDao<T> {
 
     private static Logger log = LoggerFactory.getLogger(EasyCrudDaoImpl.class);
 
