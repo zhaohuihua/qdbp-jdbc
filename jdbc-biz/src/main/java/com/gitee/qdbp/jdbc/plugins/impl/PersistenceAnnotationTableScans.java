@@ -17,7 +17,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 190601
  */
-public class PersistenceAnnotationScans extends BaseTableInfoScans {
+public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
 
     /** 是否使用无注解的字段 **/
     private boolean useMissAnnotationField = false;
