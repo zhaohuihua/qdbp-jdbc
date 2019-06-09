@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import com.gitee.qdbp.able.model.paging.Paging;
 import com.gitee.qdbp.able.model.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
@@ -61,6 +62,7 @@ public class PagingQuery {
      * @param qsb 数据查询SQL语句
      * @param csb 总数统计SQL语句
      * @param paging 分页条件
+     * @param elementType 结果成员类型
      * @return a PartList that contains a Map per row and total rows.
      * @throws DataAccessException if the query fails
      */
@@ -85,6 +87,42 @@ public class PagingQuery {
                 dialect.processPagingSql(qsb, paging);
                 // 查询数据列表
                 list = jdbc.queryForList(qsb, elementType);
+            }
+            return new PartList<>(list, total == null ? list.size() : total);
+        }
+    }
+
+    /**
+     * 分页查询
+     * 
+     * @param qsb 数据查询SQL语句
+     * @param csb 总数统计SQL语句
+     * @param paging 分页条件
+     * @param rowMapper 结果转换接口
+     * @return a PartList that contains a Map per row and total rows.
+     * @throws DataAccessException if the query fails
+     */
+    public static <T> PartList<T> queryForList(SqlBufferJdbcOperations jdbc, SqlBuffer qsb, SqlBuffer csb,
+            Paging paging, RowMapper<T> rowMapper) throws DataAccessException {
+        if (!paging.isPaging()) { // 不分页
+            List<T> list = jdbc.query(qsb, rowMapper);
+            return list == null ? null : new PartList<>(list, list.size());
+        } else { // 分页
+            // 先查询总数据量
+            Integer total = null;
+            if (paging.isNeedCount()) {
+                total = jdbc.queryForObject(csb, Integer.class);
+            }
+            // 再查询数据列表
+            List<T> list;
+            if (total != null && total == 0) {
+                list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+            } else {
+                SqlDialect dialect = DbTools.getSqlDialect();
+                // 处理分页
+                dialect.processPagingSql(qsb, paging);
+                // 查询数据列表
+                list = jdbc.query(qsb, rowMapper);
             }
             return new PartList<>(list, total == null ? list.size() : total);
         }

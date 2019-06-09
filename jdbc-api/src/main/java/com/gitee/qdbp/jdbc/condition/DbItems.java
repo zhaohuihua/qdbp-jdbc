@@ -129,7 +129,7 @@ abstract class DbItems implements DbFields, Serializable {
         while (itr.hasNext()) {
             DbCondition item = itr.next();
             if (item instanceof DbField) {
-                if (fieldName.equals(((DbField) item).getFieldName())) {
+                if (((DbField) item).matchesWithField(fieldName)) {
                     return true;
                 }
             } else if (item instanceof DbFields) {

@@ -3,7 +3,7 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.fields.AllFields;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 
 /**
  * 实体业务处理接口<br>
@@ -17,10 +17,10 @@ import com.gitee.qdbp.jdbc.fields.AllFields;
  */
 public class ModelDataExecutor {
 
-    private AllFields allFields;
+    private AllFieldColumn<?> allFields;
     private ModelDataHandler modelDataHandler;
 
-    public ModelDataExecutor(AllFields allFields, ModelDataHandler modelDataHandler) {
+    public ModelDataExecutor(AllFieldColumn<?> allFields, ModelDataHandler modelDataHandler) {
         this.allFields = allFields;
         if (this.allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");

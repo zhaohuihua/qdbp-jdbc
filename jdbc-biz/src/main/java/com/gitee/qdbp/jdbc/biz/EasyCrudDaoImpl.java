@@ -13,9 +13,10 @@ import com.gitee.qdbp.jdbc.condition.DbField;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
+import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
@@ -35,9 +36,9 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
 
     private Class<T> clazz;
 
-    EasyCrudDaoImpl(Class<T> clazz, SqlBufferJdbcOperations jdbcOperations) {
-        super(clazz, DbTools.getCrudSqlBuilder(clazz), DbTools.getModelDataExecutor(clazz), jdbcOperations);
-        this.clazz = clazz;
+    EasyCrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
+        super(DbTools.getCrudSqlBuilder(c), DbTools.getModelDataExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
+        this.clazz = c;
     }
 
     private CrudSqlBuilder builder() {
@@ -47,7 +48,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     @Override
     public T findById(String id) {
         VerifyTools.requireNotBlank(id, "id");
-        PrimaryKey pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedFindById, class=" + clazz);
         }
@@ -81,7 +82,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         SqlDialect dialect = DbTools.getSqlDialect();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
-        return jdbc.queryForList(buffer, resultType);
+        return jdbc.query(buffer, this.rowToBeanMapper);
     }
 
     @Override
@@ -131,7 +132,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         String tableName = builder().helper().getTableName();
         String id = null;
         // 查找主键
-        PrimaryKey pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             log.debug("PrimaryKeyInfoNotFound, class={}", clazz);
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
@@ -154,7 +155,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     @Override
     public int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         // 查找主键
-        PrimaryKey pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedUpdateById, class=" + clazz);
         }
@@ -239,7 +240,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKey pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }
@@ -272,7 +273,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     @Override
     public int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKey pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }

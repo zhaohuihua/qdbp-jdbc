@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.condition;
 
 import java.io.Serializable;
 import com.gitee.qdbp.able.model.db.DbCondition;
+import com.gitee.qdbp.jdbc.utils.FieldTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -76,40 +77,14 @@ public class DbField implements DbCondition, Serializable {
     }
 
     /**
-     * 与指定的字段是否匹配<br>
-     * 如果未指定表别名或该FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且该FieldColumn有表别名, 则需要表别名和字段名同时匹配
+     * 与目标字段是否匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
-     * @param fieldName 指定的字段名, 可带表别名, 如: u.userName
+     * @param fieldName 目标字段名, 可带表别名, 如: u.userName
      * @return 是否匹配
      */
     public boolean matchesWithField(String fieldName) {
-        String thatTableAlias = null;
-        String thatRealFieldName = fieldName;
-        {
-            int dotIndex = fieldName.indexOf('.');
-            if (dotIndex > 0) {
-                thatTableAlias = fieldName.substring(0, dotIndex);
-                thatRealFieldName = fieldName.substring(dotIndex + 1);
-            } else if (dotIndex == 0) {
-                thatRealFieldName = fieldName.substring(dotIndex + 1);
-            }
-        }
-        String thisTableAlias = null;
-        String thisRealFieldName = this.fieldName;
-        {
-            int dotIndex = this.fieldName.indexOf('.');
-            if (dotIndex > 0) {
-                thisTableAlias = this.fieldName.substring(0, dotIndex);
-                thisRealFieldName = this.fieldName.substring(dotIndex + 1);
-            } else if (dotIndex == 0) {
-                thisRealFieldName = this.fieldName.substring(dotIndex + 1);
-            }
-        }
-        if (VerifyTools.isBlank(thatTableAlias) || VerifyTools.isBlank(thisTableAlias)) {
-            return thatRealFieldName.equals(thisRealFieldName);
-        } else {
-            return thatTableAlias.equals(thisTableAlias) && thatRealFieldName.equals(thisRealFieldName);
-        }
+        return FieldTools.matches(this.fieldName, fieldName);
     }
 }

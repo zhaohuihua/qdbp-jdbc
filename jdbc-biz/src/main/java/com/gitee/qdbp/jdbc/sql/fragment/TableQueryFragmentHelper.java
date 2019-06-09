@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.condition.DbField;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.condition.SubWhere;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
@@ -33,10 +33,10 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
-    protected final List<FieldColumn> columns;
+    protected final List<? extends SimpleFieldColumn> columns;
 
     /** 构造函数 **/
-    public TableQueryFragmentHelper(List<FieldColumn> columns) {
+    public TableQueryFragmentHelper(List<? extends SimpleFieldColumn> columns) {
         VerifyTools.requireNotBlank(columns, "columns");
         this.columns = columns;
     }
@@ -171,8 +171,11 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 buffer.append(' ', "AND", ' ');
                 buffer.addVariable(fieldName, values.get(1));
             } else {
-                boolean matches = "In".equals(operateType);
-                buffer.append(buildInSql(fieldName, values, matches, false));
+                if ("NotIn".equals(operateType)) {
+                    buffer.append(buildNotInSql(fieldName, values, false));
+                } else {
+                    buffer.append(buildInSql(fieldName, values, false));
+                }
             }
         } else if ("IsNull".equals(operateType)) {
             buffer.append(columnName).append(' ', "IS NULL");
@@ -233,8 +236,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean matches, boolean whole)
-            throws UnsupportedFieldExeption {
+    public SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean whole) throws UnsupportedFieldExeption {
         String columnName = getColumnName(fieldName);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
@@ -326,11 +328,11 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildFieldsSql() {
         SqlBuffer buffer = new SqlBuffer();
-        for (FieldColumn item : columns) {
+        for (SimpleFieldColumn item : columns) {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            appendColumn(buffer, item);
+            buffer.append(toFullColumnName(item));
         }
         return buffer;
     }
@@ -369,29 +371,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
-        for (FieldColumn item : columns) {
+        for (SimpleFieldColumn item : columns) {
             if (!fieldMap.containsKey(item.getFieldName())) {
                 continue;
             }
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            appendColumn(buffer, item);
+            buffer.append(toFullColumnName(item));
         }
         return buffer;
-    }
-
-    private void appendColumn(SqlBuffer buffer, FieldColumn column) {
-        // 表别名
-        if (VerifyTools.isNotBlank(column.getTableAlias())) {
-            buffer.append(column.getTableAlias()).append('.');
-        }
-        // 列名
-        buffer.append(column.getColumnName());
-        // 列别名
-        if (VerifyTools.isNotBlank(column.getColumnAlias())) {
-            buffer.append(' ').append("AS").append(' ').append(column.getColumnAlias());
-        }
     }
 
     /** {@inheritDoc} **/
@@ -405,20 +394,35 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
             return false;
         }
-        for (FieldColumn item : this.columns) {
-            if (item.matchesWithField(fieldName)) {
+        for (SimpleFieldColumn item : this.columns) {
+            if (item.matchesByField(fieldName)) {
                 return true;
             }
         }
         return false;
     }
 
+    /** 返回带表别名的字段名 **/
+    protected String toTableFieldName(SimpleFieldColumn field) {
+        return field.toTableFieldName();
+    }
+
+    /** 返回带表别名的列名 **/
+    protected String toTableColumnName(SimpleFieldColumn field) {
+        return field.toTableColumnName();
+    }
+
+    /** 返回带表别名和列别名的完整列名 **/
+    protected String toFullColumnName(SimpleFieldColumn field) {
+        return field.toFullColumnName();
+    }
+
     /** {@inheritDoc} **/
     @Override
     public List<String> getFieldNames() {
         List<String> list = new ArrayList<>();
-        for (FieldColumn item : columns) {
-            list.add(DbTools.toFullFieldName(item));
+        for (SimpleFieldColumn item : columns) {
+            list.add(toTableFieldName(item));
         }
         return list;
     }
@@ -427,8 +431,8 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public List<String> getColumnNames() {
         List<String> list = new ArrayList<>();
-        for (FieldColumn item : columns) {
-            list.add(DbTools.toFullColumnName(item));
+        for (SimpleFieldColumn item : columns) {
+            list.add(toTableColumnName(item));
         }
         return list;
     }
@@ -442,9 +446,9 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
-        for (FieldColumn item : this.columns) {
-            if (item.matchesWithField(fieldName)) {
-                return DbTools.toFullColumnName(item);
+        for (SimpleFieldColumn item : this.columns) {
+            if (item.matchesByField(fieldName)) {
+                return toTableColumnName(item);
             }
         }
         if (throwOnNotFound) {

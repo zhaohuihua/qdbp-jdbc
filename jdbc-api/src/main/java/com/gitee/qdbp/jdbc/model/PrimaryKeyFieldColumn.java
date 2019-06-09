@@ -6,18 +6,18 @@ package com.gitee.qdbp.jdbc.model;
  * @author zhaohuihua
  * @version 190601
  */
-public class PrimaryKey extends FieldColumn {
+public class PrimaryKeyFieldColumn extends SimpleFieldColumn {
 
     /** SerialVersionUID **/
     private static final long serialVersionUID = 1L;
 
     /** 默认构造函数 **/
-    public PrimaryKey() {
+    public PrimaryKeyFieldColumn() {
         super();
     }
 
     /** 构造函数 **/
-    public PrimaryKey(String fieldName, String columnName) {
+    public PrimaryKeyFieldColumn(String fieldName, String columnName) {
         super(fieldName, columnName);
     }
 

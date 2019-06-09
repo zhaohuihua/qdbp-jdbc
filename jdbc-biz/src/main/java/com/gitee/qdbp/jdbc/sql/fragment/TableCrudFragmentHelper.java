@@ -7,8 +7,8 @@ import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbField;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -23,7 +23,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     private final Class<?> clazz;
     private final String tableName;
-    private final PrimaryKey primaryKey;
+    private final PrimaryKeyFieldColumn primaryKey;
 
     /** 构造函数 **/
     public TableCrudFragmentHelper(Class<?> clazz) {
@@ -50,7 +50,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
-        for (FieldColumn item : columns) {
+        for (SimpleFieldColumn item : columns) {
             if (!entity.containsKey(item.getFieldName())) {
                 continue;
             }
@@ -136,7 +136,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** {@inheritDoc} **/
     @Override
-    public PrimaryKey getPrimaryKey() {
+    public PrimaryKeyFieldColumn getPrimaryKey() {
         return primaryKey;
     }
 

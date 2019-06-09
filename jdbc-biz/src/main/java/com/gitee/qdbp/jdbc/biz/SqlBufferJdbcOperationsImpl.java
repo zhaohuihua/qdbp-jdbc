@@ -1,7 +1,7 @@
 package com.gitee.qdbp.jdbc.biz;
 
 import java.sql.Types;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -116,22 +117,30 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     @Override
-    public <T> T queryForObject(SqlBuffer sb, Class<T> requiredType) throws DataAccessException {
+    public <T> T queryForObject(SqlBuffer sb, Class<T> resultType) throws DataAccessException {
         try {
-            if (requiredType == String.class || Number.class.isAssignableFrom(requiredType)) {
+            if (isSimpleClass(resultType)) {
                 if (sb != null && log.isDebugEnabled()) {
                     log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
                 }
                 String sql = sb.getNamedSqlString();
                 Map<String, Object> params = getVariables(sb);
-                return namedParameterJdbcOperations.queryForObject(sql, params, requiredType);
+                return namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             } else {
-                Map<String, Object> map = queryForMap(sb);
-                return map == null ? null : DbTools.resultToBean(map, requiredType);
+                return queryForObject(sb, new TableRowToBeanMapper<T>(resultType));
             }
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    private boolean isSimpleClass(Class<?> clazz) {
+        if (clazz == String.class || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz)
+                || clazz == Boolean.class || clazz == double.class || clazz == int.class || clazz == long.class
+                || clazz == short.class || clazz == float.class || clazz == boolean.class || clazz == byte.class) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -150,19 +159,12 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException {
-        // 执行数据库查询
-        List<Map<String, Object>> list = queryForList(sb);
-        if (list == null) {
-            return null;
-        } else if (list.isEmpty()) {
-            return new ArrayList<T>();
+        String sql = sb.getNamedSqlString();
+        Map<String, Object> params = getVariables(sb);
+        if (isSimpleClass(elementType)) {
+            return namedParameterJdbcOperations.queryForList(sql, params, elementType);
         } else {
-            // 结果转换
-            List<T> results = new ArrayList<T>();
-            for (Map<String, Object> entry : list) {
-                results.add(DbTools.resultToBean(entry, elementType));
-            }
-            return results;
+            return namedParameterJdbcOperations.query(sql, params, new TableRowToBeanMapper<T>(elementType));
         }
     }
 
@@ -206,7 +208,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         SqlParameterSource msps = new MapSqlParameterSource(params);
         return namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
     }
-    
+
     @Override
     public JdbcOperations getJdbcOperations() {
         return namedParameterJdbcOperations.getJdbcOperations();

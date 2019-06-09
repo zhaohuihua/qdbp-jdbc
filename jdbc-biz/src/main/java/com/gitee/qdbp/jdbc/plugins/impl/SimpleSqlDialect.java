@@ -299,7 +299,7 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append(sqlHelper.buildFieldsSql(selectFields));
         buffer.append(' ', sqlHelper.buildFromSql());
         // START WITH {codeField} IN ( {startCodes} ) 
-        buffer.append(' ', "START WITH", ' ').append(sqlHelper.buildInSql(codeField, startCodes, true, false));
+        buffer.append(' ', "START WITH", ' ').append(sqlHelper.buildInSql(codeField, startCodes, false));
         // CONNECT BY PRIOR {codeField} = {parentField}
         buffer.append(' ', "CONNECT BY PRIOR", ' ');
         buffer.append(sqlHelper.getColumnName(codeField)).append("=").append(sqlHelper.getColumnName(parentField));
@@ -363,7 +363,7 @@ public class SimpleSqlDialect implements SqlDialect {
         params.put("parentField", parentField);
         params.put("tableName", sqlHelper.buildFromSql());
         params.put("selectFields", sqlHelper.buildFieldsSql(selectFields));
-        params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, true, false));
+        params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, false));
         if (where != null && !where.isEmpty()) {
             params.put("whereCondition", sqlHelper.buildWhereSql(where));
         }

@@ -3,7 +3,7 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.fields.AllFields;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 
 /**
  * 实体业务处理接口<br>
@@ -26,7 +26,7 @@ public interface ModelDataHandler {
      * @param allFields 全字段
      * @return 是否支持
      */
-    boolean supportedTableLogicalDelete(AllFields allFields);
+    boolean supportedTableLogicalDelete(AllFieldColumn<?> allFields);
 
     /**
      * 填充查询条件的数据状态标记
@@ -35,7 +35,7 @@ public interface ModelDataHandler {
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFields allFields);
+    void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表Where条件的数据状态标记
@@ -43,7 +43,7 @@ public interface ModelDataHandler {
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillTableWhereDataStatus(DbWhere where, AllFields allFields);
+    void fillTableWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表新增时的数据状态标记
@@ -51,7 +51,7 @@ public interface ModelDataHandler {
      * @param condition 条件
      * @param allFields 全字段
      */
-    void fillTableCreateDataStatus(Map<String, Object> condition, AllFields allFields);
+    void fillTableCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表修改时的数据状态标记(此方法一般为空)
@@ -59,7 +59,7 @@ public interface ModelDataHandler {
      * @param ud 更新对象
      * @param allFields 全字段
      */
-    void fillTableUpdateDataStatus(DbUpdate ud, AllFields allFields);
+    void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表逻辑删除时的数据状态标记(应将数据状态设置为无效)
@@ -67,7 +67,7 @@ public interface ModelDataHandler {
      * @param ud 更新对象
      * @param allFields 全字段
      */
-    void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFields allFields);
+    void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表创建参数(如创建人创建时间等)
@@ -75,7 +75,7 @@ public interface ModelDataHandler {
      * @param model 实体对象
      * @param allFields 全字段
      */
-    void fillTableCreteParams(Map<String, Object> model, AllFields allFields);
+    void fillTableCreteParams(Map<String, Object> model, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表修改参数(如修改人修改时间等)
@@ -83,7 +83,7 @@ public interface ModelDataHandler {
      * @param model 实体对象
      * @param allFields 全字段
      */
-    void fillTableUpdateParams(Map<String, Object> model, AllFields allFields);
+    void fillTableUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表修改参数(如修改人修改时间等)
@@ -91,5 +91,5 @@ public interface ModelDataHandler {
      * @param ud 更新对象
      * @param allFields 全字段
      */
-    void fillTableUpdateParams(DbUpdate ud, AllFields allFields);
+    void fillTableUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields);
 }

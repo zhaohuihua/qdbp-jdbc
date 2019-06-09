@@ -5,8 +5,8 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import com.gitee.qdbp.able.matches.StringMatcher;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -69,7 +69,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     }
 
     @Override
-    protected FieldColumn scanColumn(Field field, Class<?> clazz) {
+    protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
         Column annotation = field.getAnnotation(Column.class);
         if (useMissAnnotationField || annotation != null) {
             String fieldName = field.getName();
@@ -80,31 +80,31 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
                     columnName = nameConverter.fieldNameToColumnName(fieldName);
                 }
             }
-            return new FieldColumn(fieldName, columnName);
+            return new SimpleFieldColumn(fieldName, columnName);
         }
 
         return null;
     }
 
     @Override
-    protected PrimaryKey scanPrimaryKey(Field field, FieldColumn column, Class<?> clazz) {
+    protected PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz) {
         String fieldName = field.getName();
         Id idAnnotation = field.getAnnotation(Id.class);
         boolean isPrimaryKey = idAnnotation != null
                 || useMissAnnotationField && primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName);
         if (isPrimaryKey) {
             if (column != null) {
-                return column.to(PrimaryKey.class);
+                return column.to(PrimaryKeyFieldColumn.class);
             } else {
                 column = scanColumn(field, clazz);
                 if (column != null) {
-                    return column.to(PrimaryKey.class);
+                    return column.to(PrimaryKeyFieldColumn.class);
                 } else {
                     String columnName = fieldName;
                     if (nameConverter != null) {
                         columnName = nameConverter.fieldNameToColumnName(fieldName);
                     }
-                    return new PrimaryKey(fieldName, columnName);
+                    return new PrimaryKeyFieldColumn(fieldName, columnName);
                 }
             }
         }

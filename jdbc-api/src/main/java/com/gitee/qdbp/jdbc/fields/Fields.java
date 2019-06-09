@@ -1,7 +1,6 @@
 package com.gitee.qdbp.jdbc.fields;
 
 import java.util.List;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
 
 /**
  * 字段容器
@@ -11,6 +10,5 @@ import com.gitee.qdbp.jdbc.model.FieldColumn;
  */
 public interface Fields {
 
-    List<FieldColumn> getItems();
-
+    List<String> getItems();
 }

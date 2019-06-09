@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 
 /**
@@ -18,10 +18,10 @@ import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 public abstract class BaseTableInfoScans implements TableInfoScans {
 
     /** 扫描普通列信息 **/
-    protected abstract FieldColumn scanColumn(Field field, Class<?> clazz);
+    protected abstract SimpleFieldColumn scanColumn(Field field, Class<?> clazz);
 
     /** 扫描主键列信息, 一般情况下column为空, 只有在调用前已经扫描了column则可能column不为空 **/
-    protected abstract PrimaryKey scanPrimaryKey(Field field, FieldColumn column, Class<?> clazz);
+    protected abstract PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz);
 
     /** 判断是否公共字段的处理器 **/
     private CommonFieldResolver commonFieldResolver;
@@ -37,7 +37,7 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
     }
 
     @Override
-    public PrimaryKey scanPrimaryKey(Class<?> clazz) {
+    public PrimaryKeyFieldColumn scanPrimaryKey(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("clazz is null");
         }
@@ -46,7 +46,7 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
         while (temp != null && temp != Object.class) {
             Field[] fields = temp.getDeclaredFields();
             for (Field field : fields) {
-                PrimaryKey pk = scanPrimaryKey(field, null, temp);
+                PrimaryKeyFieldColumn pk = scanPrimaryKey(field, null, temp);
                 if (pk != null) {
                     return pk;
                 }
@@ -57,21 +57,21 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
     }
 
     @Override
-    public List<FieldColumn> scanColumnList(Class<?> clazz) {
+    public List<SimpleFieldColumn> scanColumnList(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("clazz is null");
         }
 
         // 字段顺序: ID放在最前面, 然后按继承顺序排序, 最后放公共的字段(创建人/创建时间/更新人/更新时间/逻辑删除标记)
-        FieldColumn idColumn = null;
-        List<FieldColumn> commonColumns = new ArrayList<>();
-        List<FieldColumn> allColumns = new ArrayList<>();
+        SimpleFieldColumn idColumn = null;
+        List<SimpleFieldColumn> commonColumns = new ArrayList<>();
+        List<SimpleFieldColumn> allColumns = new ArrayList<>();
         Map<String, String> map = new HashMap<>();
         Class<?> temp = clazz;
         while (temp != null && temp != Object.class) {
             boolean isCommonPackage = isCommonPackage(temp.getPackage().getName());
-            List<FieldColumn> innerCommonColumns = new ArrayList<>();
-            List<FieldColumn> innerNormalColumns = new ArrayList<>();
+            List<SimpleFieldColumn> innerCommonColumns = new ArrayList<>();
+            List<SimpleFieldColumn> innerNormalColumns = new ArrayList<>();
             Field[] fields = temp.getDeclaredFields();
             for (Field field : fields) {
                 if (map.containsKey(field.getName())) {
@@ -80,9 +80,9 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
                 field.setAccessible(true);
                 String fieldName = field.getName();
 
-                FieldColumn column = scanColumn(field, temp);
+                SimpleFieldColumn column = scanColumn(field, temp);
                 if (idColumn == null) {
-                    FieldColumn tempColumn = scanPrimaryKey(field, column, temp);
+                    SimpleFieldColumn tempColumn = scanPrimaryKey(field, column, temp);
                     if (tempColumn != null) {
                         idColumn = tempColumn;
                         continue; // 当前列是ID, 单独记录下来, 插入到最前面

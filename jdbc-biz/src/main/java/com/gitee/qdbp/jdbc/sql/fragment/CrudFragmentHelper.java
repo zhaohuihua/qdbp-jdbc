@@ -3,7 +3,7 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -26,7 +26,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * 
      * @return 主键, 有可能为空
      */
-    PrimaryKey getPrimaryKey();
+    PrimaryKeyFieldColumn getPrimaryKey();
 
     /**
      * 生成Insert字段值占位符列表SQL语句<br>

@@ -4,8 +4,8 @@ import java.lang.reflect.Field;
 import javax.persistence.Table;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -54,19 +54,19 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
     }
 
     @Override
-    protected FieldColumn scanColumn(Field field, Class<?> clazz) {
+    protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
         String fieldName = field.getName();
-        return new FieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
+        return new SimpleFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
     }
 
     @Override
-    protected PrimaryKey scanPrimaryKey(Field field, FieldColumn column, Class<?> clazz) {
+    protected PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz) {
         String fieldName = field.getName();
         if (primaryKeyMatcher.matches(fieldName)) {
             if (column != null) {
-                return column.to(PrimaryKey.class);
+                return column.to(PrimaryKeyFieldColumn.class);
             } else {
-                return new PrimaryKey(fieldName, nameConverter.fieldNameToColumnName(fieldName));
+                return new PrimaryKeyFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
             }
         }
         return null;

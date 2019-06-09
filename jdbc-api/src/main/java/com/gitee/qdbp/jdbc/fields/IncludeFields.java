@@ -1,20 +1,23 @@
 package com.gitee.qdbp.jdbc.fields;
 
+import java.util.List;
+
 /**
  * 导入型字段子集
  *
  * @author zhaohuihua
  * @version 180503
  */
-class IncludeFields extends FilterFields {
+public class IncludeFields extends BaseFields {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    public IncludeFields(AllFields all, String... fieldNames) {
-        super(all);
-        if (fieldNames != null) {
-            super.include(fieldNames);
-        }
+    public IncludeFields(String... fields) {
+        super(fields);
+    }
+
+    public IncludeFields(List<String> fields) {
+        super(fields);
     }
 }

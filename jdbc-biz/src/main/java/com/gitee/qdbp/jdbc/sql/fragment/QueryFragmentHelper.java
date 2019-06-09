@@ -55,7 +55,7 @@ public interface QueryFragmentHelper {
      * @param fieldValues 字段值
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
-    SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean matches, boolean whole)
+    SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption;
 
     /**

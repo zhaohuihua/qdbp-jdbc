@@ -1,8 +1,8 @@
 package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.List;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 
 /**
  * 扫描数据表和列信息<br>
@@ -27,7 +27,7 @@ public interface TableInfoScans {
      * @param clazz 类名
      * @return 主键
      */
-    PrimaryKey scanPrimaryKey(Class<?> clazz);
+    PrimaryKeyFieldColumn scanPrimaryKey(Class<?> clazz);
 
     /**
      * 扫描字段名和数据库列名的映射表
@@ -35,6 +35,6 @@ public interface TableInfoScans {
      * @param clazz 类型
      * @return ColumnInfo: fieldName - columnName
      */
-    List<FieldColumn> scanColumnList(Class<?> clazz);
+    List<SimpleFieldColumn> scanColumnList(Class<?> clazz);
 
 }

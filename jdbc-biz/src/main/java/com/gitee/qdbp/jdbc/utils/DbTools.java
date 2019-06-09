@@ -3,23 +3,22 @@ package com.gitee.qdbp.jdbc.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.jdbc.core.JdbcOperations;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.condition.TableJoin.TableItem;
-import com.gitee.qdbp.jdbc.fields.AllFields;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
-import com.gitee.qdbp.jdbc.model.PrimaryKey;
+import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
+import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -55,7 +54,7 @@ public abstract class DbTools {
      * @return 实体业务执行类
      */
     public static ModelDataExecutor getModelDataExecutor(Class<?> clazz) {
-        AllFields allFields = parseToAllFields(clazz);
+        AllFieldColumn<?> allFields = parseToAllFieldColumn(clazz);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
@@ -69,7 +68,7 @@ public abstract class DbTools {
      * @return 实体业务执行类
      */
     public static ModelDataExecutor getModelDataExecutor(TableJoin tables) {
-        AllFields allFields = parseToAllFields(tables);
+        AllFieldColumn<?> allFields = parseToAllFieldColumn(tables);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
@@ -151,7 +150,7 @@ public abstract class DbTools {
     }
 
     /** Entity的主键缓存 **/
-    private static Map<Class<?>, PrimaryKey> entityPrimaryKeyCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, PrimaryKeyFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
 
     /**
      * 扫描获取主键
@@ -159,7 +158,7 @@ public abstract class DbTools {
      * @param clazz 类名
      * @return 主键
      */
-    public static PrimaryKey parsePrimaryKey(Class<?> clazz) {
+    public static PrimaryKeyFieldColumn parsePrimaryKey(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("clazz is null");
         }
@@ -168,13 +167,13 @@ public abstract class DbTools {
         }
 
         TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
-        PrimaryKey pk = scans.scanPrimaryKey(clazz);
+        PrimaryKeyFieldColumn pk = scans.scanPrimaryKey(clazz);
         entityPrimaryKeyCache.put(clazz, pk);
         return pk;
     }
 
     /** TableJoin的列名缓存 **/
-    private static Map<String, List<FieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
+    private static Map<String, List<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
 
     public static String buildCacheKey(TableJoin tables) {
         StringBuilder buffer = new StringBuilder();
@@ -195,16 +194,17 @@ public abstract class DbTools {
         return buffer.toString();
     }
 
-    private static List<FieldColumn> scanColumnList(TableItem table) {
+    private static List<TablesFieldColumn> scanColumnList(TableItem table) {
         TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
-        List<FieldColumn> fields = scans.scanColumnList(table.getTableType());
+        List<SimpleFieldColumn> fields = scans.scanColumnList(table.getTableType());
         String tableAlias = table.getTableAlias();
-        if (VerifyTools.isNotBlank(tableAlias)) {
-            for (FieldColumn item : fields) {
-                item.setTableAlias(tableAlias);
-            }
+        List<TablesFieldColumn> result = new ArrayList<>(fields.size());
+        for (SimpleFieldColumn item : fields) {
+            TablesFieldColumn copied = item.to(TablesFieldColumn.class);
+            copied.setTableAlias(tableAlias);
+            result.add(copied);
         }
-        return fields;
+        return result;
     }
 
     /**
@@ -213,7 +213,7 @@ public abstract class DbTools {
      * @param tables 表关联对象
      * @return AllFields: fieldName - columnName
      */
-    public static List<FieldColumn> parseFieldColumns(TableJoin tables) {
+    public static List<TablesFieldColumn> parseFieldColumns(TableJoin tables) {
         if (tables == null) {
             throw new IllegalArgumentException("tables is null");
         }
@@ -221,25 +221,24 @@ public abstract class DbTools {
         if (joinColumnsCache.containsKey(cacheKey)) {
             return joinColumnsCache.get(cacheKey);
         }
-        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
         TableItem major = tables.getMajor();
         List<JoinItem> joins = tables.getJoins();
-        List<FieldColumn> all = new ArrayList<>();
+        List<TablesFieldColumn> all = new ArrayList<>();
         { // 添加主表的字段
-            List<FieldColumn> fields = scanColumnList(major);
+            List<TablesFieldColumn> fields = scanColumnList(major);
             all.addAll(fields);
         }
         if (VerifyTools.isNotBlank(joins)) {
             // 添加关联表的字段
             for (JoinItem item : joins) {
-                List<FieldColumn> fields = scans.scanColumnList(item.getTableType());
+                List<TablesFieldColumn> fields = scanColumnList(item);
                 all.addAll(fields);
             }
         }
         // 处理重名字段: 设置columnAlias
         // 1.先统计字段出现次数
         Map<String, Integer> countMaps = new HashMap<>();
-        for (FieldColumn field : all) {
+        for (SimpleFieldColumn field : all) {
             String fieldName = field.getFieldName();
             if (countMaps.containsKey(fieldName)) {
                 countMaps.put(fieldName, countMaps.get(fieldName) + 1);
@@ -248,7 +247,7 @@ public abstract class DbTools {
             }
         }
         // 2.如果出现多次则设置columnAlias=tableAlias_columnName
-        for (FieldColumn field : all) {
+        for (TablesFieldColumn field : all) {
             String fieldName = field.getFieldName();
             if (countMaps.get(fieldName) > 1) {
                 String columnAlias = StringTools.concat('_', field.getTableAlias(), field.getColumnName());
@@ -263,22 +262,23 @@ public abstract class DbTools {
      * 扫描获取字段名和数据库列名的映射表
      * 
      * @param tables 表关联对象
-     * @return AllFields: fieldName - columnName
+     * @return AllFieldColumn: fieldName - columnName
      */
-    public static AllFields parseToAllFields(TableJoin tables) {
-        return new AllFields(parseFieldColumns(tables));
+    public static AllFieldColumn<TablesFieldColumn> parseToAllFieldColumn(TableJoin tables) {
+        List<TablesFieldColumn> fields = parseFieldColumns(tables);
+        return new AllFieldColumn<>(fields);
     }
 
     /** Entity的列名缓存 **/
-    private static Map<Class<?>, List<FieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, List<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
 
     /**
      * 扫描获取字段名和数据库列名的映射表
      * 
      * @param clazz 类型
-     * @return ColumnInfo: fieldName - columnName
+     * @return AllFields: fieldName - columnName
      */
-    public static List<FieldColumn> parseFieldColumns(Class<?> clazz) {
+    public static List<SimpleFieldColumn> parseFieldColumns(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("clazz is null");
         }
@@ -287,7 +287,7 @@ public abstract class DbTools {
         }
 
         TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
-        List<FieldColumn> all = scans.scanColumnList(clazz);
+        List<SimpleFieldColumn> all = scans.scanColumnList(clazz);
         entityColumnsCache.put(clazz, all);
         return all;
     }
@@ -295,111 +295,12 @@ public abstract class DbTools {
     /**
      * 扫描获取字段名和数据库列名的映射表
      * 
-     * @param clazz 类型
-     * @return AllFields: fieldName - columnName
+     * @param tables 表关联对象
+     * @return AllFieldColumn: fieldName - columnName
      */
-    public static AllFields parseToAllFields(Class<?> clazz) {
-        AllFields allFields = new AllFields(parseFieldColumns(clazz));
-        allFields.readonly(); // 设置为只读
-        return allFields;
-    }
-
-    /**
-     * 扫描获取字段名和数据库列名的映射表
-     * 
-     * @param clazz 类型
-     * @return map: fieldName - columnName
-     */
-    public static Map<String, String> parseFieldColumnMap(Class<?> clazz) {
-        if (clazz == null) {
-            return null;
-        }
-
-        List<FieldColumn> columns = parseFieldColumns(clazz);
-        return toFieldColumnMap(columns);
-    }
-
-    /**
-     * 列表转换为Field-Column映射表
-     * 
-     * @param columns 字段列表信息
-     * @return Field-Column映射表
-     */
-    public static Map<String, String> toFieldColumnMap(List<FieldColumn> columns) {
-        if (columns == null) {
-            return null;
-        }
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        for (FieldColumn item : columns) {
-            map.put(item.getFieldName(), item.getColumnName());
-        }
-        return map;
-    }
-
-    /**
-     * 扫描获取数据库列名和字段名的映射表
-     * 
-     * @param clazz 类型
-     * @return map: columnName - fieldName
-     */
-    public static Map<String, String> parseColumnFieldMap(Class<?> clazz) {
-        if (clazz == null) {
-            return null;
-        }
-
-        List<FieldColumn> columns = parseFieldColumns(clazz);
-        return toColumnFieldMap(columns);
-    }
-
-    /**
-     * 列表转换为Field-Column映射表
-     * 
-     * @param columns 字段列表信息
-     * @return Column-Field映射表
-     */
-    public static Map<String, String> toColumnFieldMap(List<FieldColumn> columns) {
-        if (columns == null) {
-            return null;
-        }
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        for (FieldColumn item : columns) {
-            map.put(item.getColumnName(), item.getFieldName());
-        }
-        return map;
-    }
-
-    public static String toFullFieldName(FieldColumn field) {
-        return toFullFieldName(field.getFieldName(), field.getTableAlias());
-    }
-
-    public static String toFullFieldName(String fieldName, String tableAlias) {
-        StringBuilder buffer = new StringBuilder();
-        // 表别名
-        if (VerifyTools.isNotBlank(tableAlias)) {
-            buffer.append(tableAlias.toLowerCase()).append('.');
-        }
-        // 字段名
-        buffer.append(fieldName);
-        return buffer.toString();
-    }
-
-    public static String toFullColumnName(FieldColumn column) {
-        return toFullColumnName(column.getColumnName(), column.getTableAlias(), column.getColumnAlias());
-    }
-
-    public static String toFullColumnName(String columnName, String tableAlias, String columnAlias) {
-        StringBuilder buffer = new StringBuilder();
-        // 表别名
-        if (VerifyTools.isNotBlank(tableAlias)) {
-            buffer.append(tableAlias.toUpperCase()).append('.');
-        }
-        // 列名
-        buffer.append(columnName);
-        // 列别名
-        if (VerifyTools.isNotBlank(columnAlias)) {
-            buffer.append(' ').append("AS").append(' ').append(columnAlias);
-        }
-        return buffer.toString();
+    public static AllFieldColumn<SimpleFieldColumn> parseToAllFieldColumn(Class<?> clazz) {
+        List<SimpleFieldColumn> fields = parseFieldColumns(clazz);
+        return new AllFieldColumn<>(fields);
     }
 
     /**
@@ -418,16 +319,16 @@ public abstract class DbTools {
         }
 
         // 从bean.getClass()扫描获取列名与字段名的对应关系
-        List<FieldColumn> columns = DbTools.parseFieldColumns(object.getClass());
-        if (columns == null || columns.isEmpty()) {
+        AllFieldColumn<?> allFields = parseToAllFieldColumn(object.getClass());
+        if (allFields == null || allFields.isEmpty()) {
             return null;
         }
-        Map<String, String> fieldColumnMaps = DbTools.toFieldColumnMap(columns);
+        List<String> fieldNames = allFields.getFieldNames();
 
-        // 只保留有列注解的字段
+        // 只保留有列信息的字段
         Map<String, Object> result = new HashMap<>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (fieldColumnMaps.containsKey(entry.getKey())) {
+            if (FieldTools.contains(fieldNames, entry.getKey())) {
                 result.put(entry.getKey(), entry.getValue());
             }
         }
@@ -440,40 +341,6 @@ public abstract class DbTools {
         }
         Map<String, Object> map = (JSONObject) JSON.toJSON(object);
         return clearBlankValue ? ConvertTools.clearBlankValue(map, false) : map;
-    }
-
-    /**
-     * 将DB查询的ResultMap转换为Java对象<br>
-     * result的key是数据表的列名, 会根据class的注解转换为字段名
-     * 
-     * @param result 数据
-     * @param clazz 目标类型
-     * @return Java对象
-     * @author 赵卉华
-     */
-    public static <T> T resultToBean(Map<String, Object> result, Class<T> clazz) {
-        if (result == null || clazz == null) {
-            return null;
-        }
-
-        // 1. 从bean.getClass()通过注释获取列名与字段名的对应关系
-        List<FieldColumn> columns = DbTools.parseFieldColumns(clazz);
-        if (columns == null || columns.isEmpty()) {
-            return null;
-        }
-
-        Map<String, String> columnFieldMaps = DbTools.toColumnFieldMap(columns);
-        // 2. properties是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
-        Map<String, Object> fieldValues = new HashMap<String, Object>();
-        for (Map.Entry<String, Object> entry : result.entrySet()) {
-            String columnName = entry.getKey();
-            if (columnFieldMaps.containsKey(columnName)) {
-                String fieldName = columnFieldMaps.get(columnName);
-                fieldValues.put(fieldName, entry.getValue());
-            }
-        }
-        // 3. 利用fastjson工具进行Map到JavaObject的转换
-        return TypeUtils.castToJavaBean(result, clazz);
     }
 
     /** 分页/排序对象的通用字段 **/
@@ -519,9 +386,8 @@ public abstract class DbTools {
      * @return Where对象
      */
     public static <T> DbWhere parseWhereFromParams(Map<String, String[]> params, Class<T> clazz) {
-        List<FieldColumn> columns = DbTools.parseFieldColumns(clazz);
-        Map<String, String> fieldColumnMap = DbTools.toFieldColumnMap(columns);
-        List<String> fieldNames = new ArrayList<String>(fieldColumnMap.keySet());
+        AllFieldColumn<?> allFields = parseToAllFieldColumn(clazz);
+        List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, WHERE_ARRAY_FIELDS);
         return DbWhere.from(map);
     }
@@ -573,9 +439,8 @@ public abstract class DbTools {
      * @return Update对象
      */
     public static <T> DbUpdate parseUpdateFromParams(Map<String, String[]> params, Class<T> clazz) {
-        List<FieldColumn> columns = DbTools.parseFieldColumns(clazz);
-        Map<String, String> fieldColumnMap = DbTools.toFieldColumnMap(columns);
-        List<String> fieldNames = new ArrayList<String>(fieldColumnMap.keySet());
+        AllFieldColumn<?> allFields = parseToAllFieldColumn(clazz);
+        List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, null);
         return DbUpdate.from(map);
     }
@@ -618,25 +483,22 @@ public abstract class DbTools {
             return null;
         }
 
-        // 需要排除的字段名
-        Map<String, Void> blacklistMap = new HashMap<String, Void>();
-        if (VerifyTools.isNotBlank(excludeFields)) {
-            for (String field : excludeFields) {
-                blacklistMap.put(field, null);
-            }
-        }
-
         Map<String, Object> resultMap = new HashMap<String, Object>();
         for (Map.Entry<String, String[]> entry : params.entrySet()) {
             if (VerifyTools.isAnyBlank(entry.getKey(), entry.getValue())) {
                 continue;
             }
-            if (blacklistMap.containsKey(entry.getKey())) {
-                continue;
-            }
             String fieldName = entry.getKey();
             if (fieldName.endsWith("[]")) {
                 fieldName = fieldName.substring(0, fieldName.length() - 2);
+            }
+            String realFieldName = fieldName;
+            int dollarLastIndex = fieldName.lastIndexOf('$');
+            if (dollarLastIndex > 0) {
+                realFieldName = fieldName.substring(0, dollarLastIndex);
+            }
+            if (FieldTools.contains(excludeFields, realFieldName)) {
+                continue;
             }
             if (allowArraySuffixes != null && isEndsWith(fieldName, allowArraySuffixes)) {
                 resultMap.put(fieldName, entry.getValue());
@@ -661,14 +523,6 @@ public abstract class DbTools {
             return null;
         }
 
-        // 有效的字段名
-        Map<String, Void> whitelistMap = new HashMap<String, Void>();
-        if (VerifyTools.isNotBlank(includeFields)) {
-            for (String field : includeFields) {
-                whitelistMap.put(field, null);
-            }
-        }
-
         Map<String, Object> resultMap = new HashMap<String, Object>();
         for (Map.Entry<String, String[]> entry : params.entrySet()) {
             if (VerifyTools.isAnyBlank(entry.getKey(), entry.getValue())) {
@@ -683,7 +537,7 @@ public abstract class DbTools {
             if (dollarLastIndex > 0) {
                 realFieldName = fieldName.substring(0, dollarLastIndex);
             }
-            if (!whitelistMap.containsKey(realFieldName)) {
+            if (!FieldTools.contains(includeFields, realFieldName)) {
                 continue;
             }
             if (allowArraySuffixes != null && isEndsWith(fieldName, allowArraySuffixes)) {

@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import com.gitee.qdbp.jdbc.model.FieldColumn;
+import com.gitee.qdbp.jdbc.utils.FieldTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -13,60 +14,66 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 180503
  */
-abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable {
+abstract class BaseFields implements Fields, Serializable {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    protected List<FieldColumn> fields;
+    protected List<String> fields;
 
     protected BaseFields() {
         this.fields = new ArrayList<>();
     }
 
-    protected BaseFields(List<FieldColumn> fields) {
-        this.fields = fields;
-        for (FieldColumn field : fields) {
-            VerifyTools.requireNotBlank(field.getFieldName(), "fieldName");
-            VerifyTools.requireNotBlank(field.getColumnName(), "columnName");
+    protected BaseFields(String... fields) {
+        VerifyTools.requireNotBlank(fields, "fields");
+        this.fields = new ArrayList<>();
+        for (String field : fields) {
+            VerifyTools.requireNotBlank(field, "fieldName");
+            this.fields.add(field);
         }
     }
 
-    /** 获取字段对象列表, 返回的是对象副本 **/
-    public List<FieldColumn> getItems() {
-        List<FieldColumn> list = new ArrayList<>();
-        for (FieldColumn field : this.fields) {
-            list.add(field.to(FieldColumn.class));
+    protected BaseFields(List<String> fields) {
+        VerifyTools.requireNotBlank(fields, "fields");
+        this.fields = new ArrayList<>();
+        this.setItems(fields);
+    }
+
+    /** 获取字段列表, 返回的是副本 **/
+    public List<String> getItems() {
+        List<String> list = new ArrayList<>();
+        if (!this.fields.isEmpty()) {
+            list.addAll(this.fields);
         }
         return list;
     }
 
-    public void setItems(List<FieldColumn> fields) {
+    protected void setItems(List<String> fields) {
+        for (String field : fields) {
+            VerifyTools.requireNotBlank(field, "fieldName");
+        }
         this.fields.clear();
         this.fields.addAll(fields);
-    }
-
-    public Iterator<FieldColumn> iterator() {
-        return this.fields.iterator();
     }
 
     /**
      * 判断字段名是否存在<br>
      * 判断是否匹配:<br>
-     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
      * @param fieldName 字段名
      * @return 是否存在
-     * @see FieldColumn#matchesWithField(String)
+     * @see FieldTools#matches(String, String)
      */
     protected boolean contains(String fieldName) {
         VerifyTools.requireNotBlank(fieldName, "fieldName");
         // 遍历查找匹配项
-        Iterator<FieldColumn> itr = this.fields.iterator();
+        Iterator<String> itr = this.fields.iterator();
         while (itr.hasNext()) {
-            FieldColumn item = itr.next();
-            if (item.matchesWithField(fieldName)) {
+            String item = itr.next();
+            if (FieldTools.matches(item, fieldName)) {
                 return true;
             }
         }
@@ -76,24 +83,24 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
     /**
      * 根据字段名获取指定的字段对象, 如果存在重名字段而fieldName未指定表别名将抛出异常<br>
      * 判断是否匹配:<br>
-     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
      * @param fieldName 字段名
-     * @return 字段对象, 返回的是对象副本
+     * @return 字段
      * @throws IllegalArgumentException 指定的字段名存在重名字段
-     * @see FieldColumn#matchesWithField(String)
+     * @see FieldTools#matches(String, String)
      */
-    protected FieldColumn get(String fieldName) throws IllegalArgumentException {
+    protected String find(String fieldName) throws IllegalArgumentException {
         // 遍历查找匹配项
-        List<FieldColumn> matched = getAll(fieldName);
+        List<String> matched = findAll(fieldName);
         // 判断匹配项数量
         if (matched.isEmpty()) {
             return null;
         } else if (matched.size() == 1) {
-            return matched.get(0).to(FieldColumn.class);
+            return matched.get(0);
         } else { // 不只一项则抛异常
-            String desc = toFieldDescString(matched);
+            String desc = ConvertTools.joinToString(matched);
             throw new IllegalArgumentException("The fieldName matched to multiple field: " + desc);
         }
     }
@@ -101,59 +108,55 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
     /**
      * 根据字段名获取指定的字段对象数组, 如果存在重名字段而fieldName未指定表别名将返回数组<br>
      * 判断是否匹配:<br>
-     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
      * @param fieldName 字段名
-     * @return 字段对象数组, 返回的是对象副本
-     * @see FieldColumn#matchesWithField(String)
+     * @return 字段数组
+     * @see FieldTools#matches(String, String)
      */
-    protected List<FieldColumn> getAll(String fieldName) {
+    protected List<String> findAll(String fieldName) {
         VerifyTools.requireNotBlank(fieldName, "fieldName");
         // 遍历查找匹配项
-        List<FieldColumn> matched = new ArrayList<>();
-        Iterator<FieldColumn> itr = this.fields.iterator();
+        List<String> matched = new ArrayList<>();
+        Iterator<String> itr = this.fields.iterator();
         while (itr.hasNext()) {
-            FieldColumn item = itr.next();
-            if (item.matchesWithField(fieldName)) {
+            String item = itr.next();
+            if (FieldTools.matches(item, fieldName)) {
                 matched.add(item);
             }
         }
         return matched;
     }
 
-    protected void add(FieldColumn... fields) {
+    protected void add(String... fields) {
         VerifyTools.requireNotBlank(fields, "fields");
-        for (FieldColumn field : fields) {
+        for (String field : fields) {
             VerifyTools.requireNotBlank(field, "field");
             this.fields.add(field);
         }
     }
 
-    protected void add(String fieldName, String columnName) {
-        this.add(new FieldColumn(fieldName, columnName));
-    }
-
     /**
      * 删除指定字段, 如果存在重名字段而fieldName未指定表别名将抛出异常<br>
      * 判断是否匹配:<br>
-     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
      * @param fieldName 待删除的字段
      * @return 是否删除了字段
      * @throws IllegalArgumentException 指定的字段名存在重名字段
-     * @see FieldColumn#matchesWithField(String)
+     * @see FieldTools#matches(String, String)
      */
     protected boolean del(String fieldName) throws IllegalArgumentException {
-        List<FieldColumn> matched = this.getAll(fieldName);
+        List<String> matched = this.findAll(fieldName);
         if (matched.size() == 0) {
             return false;
         } else if (matched.size() == 1) {
             this.delAll(fieldName);
             return true;
         } else {
-            String desc = toFieldDescString(matched);
+            String desc = ConvertTools.joinToString(matched);
             throw new IllegalArgumentException("The fieldName matched to multiple field: " + desc);
         }
     }
@@ -161,20 +164,20 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
     /**
      * 删除指定字段, 如果存在重名字段而fieldName未指定表别名将全部删除<br>
      * 判断是否匹配:<br>
-     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
      * @param fieldName 待删除的字段
      * @return 删除了几个字段
-     * @see FieldColumn#matchesWithField(String)
+     * @see FieldTools#matches(String, String)
      */
     protected int delAll(String fieldName) {
         VerifyTools.requireNotBlank(fieldName, "fieldNames");
         int count = 0;
-        Iterator<FieldColumn> itr = this.fields.iterator();
+        Iterator<String> itr = this.fields.iterator();
         while (itr.hasNext()) {
-            FieldColumn item = itr.next();
-            if (item.matchesWithField(fieldName)) {
+            String item = itr.next();
+            if (FieldTools.matches(item, fieldName)) {
                 itr.remove();
                 count++;
                 break;
@@ -183,18 +186,4 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
         return count;
     }
 
-    private String toFieldDescString(List<FieldColumn> matched) {
-        StringBuilder buffer = new StringBuilder();
-        for (FieldColumn field : matched) {
-            if (buffer.length() > 0) {
-                buffer.append(", ");
-            }
-            if (VerifyTools.isBlank(field.getTableAlias())) {
-                buffer.append(field.getFieldName());
-            } else {
-                buffer.append(field.getTableAlias()).append('.').append(field.getFieldName());
-            }
-        }
-        return buffer.toString();
-    }
 }

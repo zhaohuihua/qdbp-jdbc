@@ -1,20 +1,23 @@
 package com.gitee.qdbp.jdbc.fields;
 
+import java.util.List;
+
 /**
  * 排除型字段子集
  *
  * @author zhaohuihua
  * @version 180503
  */
-class ExcludeFields extends FilterFields {
+class ExcludeFields extends BaseFields {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    public ExcludeFields(AllFields all, String... fieldNames) {
-        super(all, all.fields);
-        if (fieldNames != null) {
-            super.exclude(fieldNames);
-        }
+    public ExcludeFields(String... fields) {
+        super(fields);
+    }
+
+    public ExcludeFields(List<String> fields) {
+        super(fields);
     }
 }

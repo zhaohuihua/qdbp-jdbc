@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.fields.AllFields;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.tools.utils.RandomTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -114,48 +114,48 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public boolean supportedTableLogicalDelete(AllFields allFields) {
+    public boolean supportedTableLogicalDelete(AllFieldColumn<?> allFields) {
         if (VerifyTools.isBlank(logicalDeleteField)) {
             return false;
         } else {
-            return allFields.contains(logicalDeleteField);
+            return allFields.containsByField(logicalDeleteField);
         }
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFields allFields) {
+    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
         fillValueIfAbsent(where, logicalDeleteField, tableAlias, dataEffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableWhereDataStatus(DbWhere where, AllFields allFields) {
+    public void fillTableWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields) {
         fillValueIfAbsent(where, logicalDeleteField, dataEffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableCreateDataStatus(Map<String, Object> condition, AllFields allFields) {
+    public void fillTableCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields) {
         fillValueIfAbsent(condition, logicalDeleteField, dataEffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableUpdateDataStatus(DbUpdate ud, AllFields allFields) {
+    public void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
         // 修改时不涉及数据状态的处理
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFields allFields) {
+    public void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
         // 将数据状态设置为无效
         fillValueIfAbsent(ud, logicalDeleteField, dataIneffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableCreteParams(Map<String, Object> model, AllFields allFields) {
+    public void fillTableCreteParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
         Date now = new Date();
         fillValueIfAbsent(model, createTimeField, now, allFields);
         fillValueIfAbsent(model, updateTimeField, now, allFields);
@@ -167,7 +167,7 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableUpdateParams(Map<String, Object> model, AllFields allFields) {
+    public void fillTableUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
         Date now = new Date();
         fillValueIfAbsent(model, updateTimeField, now, allFields);
 
@@ -177,7 +177,7 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableUpdateParams(DbUpdate ud, AllFields allFields) {
+    public void fillTableUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields) {
         Date now = new Date();
         fillValueIfAbsent(ud, updateTimeField, now, allFields);
 

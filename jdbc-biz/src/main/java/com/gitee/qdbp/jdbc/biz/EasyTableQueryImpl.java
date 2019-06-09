@@ -15,9 +15,9 @@ import com.gitee.qdbp.jdbc.condition.DbWhere.EmptyDbWhere;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
+import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
-import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.jdbc.utils.PagingQuery;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -29,7 +29,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public abstract class EasyTableQueryImpl<T> {
 
-    protected Class<T> resultType;
+    protected RowToBeanMapper<T> rowToBeanMapper;
     protected QuerySqlBuilder sqlBuilder;
     protected ModelDataExecutor modelDataExecutor;
     protected SqlBufferJdbcOperations jdbc;
@@ -37,14 +37,14 @@ public abstract class EasyTableQueryImpl<T> {
     /**
      * 构造函数
      * 
-     * @param resultType 返回结果类型
      * @param sqlBuilder SQL生成工具
      * @param modelDataExecutor 实体业务处理接口
      * @param jdbcOperations SqlBuffer数据库操作类
+     * @param rowToBeanMapper 结果转换接口
      */
-    EasyTableQueryImpl(Class<T> resultType, QuerySqlBuilder sqlBuilder,
-            ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations jdbcOperations) {
-        this.resultType = resultType;
+    public EasyTableQueryImpl(QuerySqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+            SqlBufferJdbcOperations jdbcOperations, RowToBeanMapper<T> rowToBeanMapper) {
+        this.rowToBeanMapper = rowToBeanMapper;
         this.sqlBuilder = sqlBuilder;
         this.modelDataExecutor = modelDataExecutor;
         this.jdbc = jdbcOperations;
@@ -65,8 +65,7 @@ public abstract class EasyTableQueryImpl<T> {
         }
         modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
         SqlBuffer buffer = sqlBuilder.buildFindSql(where);
-        Map<String, Object> map = jdbc.queryForMap(buffer);
-        return map == null ? null : DbTools.resultToBean(map, resultType);
+        return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
 
     public List<T> listAll() {
@@ -77,7 +76,7 @@ public abstract class EasyTableQueryImpl<T> {
         DbWhere where = new DbWhere();
         modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
-        return jdbc.queryForList(buffer, resultType);
+        return jdbc.query(buffer, rowToBeanMapper);
     }
 
     public PageList<T> list(DbWhere where, OrderPaging odpg) {
@@ -100,7 +99,7 @@ public abstract class EasyTableQueryImpl<T> {
             csb = sqlBuilder.buildCountSql(wsb);
         }
 
-        PartList<T> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, resultType);
+        PartList<T> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, rowToBeanMapper);
         return list == null ? null : new PageList<T>(list, list.getTotal());
     }
 
