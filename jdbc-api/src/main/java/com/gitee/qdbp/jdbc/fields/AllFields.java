@@ -30,6 +30,10 @@ public class AllFields extends BaseFields {
     public void readonly() {
         this.readonly = true;
     }
+    
+    public boolean isEmpty() {
+        return this.fields.isEmpty();
+    }
 
     public FilterFields include(String... fieldNames) {
         VerifyTools.requireNotBlank(fieldNames, "fieldNames");
@@ -41,6 +45,12 @@ public class AllFields extends BaseFields {
         VerifyTools.requireNotBlank(fieldNames, "fieldNames");
 
         return new ExcludeFields(this, fieldNames);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public boolean contains(String fieldName) {
+        return super.contains(fieldName);
     }
 
     /** {@inheritDoc} **/

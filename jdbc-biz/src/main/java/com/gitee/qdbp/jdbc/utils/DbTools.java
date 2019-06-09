@@ -55,12 +55,12 @@ public abstract class DbTools {
      * @return 实体业务执行类
      */
     public static ModelDataExecutor getModelDataExecutor(Class<?> clazz) {
-        List<FieldColumn> columns = parseFieldColumns(clazz);
-        if (VerifyTools.isBlank(columns)) {
-            throw new IllegalArgumentException("columns is empty");
+        AllFields allFields = parseToAllFields(clazz);
+        if (allFields.isEmpty()) {
+            throw new IllegalArgumentException("fields is empty");
         }
         ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
-        return new ModelDataExecutor(columns, handler);
+        return new ModelDataExecutor(allFields, handler);
     }
 
     /**
@@ -69,12 +69,12 @@ public abstract class DbTools {
      * @return 实体业务执行类
      */
     public static ModelDataExecutor getModelDataExecutor(TableJoin tables) {
-        List<FieldColumn> columns = parseFieldColumns(tables);
-        if (VerifyTools.isBlank(columns)) {
-            throw new IllegalArgumentException("columns is empty");
+        AllFields allFields = parseToAllFields(tables);
+        if (allFields.isEmpty()) {
+            throw new IllegalArgumentException("fields is empty");
         }
         ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
-        return new ModelDataExecutor(columns, handler);
+        return new ModelDataExecutor(allFields, handler);
     }
 
     public static CrudSqlBuilder getCrudSqlBuilder(Class<?> clazz) {
@@ -299,7 +299,9 @@ public abstract class DbTools {
      * @return AllFields: fieldName - columnName
      */
     public static AllFields parseToAllFields(Class<?> clazz) {
-        return new AllFields(parseFieldColumns(clazz));
+        AllFields allFields = new AllFields(parseFieldColumns(clazz));
+        allFields.readonly(); // 设置为只读
+        return allFields;
     }
 
     /**
@@ -364,6 +366,40 @@ public abstract class DbTools {
             map.put(item.getColumnName(), item.getFieldName());
         }
         return map;
+    }
+
+    public static String toFullFieldName(FieldColumn field) {
+        return toFullFieldName(field.getFieldName(), field.getTableAlias());
+    }
+
+    public static String toFullFieldName(String fieldName, String tableAlias) {
+        StringBuilder buffer = new StringBuilder();
+        // 表别名
+        if (VerifyTools.isNotBlank(tableAlias)) {
+            buffer.append(tableAlias.toLowerCase()).append('.');
+        }
+        // 字段名
+        buffer.append(fieldName);
+        return buffer.toString();
+    }
+
+    public static String toFullColumnName(FieldColumn column) {
+        return toFullColumnName(column.getColumnName(), column.getTableAlias(), column.getColumnAlias());
+    }
+
+    public static String toFullColumnName(String columnName, String tableAlias, String columnAlias) {
+        StringBuilder buffer = new StringBuilder();
+        // 表别名
+        if (VerifyTools.isNotBlank(tableAlias)) {
+            buffer.append(tableAlias.toUpperCase()).append('.');
+        }
+        // 列名
+        buffer.append(columnName);
+        // 列别名
+        if (VerifyTools.isNotBlank(columnAlias)) {
+            buffer.append(' ').append("AS").append(' ').append(columnAlias);
+        }
+        return buffer.toString();
     }
 
     /**

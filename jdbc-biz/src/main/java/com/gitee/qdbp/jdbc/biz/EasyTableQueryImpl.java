@@ -27,26 +27,43 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190608
  */
-public abstract class EasyTableQueryImpl<T>{
+public abstract class EasyTableQueryImpl<T> {
 
     protected Class<T> resultType;
     protected QuerySqlBuilder sqlBuilder;
     protected ModelDataExecutor modelDataExecutor;
     protected SqlBufferJdbcOperations jdbc;
 
-    EasyTableQueryImpl(Class<T> resultType, QuerySqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
-            SqlBufferJdbcOperations jdbcOperations) {
+    /**
+     * 构造函数
+     * 
+     * @param resultType 返回结果类型
+     * @param sqlBuilder SQL生成工具
+     * @param modelDataExecutor 实体业务处理接口
+     * @param jdbcOperations SqlBuffer数据库操作类
+     */
+    EasyTableQueryImpl(Class<T> resultType, QuerySqlBuilder sqlBuilder,
+            ModelDataExecutor modelDataExecutor, SqlBufferJdbcOperations jdbcOperations) {
         this.resultType = resultType;
         this.sqlBuilder = sqlBuilder;
         this.modelDataExecutor = modelDataExecutor;
         this.jdbc = jdbcOperations;
     }
 
+    /**
+     * 获取主表别名(用于表关联查询)
+     * 
+     * @return 主表别名
+     */
+    protected String getMajorTableAlais() {
+        return null;
+    }
+
     public T find(DbWhere where) {
         if (where == null || where.isEmpty()) {
             throw new IllegalArgumentException("where can't be empty");
         }
-        modelDataExecutor.fillDataEffectiveFlag(where);
+        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
         SqlBuffer buffer = sqlBuilder.buildFindSql(where);
         Map<String, Object> map = jdbc.queryForMap(buffer);
         return map == null ? null : DbTools.resultToBean(map, resultType);
@@ -58,7 +75,7 @@ public abstract class EasyTableQueryImpl<T>{
 
     public List<T> listAll(List<Ordering> orderings) {
         DbWhere where = new DbWhere();
-        modelDataExecutor.fillDataEffectiveFlag(where);
+        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
         return jdbc.queryForList(buffer, resultType);
     }
@@ -69,7 +86,7 @@ public abstract class EasyTableQueryImpl<T>{
         if (where == null || where instanceof EmptyDbWhere) {
             readyWhere = new DbWhere();
         }
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere);
@@ -89,7 +106,7 @@ public abstract class EasyTableQueryImpl<T>{
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
         List<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
@@ -97,7 +114,7 @@ public abstract class EasyTableQueryImpl<T>{
     public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
         return doListFieldValues(fieldName, distinct, readyWhere, null, valueClazz);
     }
 
@@ -109,7 +126,7 @@ public abstract class EasyTableQueryImpl<T>{
 
     public int count(DbWhere where) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
         return doCount(readyWhere);
     }
 
@@ -121,7 +138,7 @@ public abstract class EasyTableQueryImpl<T>{
     public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
         VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
         return this.doGroupCount(groupBy, readyWhere);
     }
 

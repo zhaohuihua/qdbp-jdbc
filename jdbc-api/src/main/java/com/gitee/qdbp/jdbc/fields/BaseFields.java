@@ -32,24 +32,6 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
         }
     }
 
-    @Override
-    public List<String> getFieldNames() {
-        List<String> list = new ArrayList<>();
-        for (FieldColumn field : this.fields) {
-            list.add(field.getFieldName());
-        }
-        return list;
-    }
-
-    @Override
-    public List<String> getColumnNames() {
-        List<String> list = new ArrayList<>();
-        for (FieldColumn field : this.fields) {
-            list.add(field.getColumnName());
-        }
-        return list;
-    }
-
     /** 获取字段对象列表, 返回的是对象副本 **/
     public List<FieldColumn> getItems() {
         List<FieldColumn> list = new ArrayList<>();
@@ -66,6 +48,29 @@ abstract class BaseFields implements Fields, Iterable<FieldColumn>, Serializable
 
     public Iterator<FieldColumn> iterator() {
         return this.fields.iterator();
+    }
+
+    /**
+     * 判断字段名是否存在<br>
+     * 判断是否匹配:<br>
+     * 如果未指定表别名或FieldColumn没有表别名, 只要字段名匹配即为匹配<br>
+     * 如果指定了表别名且FieldColumn有表别名, 则需要表别名和字段名同时匹配<br>
+     * 
+     * @param fieldName 字段名
+     * @return 是否存在
+     * @see FieldColumn#matchesWithField(String)
+     */
+    protected boolean contains(String fieldName) {
+        VerifyTools.requireNotBlank(fieldName, "fieldName");
+        // 遍历查找匹配项
+        Iterator<FieldColumn> itr = this.fields.iterator();
+        while (itr.hasNext()) {
+            FieldColumn item = itr.next();
+            if (item.matchesWithField(fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -14,14 +14,23 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190606
  */
-public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJoinQuery<T>  {
+public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJoinQuery<T> {
+
+    private String majorTableAlias;
 
     EasyJoinQueryImpl(TableJoin tables, Class<T> resultType, SqlBufferJdbcOperations jdbcOperations) {
         super(resultType, DbTools.getCrudSqlBuilder(tables), DbTools.getModelDataExecutor(tables), jdbcOperations);
+        this.majorTableAlias = tables.getMajor().getTableAlias();
         List<JoinItem> joins = tables.getJoins();
         for (JoinItem item : joins) {
-            modelDataExecutor.fillDataEffectiveFlag(item.getWhere());
+            modelDataExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
         }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    protected String getMajorTableAlais() {
+        return majorTableAlias;
     }
 
 }

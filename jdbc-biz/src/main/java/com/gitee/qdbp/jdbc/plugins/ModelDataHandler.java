@@ -3,10 +3,14 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.jdbc.fields.AllFields;
 
 /**
  * 实体业务处理接口<br>
- * 每个项目的处理方式不一样, 抽象成接口由各项目提供实现类
+ * 每个项目的处理方式不一样, 抽象成接口由各项目提供实现类<br>
+ * 命名说明:<br>
+ * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给EasyTableQueryImpl和EasyJoinQueryImpl调用<br>
+ * fillTableXxx是单表增删改查用到的, 只支持单表, 主要是给EasyCrudDaoImpl调用<br>
  *
  * @author zhaohuihua
  * @version 190601
@@ -17,94 +21,75 @@ public interface ModelDataHandler {
     String generatePrimaryKeyCode(String tableName);
 
     /**
-     * 是否存在逻辑删除字段
+     * 单表是否支持逻辑删除
      * 
-     * @param 
-     * @return 否存在
+     * @param allFields 全字段
+     * @return 是否支持
      */
-    boolean containsLogicalDeleteFlag(Map<String, String> fieldColumnMap);
+    boolean supportedTableLogicalDelete(AllFields allFields);
 
     /**
-     * 填充数据有效标记
+     * 填充查询条件的数据状态标记
      * 
-     * @param condition 条件
+     * @param tableAlias 表别名
+     * @param where 条件
+     * @param allFields 全字段
      */
-    void fillDataEffectiveFlag(Map<String, Object> condition, Map<String, String> fieldColumnMap);
+    void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFields allFields);
 
     /**
-     * 填充数据有效标记
+     * 填充单表Where条件的数据状态标记
      * 
      * @param where 条件
+     * @param allFields 全字段
      */
-    void fillDataEffectiveFlag(DbWhere where, Map<String, String> fieldColumnMap);
+    void fillTableWhereDataStatus(DbWhere where, AllFields allFields);
 
     /**
-     * 填充数据有效标记
-     * 
-     * @param ud 更新对象
-     */
-    void fillDataEffectiveFlag(DbUpdate ud, Map<String, String> fieldColumnMap);
-
-    /**
-     * 填充数据无效标记
+     * 填充单表新增时的数据状态标记
      * 
      * @param condition 条件
+     * @param allFields 全字段
      */
-    void fillDataIneffectiveFlag(Map<String, Object> condition, Map<String, String> fieldColumnMap);
+    void fillTableCreateDataStatus(Map<String, Object> condition, AllFields allFields);
 
     /**
-     * 填充数据无效标记
-     * 
-     * @param where 条件
-     */
-    void fillDataIneffectiveFlag(DbWhere where, Map<String, String> fieldColumnMap);
-
-    /**
-     * 填充数据无效标记
+     * 填充单表修改时的数据状态标记(此方法一般为空)
      * 
      * @param ud 更新对象
+     * @param allFields 全字段
      */
-    void fillDataIneffectiveFlag(DbUpdate ud, Map<String, String> fieldColumnMap);
+    void fillTableUpdateDataStatus(DbUpdate ud, AllFields allFields);
 
     /**
-     * 填充创建参数
-     * 
-     * @param model 实体对象
-     */
-    void fillCreteParams(Map<String, Object> model, Map<String, String> fieldColumnMap);
-
-    /**
-     * 填充更新参数
-     * 
-     * @param model 实体对象
-     */
-    void fillUpdateParams(Map<String, Object> model, Map<String, String> fieldColumnMap);
-
-    /**
-     * 填充更新参数
+     * 填充单表逻辑删除时的数据状态标记(应将数据状态设置为无效)
      * 
      * @param ud 更新对象
+     * @param allFields 全字段
      */
-    void fillUpdateParams(DbUpdate ud, Map<String, String> fieldColumnMap);
+    void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFields allFields);
 
     /**
-     * 填充数据有效性标记
+     * 填充单表创建参数(如创建人创建时间等)
      * 
      * @param model 实体对象
+     * @param allFields 全字段
      */
-    void fillEffectiveFlag(Object model);
+    void fillTableCreteParams(Map<String, Object> model, AllFields allFields);
 
     /**
-     * 填充创建参数
+     * 填充单表修改参数(如修改人修改时间等)
      * 
      * @param model 实体对象
+     * @param allFields 全字段
      */
-    void fillCreteParams(Object model);
+    void fillTableUpdateParams(Map<String, Object> model, AllFields allFields);
 
     /**
-     * 填充更新参数
+     * 填充单表修改参数(如修改人修改时间等)
      * 
-     * @param model 实体对象
+     * @param ud 更新对象
+     * @param allFields 全字段
      */
-    void fillUpdateParams(Object model);
+    void fillTableUpdateParams(DbUpdate ud, AllFields allFields);
 }

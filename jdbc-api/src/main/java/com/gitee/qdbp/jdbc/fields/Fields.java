@@ -13,8 +13,4 @@ public interface Fields {
 
     List<FieldColumn> getItems();
 
-    List<String> getFieldNames();
-
-    List<String> getColumnNames();
-
 }

@@ -23,7 +23,6 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -423,7 +422,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     public List<String> getFieldNames() {
         List<String> list = new ArrayList<>();
         for (FieldColumn item : columns) {
-            list.add(StringTools.concat('.', item.getTableAlias(), item.getFieldName()));
+            list.add(DbTools.toFullFieldName(item));
         }
         return list;
     }
@@ -433,24 +432,9 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     public List<String> getColumnNames() {
         List<String> list = new ArrayList<>();
         for (FieldColumn item : columns) {
-            list.add(toFullColumnName(item));
+            list.add(DbTools.toFullColumnName(item));
         }
         return list;
-    }
-
-    private String toFullColumnName(FieldColumn column) {
-        StringBuilder buffer = new StringBuilder();
-        // 表别名
-        if (VerifyTools.isNotBlank(column.getTableAlias())) {
-            buffer.append(column.getTableAlias()).append('.');
-        }
-        // 列名
-        buffer.append(column.getColumnName());
-        // 列别名
-        if (VerifyTools.isNotBlank(column.getColumnAlias())) {
-            buffer.append(' ').append("AS").append(' ').append(column.getColumnAlias());
-        }
-        return buffer.toString();
     }
 
     /** {@inheritDoc} **/
@@ -464,7 +448,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
         for (FieldColumn item : this.columns) {
             if (item.matchesWithField(fieldName)) {
-                return toFullColumnName(item);
+                return DbTools.toFullColumnName(item);
             }
         }
         if (throwOnNotFound) {

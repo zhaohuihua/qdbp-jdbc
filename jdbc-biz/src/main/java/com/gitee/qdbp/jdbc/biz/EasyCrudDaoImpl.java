@@ -61,7 +61,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -70,7 +70,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
@@ -88,7 +88,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -97,7 +97,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
@@ -140,9 +140,9 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
             // 生成主键
             entity.put(pk.getFieldName(), id = modelDataExecutor.generatePrimaryKeyCode(tableName));
         }
-        modelDataExecutor.fillDataEffectiveFlag(entity);
+        modelDataExecutor.fillTableCreateDataStatus(entity);
         if (fillCreateParams) {
-            modelDataExecutor.fillCreteParams(entity);
+            modelDataExecutor.fillTableCreteParams(entity);
         }
 
         SqlBuffer buffer = builder().buildInsertSql(entity);
@@ -177,9 +177,9 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
 
         VerifyTools.requireNotBlank(readyEntity, "readyEntity");
 
-        modelDataExecutor.fillDataEffectiveFlag(where);
+        modelDataExecutor.fillTableWhereDataStatus(where);
         if (fillUpdateParams) {
-            modelDataExecutor.fillUpdateParams(readyEntity);
+            modelDataExecutor.fillTableUpdateParams(readyEntity);
         }
         return this.doUpdate(readyEntity, where, errorOnUnaffected);
     }
@@ -193,9 +193,9 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         }
         DbWhere readyWhere = checkWhere(where);
 
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         if (fillUpdateParams) {
-            modelDataExecutor.fillUpdateParams(readyEntity);
+            modelDataExecutor.fillTableUpdateParams(readyEntity);
         }
         return this.doUpdate(readyEntity, readyWhere, errorOnUnaffected);
     }
@@ -207,9 +207,9 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
             throw new IllegalArgumentException("entity can't be empty");
         }
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         if (fillUpdateParams) {
-            modelDataExecutor.fillUpdateParams(entity);
+            modelDataExecutor.fillTableUpdateParams(entity);
         }
         return this.doUpdate(entity, readyWhere, errorOnUnaffected);
     }
@@ -247,7 +247,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
-        modelDataExecutor.fillDataEffectiveFlag(where);
+        modelDataExecutor.fillTableWhereDataStatus(where);
         return this.doDelete(where, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -257,7 +257,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         if (VerifyTools.isBlank(readyWhere)) {
             throw new IllegalArgumentException("where can't be empty, please use logicalDeleteAll()");
         }
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         return this.doDelete(readyWhere, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -265,7 +265,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     public int logicalDelete(DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillDataEffectiveFlag(readyWhere);
+        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
         return this.doDelete(readyWhere, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -301,11 +301,11 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
             throws ServiceException {
         SqlBuffer buffer;
         if (logical) {
-            if (modelDataExecutor.containsLogicalDeleteFlag()) { // 支持逻辑删除
+            if (modelDataExecutor.supportedTableLogicalDelete()) { // 支持逻辑删除
                 DbUpdate ud = new DbUpdate();
-                modelDataExecutor.fillDataIneffectiveFlag(ud);
+                modelDataExecutor.fillTableLogicalDeleteDataStatus(ud);
                 if (fillUpdateParams) {
-                    modelDataExecutor.fillUpdateParams(ud);
+                    modelDataExecutor.fillTableUpdateParams(ud);
                 }
                 buffer = builder().buildUpdateSql(ud, readyWhere);
             } else { // 不支持逻辑删除

@@ -4,7 +4,9 @@ import java.util.Date;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.jdbc.fields.AllFields;
 import com.gitee.qdbp.tools.utils.RandomTools;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 默认实体类业务处理类
@@ -12,14 +14,14 @@ import com.gitee.qdbp.tools.utils.RandomTools;
  * @author zhaohuihua
  * @version 190602
  */
-public class SimpleModelDataHandler extends BaseModelDataHandler {
+public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
 
     /** 逻辑删除字段名 **/
     private String logicalDeleteField;
     /** 数据有效标记 **/
-    private Object dataEffectiveFlag;
+    private DS dataEffectiveFlag;
     /** 数据无效标记 **/
-    private Object dataIneffectiveFlag;
+    private DS dataIneffectiveFlag;
     /** 创建时间字段名 **/
     private String createTimeField;
     /** 修改时间字段名 **/
@@ -40,22 +42,22 @@ public class SimpleModelDataHandler extends BaseModelDataHandler {
     }
 
     /** 数据有效标记 **/
-    public Object getDataEffectiveFlag() {
+    public DS getDataEffectiveFlag() {
         return dataEffectiveFlag;
     }
 
     /** 数据有效标记 **/
-    public void setDataEffectiveFlag(Object dataEffectiveFlag) {
+    public void setDataEffectiveFlag(DS dataEffectiveFlag) {
         this.dataEffectiveFlag = dataEffectiveFlag;
     }
 
     /** 数据无效标记 **/
-    public Object getDataIneffectiveFlag() {
+    public DS getDataIneffectiveFlag() {
         return dataIneffectiveFlag;
     }
 
     /** 数据无效标记 **/
-    public void setDataIneffectiveFlag(Object dataIneffectiveFlag) {
+    public void setDataIneffectiveFlag(DS dataIneffectiveFlag) {
         this.dataIneffectiveFlag = dataIneffectiveFlag;
     }
 
@@ -104,150 +106,83 @@ public class SimpleModelDataHandler extends BaseModelDataHandler {
         return null;
     }
 
-    /** 生成主键编号 **/
+    /** {@inheritDoc} **/
+    @Override
     public String generatePrimaryKeyCode(String tableName) {
         return RandomTools.generateUuid();
     }
-    
-    /**
-     * 是否存在逻辑删除字段
-     * 
-     * @return 否存在
-     */
-    public boolean containsLogicalDeleteFlag(Map<String, String> fieldColumnMap) {
-        return containsField(logicalDeleteField, fieldColumnMap);
+
+    /** {@inheritDoc} **/
+    @Override
+    public boolean supportedTableLogicalDelete(AllFields allFields) {
+        if (VerifyTools.isBlank(logicalDeleteField)) {
+            return false;
+        } else {
+            return allFields.contains(logicalDeleteField);
+        }
     }
 
-    /**
-     * 填充数据有效标记
-     * 
-     * @param condition 条件
-     */
-    public void fillDataEffectiveFlag(Map<String, Object> condition, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(condition, logicalDeleteField, dataEffectiveFlag, fieldColumnMap);
+    /** {@inheritDoc} **/
+    @Override
+    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFields allFields) {
+        fillValueIfAbsent(where, logicalDeleteField, tableAlias, dataEffectiveFlag, allFields);
     }
 
-    /**
-     * 填充数据有效标记
-     * 
-     * @param where 条件
-     */
-    public void fillDataEffectiveFlag(DbWhere where, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(where, logicalDeleteField, dataEffectiveFlag, fieldColumnMap);
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableWhereDataStatus(DbWhere where, AllFields allFields) {
+        fillValueIfAbsent(where, logicalDeleteField, dataEffectiveFlag, allFields);
     }
 
-    /**
-     * 填充数据有效标记
-     * 
-     * @param ud 更新对象
-     */
-    public void fillDataEffectiveFlag(DbUpdate ud, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(ud, logicalDeleteField, dataEffectiveFlag, fieldColumnMap);
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableCreateDataStatus(Map<String, Object> condition, AllFields allFields) {
+        fillValueIfAbsent(condition, logicalDeleteField, dataEffectiveFlag, allFields);
     }
 
-    /**
-     * 填充数据无效标记
-     * 
-     * @param condition 条件
-     */
-    public void fillDataIneffectiveFlag(Map<String, Object> condition, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(condition, logicalDeleteField, dataIneffectiveFlag, fieldColumnMap);
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableUpdateDataStatus(DbUpdate ud, AllFields allFields) {
+        // 修改时不涉及数据状态的处理
     }
 
-    /**
-     * 填充数据无效标记
-     * 
-     * @param where 条件
-     */
-    public void fillDataIneffectiveFlag(DbWhere where, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(where, logicalDeleteField, dataIneffectiveFlag, fieldColumnMap);
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFields allFields) {
+        // 将数据状态设置为无效
+        fillValueIfAbsent(ud, logicalDeleteField, dataIneffectiveFlag, allFields);
     }
 
-    /**
-     * 填充数据无效标记
-     * 
-     * @param ud 更新对象
-     */
-    public void fillDataIneffectiveFlag(DbUpdate ud, Map<String, String> fieldColumnMap) {
-        fillValueIfAbsent(ud, logicalDeleteField, dataIneffectiveFlag, fieldColumnMap);
-    }
-
-    /**
-     * 填充创建参数
-     * 
-     * @param model 实体对象
-     */
-    public void fillCreteParams(Map<String, Object> model, Map<String, String> fieldColumnMap) {
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableCreteParams(Map<String, Object> model, AllFields allFields) {
         Date now = new Date();
-        fillValueIfAbsent(model, createTimeField, now, fieldColumnMap);
-        fillValueIfAbsent(model, updateTimeField, now, fieldColumnMap);
+        fillValueIfAbsent(model, createTimeField, now, allFields);
+        fillValueIfAbsent(model, updateTimeField, now, allFields);
 
         Object account = getLoginAccount();
-        fillValueIfAbsent(model, createUserField, account, fieldColumnMap);
-        fillValueIfAbsent(model, updateUserField, account, fieldColumnMap);
+        fillValueIfAbsent(model, createUserField, account, allFields);
+        fillValueIfAbsent(model, updateUserField, account, allFields);
     }
 
-    /**
-     * 填充更新参数
-     * 
-     * @param model 实体对象
-     */
-    public void fillUpdateParams(Map<String, Object> model, Map<String, String> fieldColumnMap) {
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableUpdateParams(Map<String, Object> model, AllFields allFields) {
         Date now = new Date();
-        fillValueIfAbsent(model, updateTimeField, now, fieldColumnMap);
+        fillValueIfAbsent(model, updateTimeField, now, allFields);
 
         Object account = getLoginAccount();
-        fillValueIfAbsent(model, updateUserField, account, fieldColumnMap);
+        fillValueIfAbsent(model, updateUserField, account, allFields);
     }
 
-    /**
-     * 填充更新参数
-     * 
-     * @param ud 实体对象
-     */
-    public void fillUpdateParams(DbUpdate ud, Map<String, String> fieldColumnMap) {
+    /** {@inheritDoc} **/
+    @Override
+    public void fillTableUpdateParams(DbUpdate ud, AllFields allFields) {
         Date now = new Date();
-        fillValueIfAbsent(ud, updateTimeField, now, fieldColumnMap);
+        fillValueIfAbsent(ud, updateTimeField, now, allFields);
 
         Object account = getLoginAccount();
-        fillValueIfAbsent(ud, updateUserField, account, fieldColumnMap);
+        fillValueIfAbsent(ud, updateUserField, account, allFields);
     }
 
-    /**
-     * 填充数据有效性标记
-     * 
-     * @param model 实体对象
-     */
-    public void fillEffectiveFlag(Object model) {
-        setFieldValueIfAbsent(model, logicalDeleteField, dataEffectiveFlag);
-    }
-
-    /**
-     * 填充创建参数
-     * 
-     * @param model 实体对象
-     */
-    public void fillCreteParams(Object model) {
-        Date now = new Date();
-
-        setFieldValueIfAbsent(model, createTimeField, now);
-        setFieldValueIfAbsent(model, updateTimeField, now);
-
-        Object account = getLoginAccount();
-        setFieldValueIfAbsent(model, createUserField, account);
-        setFieldValueIfAbsent(model, updateUserField, account);
-    }
-
-    /**
-     * 填充更新参数
-     * 
-     * @param model 实体对象
-     */
-    public void fillUpdateParams(Object model) {
-        Date now = new Date();
-        setFieldValueIfAbsent(model, updateTimeField, now);
-
-        Object account = getLoginAccount();
-        setFieldValueIfAbsent(model, updateUserField, account);
-    }
 }
