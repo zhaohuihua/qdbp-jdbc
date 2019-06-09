@@ -2,7 +2,6 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import com.gitee.qdbp.able.model.db.WhereCondition;
 import com.gitee.qdbp.able.model.ordering.Ordering;
 import com.gitee.qdbp.jdbc.condition.DbField;
@@ -152,20 +151,6 @@ public interface QueryFragmentHelper {
     String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption;
 
     /**
-     * 获取字段名和数据库列名的映射表
-     * 
-     * @return map: fieldName - columnName
-     */
-    Map<String, String> getFieldColumnMap();
-
-    /**
-     * 获取数据库列名和字段名的映射表
-     * 
-     * @return map: columnName - fieldName
-     */
-    Map<String, String> getColumnFieldMap();
-
-    /**
      * 获取字段名列表
      * 
      * @return 字段名列表
@@ -178,5 +163,4 @@ public interface QueryFragmentHelper {
      * @return 列名列表
      */
     List<String> getColumnNames();
-
 }

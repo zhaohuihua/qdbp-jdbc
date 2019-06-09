@@ -34,15 +34,11 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     protected final List<FieldColumn> columns;
-    protected final Map<String, String> fieldColumnMap;
-    protected final Map<String, String> columnFieldMap;
 
     /** 构造函数 **/
     public TableQueryFragmentHelper(List<FieldColumn> columns) {
         VerifyTools.requireNotBlank(columns, "columns");
         this.columns = columns;
-        this.fieldColumnMap = DbTools.toFieldColumnMap(columns);
-        this.columnFieldMap = DbTools.toColumnFieldMap(columns);
     }
 
     /** {@inheritDoc} **/
@@ -456,18 +452,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         } else {
             return null;
         }
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public Map<String, String> getFieldColumnMap() {
-        return this.fieldColumnMap;
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public Map<String, String> getColumnFieldMap() {
-        return this.columnFieldMap;
     }
 
     protected abstract UnsupportedFieldExeption ufe(String subject, String field);

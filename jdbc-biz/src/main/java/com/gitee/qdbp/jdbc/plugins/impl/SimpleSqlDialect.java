@@ -287,32 +287,32 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param selectFields 查询字段列表
      * @param where 查询条件
      * @param orderings 排序条件
-     * @param sqlBuilder 生成SQL的帮助类
+     * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
     private SqlBuffer oracleRecursive(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT", ' ');
-        buffer.append(sqlBuilder.buildFieldsSql(selectFields));
-        buffer.append(' ', sqlBuilder.buildFromSql());
+        buffer.append(sqlHelper.buildFieldsSql(selectFields));
+        buffer.append(' ', sqlHelper.buildFromSql());
         // START WITH {codeField} IN ( {startCodes} ) 
-        buffer.append(' ', "START WITH", ' ').append(sqlBuilder.buildInSql(codeField, startCodes, true, false));
+        buffer.append(' ', "START WITH", ' ').append(sqlHelper.buildInSql(codeField, startCodes, true, false));
         // CONNECT BY PRIOR {codeField} = {parentField}
         buffer.append(' ', "CONNECT BY PRIOR", ' ');
-        buffer.append(sqlBuilder.getColumnName(codeField)).append("=").append(sqlBuilder.getColumnName(parentField));
+        buffer.append(sqlHelper.getColumnName(codeField)).append("=").append(sqlHelper.getColumnName(parentField));
         // WHERE ...
         if (where != null && !where.isEmpty()) {
-            SqlBuffer whereSql = sqlBuilder.buildWhereSql(where, false);
+            SqlBuffer whereSql = sqlHelper.buildWhereSql(where, false);
             if (!whereSql.isEmpty()) {
                 buffer.append(' ', "AND").append(' ', whereSql);
             }
         }
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            buffer.append(' ', sqlHelper.buildOrderBySql(orderings));
         }
         return buffer;
     }
@@ -340,11 +340,11 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param selectFields 查询字段列表
      * @param where 查询条件
      * @param orderings 排序条件
-     * @param sqlBuilder 生成SQL的帮助类
+     * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
     private SqlBuffer normalRecursive(String keyword, List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
         String sqlTemplate = "{keyword} recursive_sub_table(_temp_) AS ( "
@@ -361,14 +361,14 @@ public class SimpleSqlDialect implements SqlDialect {
         params.put("keyword", keyword);
         params.put("codeField", codeField);
         params.put("parentField", parentField);
-        params.put("tableName", sqlBuilder.buildFromSql());
-        params.put("selectFields", sqlBuilder.buildFieldsSql(selectFields));
-        params.put("startCodeCondition", sqlBuilder.buildInSql(codeField, startCodes, true, false));
+        params.put("tableName", sqlHelper.buildFromSql());
+        params.put("selectFields", sqlHelper.buildFieldsSql(selectFields));
+        params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, true, false));
         if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlBuilder.buildWhereSql(where));
+            params.put("whereCondition", sqlHelper.buildWhereSql(where));
         }
         if (VerifyTools.isNotBlank(orderings)) {
-            params.put("orderByCondition", sqlBuilder.buildOrderBySql(orderings));
+            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings));
         }
         return SqlBuffer.format(sqlTemplate, params);
     }
@@ -393,31 +393,31 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param selectFields 查询字段列表
      * @param where 查询条件
      * @param orderings 排序条件
-     * @param sqlBuilder 生成SQL的帮助类
+     * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
     private SqlBuffer productionRecursive(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlBuilder) {
+            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
-        String selectFieldSql = sqlBuilder.buildFieldsSql(selectFields).toString();
+        String selectFieldSql = sqlHelper.buildFieldsSql(selectFields).toString();
         String whereSql = null;
         if (where != null && !where.isEmpty()) {
-            whereSql = sqlBuilder.buildWhereSql(where, false).toString();
+            whereSql = sqlHelper.buildWhereSql(where, false).toString();
         }
         String orderBySql = null;
         if (VerifyTools.isNotBlank(orderings)) {
-            orderBySql = sqlBuilder.buildOrderBySql(orderings, false).toString();
+            orderBySql = sqlHelper.buildOrderBySql(orderings, false).toString();
         }
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("{CALL RECURSIVE_FIND_CHILDREN", '(');
-        buffer.addVariable("tableName", sqlBuilder.buildFromSql(false));
+        buffer.addVariable("tableName", sqlHelper.buildFromSql(false));
         buffer.append(',');
         buffer.addVariable("startCodes", ConvertTools.joinToString(startCodes));
         buffer.append(',');
-        buffer.addVariable("codeField", sqlBuilder.getColumnName(codeField));
+        buffer.addVariable("codeField", sqlHelper.getColumnName(codeField));
         buffer.append(',');
-        buffer.addVariable("parentField", sqlBuilder.getColumnName(parentField));
+        buffer.addVariable("parentField", sqlHelper.getColumnName(parentField));
         buffer.append(',');
         buffer.addVariable("selectFields", selectFieldSql);
         buffer.append(',');
