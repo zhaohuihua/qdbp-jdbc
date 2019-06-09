@@ -83,22 +83,34 @@ public class DbWhere extends DbItems {
      * @return 返回容器自身, 用于链式操作
      */
     public DbWhere on(String fieldName, String operate, Object... fieldValues) {
+        DbField condition = parseCondition(fieldName, operate, fieldValues);
+        super.put(condition);
+        return this;
+    }
+
+    /** 增加自定义条件 **/
+    public DbWhere on(WhereCondition condition) {
+        super.put(condition);
+        return this;
+    }
+
+    private static DbField parseCondition(String fieldName, String operate, Object... fieldValues) {
         if (isMatches(operate, "IsNull", "is null", "IsNotNull", "is not null")) {
             Object first = fieldValues == null || fieldValues.length == 0 ? null : fieldValues[0];
             if (isMatches(operate, "IsNull", "is null")) {
                 if (isPositive(first)) {
-                    this.onIsNull(fieldName);
+                    return new DbField("IsNull", fieldName);
                 } else {
-                    this.onIsNotNull(fieldName);
+                    return new DbField("IsNotNull", fieldName);
                 }
-            } else if (isMatches(operate, "IsNotNull", "is not null")) {
+            } else { // if (isMatches(operate, "IsNotNull", "is not null")) 
                 if (isPositive(first)) {
-                    this.onIsNotNull(fieldName);
+                    return new DbField("IsNotNull", fieldName);
                 } else {
-                    this.onIsNull(fieldName);
+                    return new DbField("IsNull", fieldName);
                 }
             }
-        } else if ("Between".equalsIgnoreCase(operate)) {
+        } else if (isMatches(operate, "Between")) {
             List<Object> arrayValues = parseArrayValue(fieldValues);
             // 必须有两个参数
             if (VerifyTools.isBlank(arrayValues)) {
@@ -109,18 +121,18 @@ public class DbWhere extends DbItems {
                 String msg = "FieldValues.size() can't be less then 2, fieldName is %s, operate is %s";
                 throw new IllegalArgumentException(String.format(msg, fieldName, operate));
             }
-            this.onBetween(fieldName, arrayValues);
-        } else if (isMatches(operate, "In", "NotIn", "not in", "Between")) {
+            return new DbField("Between", fieldName, arrayValues);
+        } else if (isMatches(operate, "In", "NotIn", "not in")) {
             // 至少要有一个参数
             if (VerifyTools.isBlank(fieldValues)) {
                 String msg = "FieldValues is required, fieldName is %s, operate is %s";
                 throw new IllegalArgumentException(String.format(msg, fieldName, operate));
             }
             List<Object> arrayValues = parseArrayValue(fieldValues);
-            if ("In".equalsIgnoreCase(operate)) {
-                this.onIn(fieldName, arrayValues);
-            } else if (isMatches(operate, "NotIn", "not in")) {
-                this.onNotIn(fieldName, arrayValues);
+            if (isMatches(operate, "In")) {
+                return new DbField("In", fieldName, arrayValues);
+            } else { // if (isMatches(operate, "NotIn", "not in"))
+                return new DbField("NotIn", fieldName, arrayValues);
             }
         } else {
             // 必须要有一个参数
@@ -130,37 +142,30 @@ public class DbWhere extends DbItems {
                 throw new IllegalArgumentException(String.format(msg, fieldName, operate));
             }
             if (isMatches(operate, ">", "GreaterThen", "greater then")) {
-                this.onGreaterThen(fieldName, first);
+                return new DbField("GreaterThen", fieldName, first);
             } else if (isMatches(operate, "<", "LessThen", "less then")) {
-                this.onLessThen(fieldName, first);
+                return new DbField("LessThen", fieldName, first);
             } else if (isMatches(operate, ">=", "GreaterEqualsThen", "greater equals then")) {
-                this.onGreaterEqualsThen(fieldName, first);
+                return new DbField("GreaterEqualsThen", fieldName, first);
             } else if (isMatches(operate, "<=", "LessEqualsThen", "less equals then")) {
-                this.onLessEqualsThen(fieldName, first);
+                return new DbField("LessEqualsThen", fieldName, first);
             } else if (isMatches(operate, "=", "Equals")) {
-                this.onEquals(fieldName, first);
+                return new DbField("Equals", fieldName, first);
             } else if (isMatches(operate, "!=", "<>", "NotEquals", "not equals")) {
-                this.onNotEquals(fieldName, first);
-            } else if ("Like".equalsIgnoreCase(operate)) {
-                this.onLike(fieldName, first);
+                return new DbField("NotEquals", fieldName, first);
+            } else if (isMatches(operate, "Like")) {
+                return new DbField("Like", fieldName, first);
             } else if (isMatches(operate, "NotLike", "not like")) {
-                this.onNotLike(fieldName, first);
-            } else if ("Starts".equalsIgnoreCase(operate)) {
-                this.onStarts(fieldName, first);
-            } else if ("Ends".equalsIgnoreCase(operate)) {
-                this.onEnds(fieldName, first);
+                return new DbField("NotLike", fieldName, first);
+            } else if (isMatches(operate, "Starts")) {
+                return new DbField("Starts", fieldName, first);
+            } else if (isMatches(operate, "Ends")) {
+                return new DbField("Ends", fieldName, first);
             } else {
                 String msg = "Unsupported operate, fieldName is %s, operate is %s, fieldValue is %s";
                 throw new IllegalArgumentException(String.format(msg, fieldName, operate, first));
             }
         }
-        return this;
-    }
-
-    /** 增加自定义条件 **/
-    public DbWhere on(WhereCondition condition) {
-        super.put(condition);
-        return this;
     }
 
     private static boolean isMatches(String string, String... expectStrings) {
@@ -215,126 +220,6 @@ public class DbWhere extends DbItems {
         return list;
     }
 
-    /** WHERE :fieldName = :fieldValue **/
-    protected DbWhere onEquals(String fieldName, Object fieldValue) {
-        this.put("Equals", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName != :fieldValue **/
-    protected DbWhere onNotEquals(String fieldName, Object fieldValue) {
-        this.put("NotEquals", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName &gt; :fieldValue **/
-    protected DbWhere onGreaterThen(String fieldName, Object fieldValue) {
-        this.put("GreaterThen", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName &lt; :fieldValue **/
-    protected DbWhere onLessThen(String fieldName, Object fieldValue) {
-        this.put("LessThen", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName &gt;= :fieldValue **/
-    protected DbWhere onGreaterEqualsThen(String fieldName, Object fieldValue) {
-        this.put("GreaterEqualsThen", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName &lt;= :fieldValue **/
-    protected DbWhere onLessEqualsThen(String fieldName, Object fieldValue) {
-        this.put("LessEqualsThen", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName IS NULL **/
-    protected DbWhere onIsNull(String fieldName) {
-        this.put("IsNull", fieldName, null);
-        return this;
-    }
-
-    /** WHERE :fieldName IS NOT NULL **/
-    protected DbWhere onIsNotNull(String fieldName) {
-        this.put("IsNotNull", fieldName, null);
-        return this;
-    }
-
-    /** WHERE :fieldName LIKE CONCAT('%', :fieldValue, '%') **/
-    protected DbWhere onLike(String fieldName, Object fieldValue) {
-        this.put("Like", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName NOT LIKE CONCAT('%', :fieldValue, '%') **/
-    protected DbWhere onNotLike(String fieldName, Object fieldValue) {
-        this.put("NotLike", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName LIKE CONCAT(:fieldValue, '%') **/
-    protected DbWhere onStarts(String fieldName, Object fieldValue) {
-        this.put("Starts", fieldName, fieldValue);
-        return this;
-    }
-
-    /** WHERE :fieldName LIKE CONCAT('%', :fieldValue) **/
-    protected DbWhere onEnds(String fieldName, Object fieldValue) {
-        this.put("Ends", fieldName, fieldValue);
-        return this;
-    }
-
-    // /** WHERE :fieldName NOT IN (:fieldValue1, :fieldValue2, ...) **/
-    // protected DbWhere onNotIn(String fieldName, Object... fieldValues) {
-    //     this.put("NotIn", fieldName, fieldValues);
-    //     return this;
-    // }
-
-    /** WHERE :fieldName IN (:fieldValue1, :fieldValue2, ...) **/
-    protected DbWhere onNotIn(String fieldName, List<?> fieldValues) {
-        this.put("NotIn", fieldName, fieldValues);
-        return this;
-    }
-
-    // /** WHERE :fieldName IN (:fieldValue1, :fieldValue2, ...) **/
-    // protected DbWhere onIn(String fieldName, Object... fieldValues) {
-    //     this.put("In", fieldName, fieldValues);
-    //     return this;
-    // }
-
-    /** WHERE :fieldName IN (:fieldValue1, :fieldValue2, ...) **/
-    protected DbWhere onIn(String fieldName, List<?> fieldValues) {
-        this.put("In", fieldName, fieldValues);
-        return this;
-    }
-
-    // /** WHERE :fieldName BETWEEN :minValue AND :maxValue **/
-    // protected DbWhere onBetween(String fieldName, Object... fieldValues) {
-    //     this.put("Between", fieldName, fieldValues);
-    //     return this;
-    // }
-
-    /** WHERE :fieldName BETWEEN :minValue AND :maxValue **/
-    protected DbWhere onBetween(String fieldName, List<Object> fieldValues) {
-        this.put("Between", fieldName, fieldValues);
-        return this;
-    }
-
-    // /** WHERE :fieldName BETWEEN :minValue AND :maxValue **/
-    // protected DbWhere onBetween(String fieldName, Object minValue, Object maxValue) {
-    //     this.put("Between", fieldName, new Object[] { minValue, maxValue });
-    //     return this;
-    // }
-    //
-    // /** WHERE :fieldName BETWEEN :minValue AND :maxValue **/
-    // protected DbWhere onBetween(String fieldName, Date minValue, Date maxValue) {
-    //     this.put("Between", fieldName, new Date[] { minValue, maxValue });
-    //     return this;
-    // }
-
     /** 创建子查询条件 **/
     public SubWhere sub(String operateType) {
         return this.sub(operateType, true);
@@ -345,6 +230,16 @@ public class DbWhere extends DbItems {
         SubWhere sub = new SubWhere(this, logicType, positive);
         this.put(sub);
         return sub;
+    }
+
+    /**
+     * 根据字段名称替换条件
+     * 
+     * @param fieldName 字段名称
+     */
+    public void replace(String fieldName, String operate, Object... fieldValues) {
+        DbField condition = parseCondition(fieldName, operate, fieldValues);
+        super.replace(condition);
     }
 
     /**

@@ -29,6 +29,10 @@ abstract class DbItems implements DbFields, Serializable {
         this.items.add(new DbField(operateType, fieldName, fieldValue));
     }
 
+    protected void put(DbField field) {
+        this.items.add(field);
+    }
+
     protected void put(DbFields fields) {
         this.items.add(fields);
     }
@@ -63,14 +67,38 @@ abstract class DbItems implements DbFields, Serializable {
     }
 
     /**
+     * 根据字段名称替换条件
+     * 
+     * @param field 字段
+     */
+    protected void replace(DbField field) {
+        VerifyTools.requireNotBlank(field, "field");
+        VerifyTools.requireNotBlank(field.getFieldName(), "fieldName");
+
+        String fieldName = field.getFieldName();
+        Iterator<DbCondition> itr = this.items().iterator();
+        while (itr.hasNext()) {
+            DbCondition item = itr.next();
+            if (item instanceof DbField) {
+                if (((DbField) item).matchesWithField(fieldName)) {
+                    DbField target = (DbField) item;
+                    target.setOperateType(field.getOperateType());
+                    target.setFieldValue(field.getFieldValue());
+                }
+            } else if (item instanceof DbItems) {
+                ((DbItems) item).replace(field);
+            } else { // DbFields/DbCondition, 暂不支持替换
+            }
+        }
+    }
+
+    /**
      * 根据字段名称删除
      * 
      * @param fieldName 字段名称
      */
     public void remove(String fieldName) {
-        if (VerifyTools.isBlank(fieldName)) {
-            return;
-        }
+        VerifyTools.requireNotBlank(fieldName, "fieldName");
         Iterator<DbCondition> itr = this.items.iterator();
         while (itr.hasNext()) {
             DbCondition item = itr.next();
