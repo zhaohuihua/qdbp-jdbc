@@ -86,7 +86,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
      * @param fieldName 目标字段名, 可带表别名, 如: u.userName
      * @return 是否匹配
      */
-    public boolean matchesByField(String fieldName) {
+    public boolean matchesByFieldName(String fieldName) {
         return new FieldItem(this.getFieldName(), this.tableAlias).matches(FieldItem.parse(fieldName));
     }
 

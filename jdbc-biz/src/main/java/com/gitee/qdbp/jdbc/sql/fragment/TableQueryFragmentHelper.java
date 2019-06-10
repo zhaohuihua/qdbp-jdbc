@@ -395,7 +395,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return false;
         }
         for (SimpleFieldColumn item : this.columns) {
-            if (item.matchesByField(fieldName)) {
+            if (item.matchesByFieldName(fieldName)) {
                 return true;
             }
         }
@@ -447,7 +447,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
         for (SimpleFieldColumn item : this.columns) {
-            if (item.matchesByField(fieldName)) {
+            if (item.matchesByFieldName(fieldName)) {
                 return toTableColumnName(item);
             }
         }

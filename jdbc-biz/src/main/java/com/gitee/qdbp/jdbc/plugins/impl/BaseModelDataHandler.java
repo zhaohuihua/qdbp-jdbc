@@ -24,7 +24,7 @@ public abstract class BaseModelDataHandler implements ModelDataHandler {
             return;
         }
         String fullFieldName = FieldTools.toTableFieldName(fieldName, tableAlias);
-        if (allFields.containsByField(fullFieldName) && !where.contains(fullFieldName)) {
+        if (allFields.containsByFieldName(fullFieldName) && !where.contains(fullFieldName)) {
             where.on(fullFieldName, "=", value);
         }
     }
@@ -33,7 +33,7 @@ public abstract class BaseModelDataHandler implements ModelDataHandler {
         if (where == null || VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(value)) {
             return;
         }
-        if (allFields.containsByField(fieldName) && !where.contains(fieldName)) {
+        if (allFields.containsByFieldName(fieldName) && !where.contains(fieldName)) {
             where.on(fieldName, "=", value);
         }
     }
@@ -55,7 +55,7 @@ public abstract class BaseModelDataHandler implements ModelDataHandler {
             return;
         }
 
-        if (allFields.containsByField(fieldName) && !target.containsKey(fieldName)) {
+        if (allFields.containsByFieldName(fieldName) && !target.containsKey(fieldName)) {
             target.put(fieldName, value);
         }
     }
@@ -64,7 +64,7 @@ public abstract class BaseModelDataHandler implements ModelDataHandler {
         if (ud == null || VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(value)) {
             return;
         }
-        if (allFields.containsByField(fieldName) && !ud.contains(fieldName)) {
+        if (allFields.containsByFieldName(fieldName) && !ud.contains(fieldName)) {
             ud.set(fieldName, value);
         }
     }

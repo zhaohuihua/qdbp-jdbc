@@ -118,7 +118,7 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
         if (VerifyTools.isBlank(logicalDeleteField)) {
             return false;
         } else {
-            return allFields.containsByField(logicalDeleteField);
+            return allFields.containsByFieldName(logicalDeleteField);
         }
     }
 

@@ -67,7 +67,7 @@ public class SimpleFieldColumn implements Serializable {
      * @param fieldName 指定的字段名
      * @return 是否匹配
      */
-    public boolean matchesByField(String fieldName) {
+    public boolean matchesByFieldName(String fieldName) {
         return VerifyTools.equals(this.fieldName, fieldName);
     }
 
