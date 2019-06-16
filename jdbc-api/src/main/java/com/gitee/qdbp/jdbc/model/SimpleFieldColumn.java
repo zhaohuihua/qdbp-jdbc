@@ -62,13 +62,33 @@ public class SimpleFieldColumn implements Serializable {
     }
 
     /**
-     * 与目标字段是否匹配
+     * 与目标字段是否匹配(区分大小写)
      * 
      * @param fieldName 指定的字段名
      * @return 是否匹配
      */
     public boolean matchesByFieldName(String fieldName) {
         return VerifyTools.equals(this.fieldName, fieldName);
+    }
+
+    /**
+     * 与目标列名是否匹配(不区分大小写)
+     * 
+     * @param columnName 指定的列名
+     * @return 是否匹配
+     */
+    public boolean matchesByColumnName(String columnName) {
+        return VerifyTools.equals(this.columnName, columnName);
+    }
+
+    /**
+     * 与目标列别名是否匹配(单表增删改查没有别名, 因此只与列名比较, 不区分大小写)
+     * 
+     * @param columnAlias 指定的列别名
+     * @return 是否匹配
+     */
+    public boolean matchesByColumnAlias(String columnAlias) {
+        return VerifyTools.equals(this.columnName, columnAlias);
     }
 
     /** 返回表字段名 **/

@@ -79,7 +79,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     }
 
     /**
-     * 与目标字段是否匹配<br>
+     * 与目标字段名是否匹配(字段名区分大小写, 别表名不区分大小写)<br>
      * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
      * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
      * 
@@ -91,16 +91,33 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     }
 
     /**
-     * 与目标字段是否匹配<br>
-     * 如果当前字段名或目标字段名没有表别名, 只要字段名匹配即为匹配<br>
-     * 如果当前字段名和目标字段名都有表别名, 则需要表别名和字段名同时匹配
+     * 与目标列名是否匹配(不区分大小写)<br>
+     * 如果当前列名或目标列名没有表别名, 只要列名匹配即为匹配<br>
+     * 如果当前列名和目标列名都有表别名, 则需要表别名和列名同时匹配
      * 
-     * @param fieldName 目标字段名, required
-     * @param tableAlias 目标表别名, optional
+     * @param columnName 目标列名, 可带表别名, 如: u.USER_NAME
      * @return 是否匹配
      */
-    public boolean matchesByField(String fieldName, String tableAlias) {
-        return new FieldItem(this.getFieldName(), this.tableAlias).matches(fieldName, tableAlias);
+    public boolean matchesByColumnName(String columnName) {
+        // 列名比较不区分大小写
+        String thisColumnName = this.getColumnName().toUpperCase();
+        String thatColumnName = columnName.toUpperCase();
+        return new FieldItem(thisColumnName, this.tableAlias).matches(FieldItem.parse(thatColumnName));
+    }
+
+    /**
+     * 与目标列别名是否匹配(不区分大小写, 列别名不能带表别名)<br>
+     * 优先与列别名比较, 如果没有列别名则与列名比较
+     * 
+     * @param columnAlias 目标列别名, 不能带表别名, 如: U_USER_NAME
+     * @return 是否匹配
+     */
+    public boolean matchesByColumnAlias(String columnAlias) {
+        if (VerifyTools.isBlank(this.columnAlias)) {
+            return this.columnAlias.equalsIgnoreCase(columnAlias);
+        } else {
+            return this.getColumnName().equalsIgnoreCase(columnAlias);
+        }
     }
 
     /** 返回带表别名的字段名 **/
