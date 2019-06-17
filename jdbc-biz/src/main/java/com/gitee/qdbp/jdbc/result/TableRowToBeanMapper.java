@@ -10,6 +10,13 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
+/**
+ * 单表增删改结果集到JavaBean的转换处理类<br>
+ * ResultSet是列名与字段值的对应关系, 需要转换为字段名与字段值的对应关系
+ *
+ * @author zhaohuihua
+ * @version 190617
+ */
 public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
 
     private Class<T> resultType;
@@ -29,7 +36,7 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
             return null;
         }
 
-        // 2. properties是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
+        // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
         Map<String, Object> fieldValues = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : result.entrySet()) {
             String columnAlias = entry.getKey();
@@ -38,7 +45,7 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
                 fieldValues.put(field.getFieldName(), entry.getValue());
             }
         }
-        // 3. 利用fastjson工具进行Map到JavaObject的转换
+        // 3. 利用fastjson工具进行Map到JavaBean的转换
         return TypeUtils.castToJavaBean(result, resultType);
 
     }
