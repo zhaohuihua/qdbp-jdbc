@@ -47,7 +47,6 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
         }
         // 3. 利用fastjson工具进行Map到JavaBean的转换
         return TypeUtils.castToJavaBean(result, resultType);
-
     }
 
 }

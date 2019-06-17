@@ -6,7 +6,7 @@ import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
-import com.gitee.qdbp.jdbc.result.TableRowToProperyMapper;
+import com.gitee.qdbp.jdbc.result.TablesRowToProperyMapper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -20,7 +20,7 @@ public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJ
     private String majorTableAlias;
 
     EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
-        super(DbTools.getCrudSqlBuilder(t), DbTools.getModelDataExecutor(t), jdbc, new TableRowToProperyMapper<>(t, r));
+        super(DbTools.getCrudSqlBuilder(t), DbTools.getModelDataExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
         for (JoinItem item : joins) {
