@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.result;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
@@ -33,6 +34,26 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
     @Override
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
         Map<String, Object> map = mapper.mapRow(rs, rowNum);
+        Map<String, Map<String, Object>> result = new HashMap<>();
+        // 1. 根据TableJoin的resultField生成子对象
+
+//        // 1. 获取列名与字段名的对应关系
+//        AllFieldColumn<SimpleFieldColumn> all = DbTools.parseToAllFieldColumn(resultType);
+//        if (all == null || all.isEmpty()) {
+//            return null;
+//        }
+//
+//        // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
+//        Map<String, Object> fieldValues = new HashMap<String, Object>();
+//        for (Map.Entry<String, Object> entry : map.entrySet()) {
+//            String columnAlias = entry.getKey();
+//            SimpleFieldColumn field = all.findByColumnAlias(columnAlias);
+//            if (field != null) {
+//                fieldValues.put(field.getFieldName(), entry.getValue());
+//            }
+//        }
+//        // 3. 利用fastjson工具进行Map到JavaBean的转换
+//        return TypeUtils.castToJavaBean(map, resultType);
         throw new UnsupportedOperationException("Not yet completed");
     }
 
