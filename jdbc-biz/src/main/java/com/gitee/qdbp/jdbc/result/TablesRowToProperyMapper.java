@@ -5,7 +5,13 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
+import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.condition.TableJoin;
+import com.gitee.qdbp.jdbc.condition.TableJoin.TableItem;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
+import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 多个表关联的结果集保存到JavaBean对应子对象的转换类<br>
@@ -34,27 +40,52 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
     @Override
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
         Map<String, Object> map = mapper.mapRow(rs, rowNum);
-        Map<String, Map<String, Object>> result = new HashMap<>();
-        // 1. 根据TableJoin的resultField生成子对象
 
-//        // 1. 获取列名与字段名的对应关系
-//        AllFieldColumn<SimpleFieldColumn> all = DbTools.parseToAllFieldColumn(resultType);
-//        if (all == null || all.isEmpty()) {
-//            return null;
-//        }
-//
-//        // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
-//        Map<String, Object> fieldValues = new HashMap<String, Object>();
-//        for (Map.Entry<String, Object> entry : map.entrySet()) {
-//            String columnAlias = entry.getKey();
-//            SimpleFieldColumn field = all.findByColumnAlias(columnAlias);
-//            if (field != null) {
-//                fieldValues.put(field.getFieldName(), entry.getValue());
-//            }
-//        }
-//        // 3. 利用fastjson工具进行Map到JavaBean的转换
-//        return TypeUtils.castToJavaBean(map, resultType);
-        throw new UnsupportedOperationException("Not yet completed");
+        // 1. 获取列名与字段名的对应关系
+        AllFieldColumn<TablesFieldColumn> all = DbTools.parseToAllFieldColumn(tables);
+        if (all == null || all.isEmpty()) {
+            return null;
+        }
+
+        Map<String, Map<String, Object>> result = new HashMap<>();
+        // 2. 根据TableJoin的resultField生成子Map对象
+        String majorField = tables.getMajor().getResultField();
+        if (VerifyTools.isNotBlank(majorField)) {
+            result.put(majorField, new HashMap<String, Object>());
+        }
+        for (TableItem item : tables.getJoins()) {
+            String itemField = item.getResultField();
+            if (VerifyTools.isNotBlank(itemField)) {
+                result.put(itemField, new HashMap<String, Object>());
+            }
+        }
+
+        // 3. 根据列别名找到字段名和表别名; 再根据表别名找到resultField, 根据字段名填充数据
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            // 根据列别名查找字段信息
+            String columnAlias = entry.getKey();
+            TablesFieldColumn field = all.findByColumnAlias(columnAlias);
+            if (field == null) {
+                continue;
+            }
+            // 根据字段信息查找表信息
+            String tableAlias = field.getTableAlias();
+            TableItem table;
+            if (VerifyTools.isNotBlank(tableAlias)) {
+                table = tables.findTableByTableAlias(tableAlias);
+            } else { // 如果表别名为空, 说明列名不冲突, 根据列名能找到唯一的
+                table = tables.findTableByColumnName(field.getColumnName());
+            }
+            // 获取resultField
+            String resultField = table.getResultField();
+            if (VerifyTools.isBlank(resultField)) { // 不需要保存结果
+                continue;
+            }
+            // 将字段名和字段值根据resultField填充至对应的子对象中
+            result.get(resultField).put(field.getFieldName(), entry.getValue());
+        }
+        // 3. 利用fastjson工具进行Map到JavaBean的转换
+        return TypeUtils.castToJavaBean(result, resultType);
     }
 
 }
