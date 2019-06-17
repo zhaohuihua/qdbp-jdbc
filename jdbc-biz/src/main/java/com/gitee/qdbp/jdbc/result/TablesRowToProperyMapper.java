@@ -66,26 +66,45 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             String columnAlias = entry.getKey();
             TablesFieldColumn field = all.findByColumnAlias(columnAlias);
             if (field == null) {
-                continue;
+                continue; // 正常情况下能查到结果集不可能找不到字段信息
             }
             // 根据字段信息查找表信息
             String tableAlias = field.getTableAlias();
             TableItem table;
             if (VerifyTools.isNotBlank(tableAlias)) {
-                table = tables.findTableByTableAlias(tableAlias);
+                table = findTableByTableAlias(tables, tableAlias);
             } else { // 如果表别名为空, 说明列名不冲突, 根据列名能找到唯一的
-                table = tables.findTableByColumnName(field.getColumnName());
+                table = findTableByColumnName(tables, field.getColumnName());
             }
             // 获取resultField
-            String resultField = table.getResultField();
-            if (VerifyTools.isBlank(resultField)) { // 不需要保存结果
-                continue;
+            String resultField = table == null ? null : table.getResultField();
+            if (VerifyTools.isBlank(resultField)) {
+                continue; // 如果没有指定resultField, 说明不需要保存结果
             }
             // 将字段名和字段值根据resultField填充至对应的子对象中
             result.get(resultField).put(field.getFieldName(), entry.getValue());
         }
         // 3. 利用fastjson工具进行Map到JavaBean的转换
         return TypeUtils.castToJavaBean(result, resultType);
+    }
+
+    /** 根据表别名查找表信息 **/
+    private TableItem findTableByTableAlias(TableJoin tables, String tableAlias) {
+        TableItem major = tables.getMajor();
+        if (tableAlias.equalsIgnoreCase(major.getTableAlias())) {
+            return major;
+        }
+        for (TableItem item : tables.getJoins()) {
+            if (tableAlias.equalsIgnoreCase(item.getTableAlias())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /** 根据列名查找第一个包含该列的表信息 **/
+    private TableItem findTableByColumnName(TableJoin tables, String columnName) {
+        return null;
     }
 
 }

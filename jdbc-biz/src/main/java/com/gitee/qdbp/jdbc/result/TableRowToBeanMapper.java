@@ -39,8 +39,8 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
         // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
         Map<String, Object> fieldValues = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : result.entrySet()) {
-            String columnAlias = entry.getKey();
-            SimpleFieldColumn field = all.findByColumnAlias(columnAlias);
+            String columnName = entry.getKey();
+            SimpleFieldColumn field = all.findByColumnAlias(columnName);
             if (field != null) {
                 fieldValues.put(field.getFieldName(), entry.getValue());
             }
