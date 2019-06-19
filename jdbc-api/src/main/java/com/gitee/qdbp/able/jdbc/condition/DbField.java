@@ -1,8 +1,8 @@
-package com.gitee.qdbp.jdbc.condition;
+package com.gitee.qdbp.able.jdbc.condition;
 
 import java.io.Serializable;
+import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.able.model.db.DbCondition;
-import com.gitee.qdbp.jdbc.utils.FieldTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

@@ -2,11 +2,11 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.Arrays;
 import java.util.List;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.condition.TableJoin;
-import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
-import com.gitee.qdbp.jdbc.condition.TableJoin.JoinType;
-import com.gitee.qdbp.jdbc.condition.TableJoin.TableItem;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinType;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;

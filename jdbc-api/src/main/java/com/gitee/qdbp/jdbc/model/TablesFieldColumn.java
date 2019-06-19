@@ -1,7 +1,7 @@
 package com.gitee.qdbp.jdbc.model;
 
-import com.gitee.qdbp.jdbc.utils.FieldTools;
-import com.gitee.qdbp.jdbc.utils.FieldTools.FieldItem;
+import com.gitee.qdbp.able.jdbc.utils.FieldTools;
+import com.gitee.qdbp.able.jdbc.utils.FieldTools.FieldItem;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

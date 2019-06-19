@@ -2,8 +2,8 @@ package com.gitee.qdbp.jdbc.sql.build;
 
 import java.util.Map;
 import java.util.Set;
-import com.gitee.qdbp.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;

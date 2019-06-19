@@ -1,12 +1,12 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.Map;
-import com.gitee.qdbp.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
-import com.gitee.qdbp.jdbc.utils.FieldTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 

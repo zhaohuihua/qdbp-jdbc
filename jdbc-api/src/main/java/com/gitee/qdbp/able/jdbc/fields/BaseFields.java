@@ -1,10 +1,10 @@
-package com.gitee.qdbp.jdbc.fields;
+package com.gitee.qdbp.able.jdbc.fields;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import com.gitee.qdbp.jdbc.utils.FieldTools;
+import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 

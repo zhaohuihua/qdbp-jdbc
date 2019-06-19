@@ -97,7 +97,7 @@ public interface SqlBufferJdbcOperations {
      * one column in that row
      * @throws org.springframework.dao.DataAccessException if the query fails
      * @see org.springframework.jdbc.core.JdbcTemplate#queryForObject(String, Class)
-     * @see com.gitee.qdbp.jdbc.utils.DbTools#mapToJavaBean(Map, Class)
+     * @see com.gitee.qdbp.able.jdbc.utils.DbTools#mapToJavaBean(Map, Class)
      */
     <T> T queryForObject(SqlBuffer sb, Class<T> requiredType) throws DataAccessException;
 
@@ -127,7 +127,7 @@ public interface SqlBufferJdbcOperations {
      * @return a List of objects that match the specified element type
      * @throws org.springframework.dao.DataAccessException if the query fails
      * @see org.springframework.jdbc.core.JdbcTemplate#queryForList(String, Class)
-     * @see com.gitee.qdbp.jdbc.utils.DbTools#mapToJavaBean(Map, Class)
+     * @see com.gitee.qdbp.able.jdbc.utils.DbTools#mapToJavaBean(Map, Class)
      */
     <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException;
 

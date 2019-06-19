@@ -2,8 +2,8 @@ package com.gitee.qdbp.jdbc.sql.build;
 
 import java.util.List;
 import com.gitee.qdbp.able.exception.ServiceException;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;

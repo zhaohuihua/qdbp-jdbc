@@ -2,10 +2,10 @@
 package com.gitee.qdbp.jdbc.biz;
 
 import java.util.List;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.condition.TableJoin;
-import com.gitee.qdbp.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.result.TablesRowToProperyMapper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 

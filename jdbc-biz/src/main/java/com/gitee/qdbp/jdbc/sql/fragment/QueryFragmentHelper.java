@@ -2,10 +2,10 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.Collection;
 import java.util.List;
+import com.gitee.qdbp.able.jdbc.condition.DbField;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.model.db.WhereCondition;
 import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.jdbc.condition.DbField;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 

@@ -2,8 +2,8 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.Date;
 import java.util.Map;
-import com.gitee.qdbp.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.tools.utils.RandomTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;

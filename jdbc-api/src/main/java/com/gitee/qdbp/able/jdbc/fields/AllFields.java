@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.fields;
+package com.gitee.qdbp.able.jdbc.fields;
 
 import java.io.Serializable;
 import java.util.List;

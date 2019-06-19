@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.condition;
+package com.gitee.qdbp.able.jdbc.condition;
 
 import java.util.List;
 import com.gitee.qdbp.able.model.db.DbCondition;

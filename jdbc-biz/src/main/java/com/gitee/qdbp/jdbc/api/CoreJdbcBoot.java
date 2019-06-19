@@ -1,6 +1,6 @@
 package com.gitee.qdbp.jdbc.api;
 
-import com.gitee.qdbp.jdbc.condition.TableJoin;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 
 /**

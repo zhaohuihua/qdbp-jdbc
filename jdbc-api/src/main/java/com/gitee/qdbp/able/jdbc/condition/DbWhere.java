@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.condition;
+package com.gitee.qdbp.able.jdbc.condition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
