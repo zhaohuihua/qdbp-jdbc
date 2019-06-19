@@ -198,10 +198,12 @@ public abstract class DbTools {
         TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
         List<SimpleFieldColumn> fields = scans.scanColumnList(table.getTableType());
         String tableAlias = table.getTableAlias();
+        String resultField = table.getResultField();
         List<TablesFieldColumn> result = new ArrayList<>(fields.size());
         for (SimpleFieldColumn item : fields) {
             TablesFieldColumn copied = item.to(TablesFieldColumn.class);
             copied.setTableAlias(tableAlias);
+            copied.setResultField(resultField);
             result.add(copied);
         }
         return result;
