@@ -17,6 +17,7 @@ import com.gitee.qdbp.tools.utils.NamingTools;
  * 增加一个参数resultField, 用于指定表数据保存至结果类的哪个字段(子对象)<br>
  * 生成的查询语句的查询字段, 对于重名字段加上表别名作为前缀, 生成列别名, 如U_ID, U_REMARK, UR_ID, UR_REMARK, R_ID, R_REMARK<br>
  * 查询结果根据列别名找到字段名和表别名; 再根据表别名找到resultField, 根据字段名填充数据<br>
+ * 也可以指定resultField=this表示结果字段放在主对象中<br>
  * <pre>
  * // 最容易理解的代码写法:
  * new TableJoin(SysUser.class, "u", "user")
@@ -42,46 +43,115 @@ public class TableJoin implements Serializable {
     /** 当前关联表 **/
     private JoinItem current;
 
+    /**
+     * 构造函数
+     * 
+     * @param tableType 主表类型
+     * @param tableAlias 主表别名
+     */
     public TableJoin(Class<?> tableType, String tableAlias) {
         this.major = new TableItem(tableType, tableAlias);
     }
 
-    /** 增加InnerJoin表连接 **/
+    /**
+     * 构造函数
+     * 
+     * @param tableType 主表类型
+     * @param tableAlias 主表别名
+     * @param resultField 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中
+     */
+    public TableJoin(Class<?> tableType, String tableAlias, String resultField) {
+        this.major = new TableItem(tableType, tableAlias, resultField);
+    }
+
+    /**
+     * 增加 inner join 表连接, 仅用于表关联, 不取返回结果(如果需要返回结果请添加resultField字段)
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart innerJoin(Class<?> tableType, String tableAlias) {
         return joinStart(tableType, tableAlias, JoinType.InnerJoin);
     }
 
-    /** 增加LeftJoin表连接 **/
+    /**
+     * 增加 left join 表连接, 仅用于表关联, 不取返回结果(如果需要返回结果请添加resultField字段)
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart leftJoin(Class<?> tableType, String tableAlias) {
         return joinStart(tableType, tableAlias, JoinType.LeftJoin);
     }
 
-    /** 增加RightJoin表连接 **/
+    /**
+     * 增加 right join 表连接, 仅用于表关联, 不取返回结果(如果需要返回结果请添加resultField字段)
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart rightJoin(Class<?> tableType, String tableAlias) {
         return joinStart(tableType, tableAlias, JoinType.RightJoin);
     }
 
-    /** 增加FullJoin表连接 **/
+    /**
+     * 增加 full join 表连接, 仅用于表关联, 不取返回结果(如果需要返回结果请添加resultField字段)
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart fullJoin(Class<?> tableType, String tableAlias) {
         return joinStart(tableType, tableAlias, JoinType.FullJoin);
     }
 
-    /** 增加InnerJoin表连接 **/
+    /**
+     * 增加 inner join 表连接
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @param resultField 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart innerJoin(Class<?> tableType, String tableAlias, String resultField) {
         return joinStart(tableType, tableAlias, resultField, JoinType.InnerJoin);
     }
 
-    /** 增加LeftJoin表连接 **/
+    /**
+     * 增加 left join 表连接
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @param resultField 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart leftJoin(Class<?> tableType, String tableAlias, String resultField) {
         return joinStart(tableType, tableAlias, resultField, JoinType.LeftJoin);
     }
 
-    /** 增加RightJoin表连接 **/
+    /**
+     * 增加 right join 表连接
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @param resultField 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart rightJoin(Class<?> tableType, String tableAlias, String resultField) {
         return joinStart(tableType, tableAlias, resultField, JoinType.RightJoin);
     }
 
-    /** 增加FullJoin表连接 **/
+    /**
+     * 增加 full join 表连接
+     * 
+     * @param tableType 表类型
+     * @param tableAlias 表别名
+     * @param resultField 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中
+     * @return JoinStart 用于添加on条件
+     */
     public JoinStart fullJoin(Class<?> tableType, String tableAlias, String resultField) {
         return joinStart(tableType, tableAlias, resultField, JoinType.FullJoin);
     }
@@ -133,7 +203,7 @@ public class TableJoin implements Serializable {
         private Class<?> tableType;
         /** 别名 **/
         private String tabletableAlias;
-        /** 数据保存至结果类的哪个字段(子对象) **/
+        /** 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中 **/
         private String resultField;
 
         protected TableItem(Class<?> tableType, String tabletableAlias) {
@@ -167,12 +237,12 @@ public class TableJoin implements Serializable {
             this.tabletableAlias = tableAlias;
         }
 
-        /** 数据保存至结果类的哪个字段(子对象) **/
+        /** 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中 **/
         public String getResultField() {
             return resultField;
         }
 
-        /** 数据保存至结果类的哪个字段(子对象) **/
+        /** 数据保存至结果类的哪个字段(子对象), this表示结果字段放在主对象中 **/
         public void setResultField(String resultField) {
             this.resultField = resultField;
         }
@@ -194,7 +264,8 @@ public class TableJoin implements Serializable {
             this.where = where;
         }
 
-        protected JoinItem(Class<?> tableType, String tableAlias, String resultField, JoinType joinType, DbWhere where) {
+        protected JoinItem(Class<?> tableType, String tableAlias, String resultField, JoinType joinType,
+                DbWhere where) {
             super(tableType, tableAlias, resultField);
             this.joinType = joinType;
             this.where = where;
