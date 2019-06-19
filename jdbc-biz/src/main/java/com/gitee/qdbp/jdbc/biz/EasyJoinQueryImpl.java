@@ -19,7 +19,7 @@ public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJ
 
     private String majorTableAlias;
 
-    EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
+    public EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
         super(DbTools.getCrudSqlBuilder(t), DbTools.getModelDataExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
