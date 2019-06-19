@@ -47,20 +47,21 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             return null;
         }
 
-        Map<String, Map<String, Object>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>(); // 结果容器
+        Map<String, Map<String, Object>> subs = new HashMap<>(); // 子对象容器
         // 2. 根据TableJoin的resultField生成子Map对象
         String majorField = tables.getMajor().getResultField();
-        if (VerifyTools.isNotBlank(majorField)) {
-            result.put(majorField, new HashMap<String, Object>());
+        if (VerifyTools.isNotBlank(majorField) && !majorField.equals("this")) {
+            subs.put(majorField, new HashMap<String, Object>());
         }
         for (TableItem item : tables.getJoins()) {
             String itemField = item.getResultField();
-            if (VerifyTools.isNotBlank(itemField)) {
-                result.put(itemField, new HashMap<String, Object>());
+            if (VerifyTools.isNotBlank(itemField) && !majorField.equals("this")) {
+                subs.put(itemField, new HashMap<String, Object>());
             }
         }
 
-        // 3. 根据列别名找到字段名和表别名; 再根据表别名找到resultField, 根据字段名填充数据
+        // 3. 根据列别名查找字段信息, 再找到resultField, 根据字段名填充数据
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             // 根据列别名查找字段信息
             String columnAlias = entry.getKey();
@@ -68,43 +69,24 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             if (field == null) {
                 continue; // 正常情况下能查到结果集不可能找不到字段信息
             }
-            // 根据字段信息查找表信息
-            String tableAlias = field.getTableAlias();
-            TableItem table;
-            if (VerifyTools.isNotBlank(tableAlias)) {
-                table = findTableByTableAlias(tables, tableAlias);
-            } else { // 如果表别名为空, 说明列名不冲突, 根据列名能找到唯一的
-                table = findTableByColumnName(tables, field.getColumnName());
-            }
             // 获取resultField
-            String resultField = table == null ? null : table.getResultField();
+            String resultField = field.getResultField();
             if (VerifyTools.isBlank(resultField)) {
                 continue; // 如果没有指定resultField, 说明不需要保存结果
             }
             // 将字段名和字段值根据resultField填充至对应的子对象中
-            result.get(resultField).put(field.getFieldName(), entry.getValue());
-        }
-        // 3. 利用fastjson工具进行Map到JavaBean的转换
-        return TypeUtils.castToJavaBean(result, resultType);
-    }
-
-    /** 根据表别名查找表信息 **/
-    private TableItem findTableByTableAlias(TableJoin tables, String tableAlias) {
-        TableItem major = tables.getMajor();
-        if (tableAlias.equalsIgnoreCase(major.getTableAlias())) {
-            return major;
-        }
-        for (TableItem item : tables.getJoins()) {
-            if (tableAlias.equalsIgnoreCase(item.getTableAlias())) {
-                return item;
+            // 如果resultField=this直接填充到主容器, 否则填充到指定的子容器
+            if (resultField.equals("this")) {
+                result.put(field.getFieldName(), entry.getValue());
+            } else {
+                subs.get(resultField).put(field.getFieldName(), entry.getValue());
             }
         }
-        return null;
-    }
-
-    /** 根据列名查找第一个包含该列的表信息 **/
-    private TableItem findTableByColumnName(TableJoin tables, String columnName) {
-        return null;
+        if (!subs.isEmpty()) {
+            result.putAll(subs);
+        }
+        // 4. 利用fastjson工具进行Map到JavaBean的转换
+        return TypeUtils.castToJavaBean(result, resultType);
     }
 
 }
