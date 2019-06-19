@@ -3,6 +3,12 @@ package com.gitee.qdbp.able.jdbc.condition;
 import java.util.List;
 import com.gitee.qdbp.able.model.db.DbCondition;
 
+/**
+ * 字段容器接口
+ *
+ * @author zhaohuihua
+ * @version 190620
+ */
 interface DbFields extends DbCondition {
 
     /** 获取内容 **/
