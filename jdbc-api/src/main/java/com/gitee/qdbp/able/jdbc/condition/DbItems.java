@@ -9,7 +9,7 @@ import com.gitee.qdbp.able.model.db.DbCondition;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 数据库操作容器
+ * 数据库操作容器, DbWhere/DbUpdate的父类
  *
  * @author zhaohuihua
  * @version 181221
@@ -21,22 +21,50 @@ abstract class DbItems implements DbFields, Serializable {
 
     private List<DbCondition> items = new ArrayList<>();
 
+    /**
+     * 增加条件
+     * 
+     * @param fieldName 字段名
+     * @param fieldValue 字段值
+     */
     protected void put(String fieldName, Object fieldValue) {
         this.items.add(new DbField(fieldName, fieldValue));
     }
 
+    /**
+     * 增加条件
+     * 
+     * @param operateType 操作符
+     * @param fieldName 字段名
+     * @param fieldValue 字段值
+     */
     protected void put(String operateType, String fieldName, Object fieldValue) {
         this.items.add(new DbField(operateType, fieldName, fieldValue));
     }
 
+    /**
+     * 增加条件
+     * 
+     * @param field 条件
+     */
     protected void put(DbField field) {
         this.items.add(field);
     }
 
+    /**
+     * 增加条件
+     * 
+     * @param fields 容器类型的条件, 如SubWhere
+     */
     protected void put(DbFields fields) {
         this.items.add(fields);
     }
 
+    /**
+     * 增加条件
+     * 
+     * @param condition 自定义条件
+     */
     protected void put(DbCondition condition) {
         this.items.add(condition);
     }
