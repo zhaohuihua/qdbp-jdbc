@@ -19,6 +19,8 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     private String tableAlias;
     /** 列别名(用于重名字段) **/
     private String columnAlias;
+    /** 数据保存至结果类的哪个字段(子对象) **/
+    private String resultField;
 
     /** 默认构造函数 **/
     public TablesFieldColumn() {
@@ -28,6 +30,13 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     public TablesFieldColumn(String fieldName, String columnName) {
         this.setFieldName(fieldName);
         this.setColumnName(columnName);
+    }
+
+    /** 构造函数, fieldName或columnName带有表别名将会拆分并保存到tableAlias字段 **/
+    public TablesFieldColumn(String fieldName, String columnName, String resultField) {
+        this.setFieldName(fieldName);
+        this.setColumnName(columnName);
+        this.setResultField(resultField);
     }
 
     /** 表别名 **/
@@ -76,6 +85,16 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     /** 列别名 **/
     public void setColumnAlias(String columnAlias) {
         this.columnAlias = columnAlias;
+    }
+
+    /** 数据保存至结果类的哪个字段(子对象) **/
+    public String getResultField() {
+        return resultField;
+    }
+
+    /** 数据保存至结果类的哪个字段(子对象) **/
+    public void setResultField(String resultField) {
+        this.resultField = resultField;
     }
 
     /**
