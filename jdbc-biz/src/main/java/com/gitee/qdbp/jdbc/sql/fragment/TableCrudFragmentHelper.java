@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
+import com.gitee.qdbp.able.model.db.DbCondition;
+import com.gitee.qdbp.able.model.db.UpdateCondition;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
-import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
+import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -64,55 +68,101 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildUpdateSetSql(DbUpdate entity) throws UnsupportedFieldExeption {
-        return buildUpdateSetSql(entity, true);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
     public SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldExeption {
         VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
         SqlBuffer buffer = new SqlBuffer();
-        for (DbField item : entity.fields()) {
-            String operateType = VerifyTools.nvl(item.getOperateType(), "Set");
-            String fieldName = item.getFieldName();
-            Object fieldValue = item.getFieldValue();
-            if (VerifyTools.isAnyBlank(fieldName, fieldValue)) {
-                continue;
-            }
-            String columnName = getColumnName(fieldName);
-            if (VerifyTools.isBlank(columnName)) {
-                unsupported.add(fieldName);
-                continue;
-            }
-
+        for (DbCondition condition : entity.items()) {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            if ("ToNull".equals(operateType)) {
-                buffer.append(columnName).append('=').append("NULL");
-            } else if ("Add".equals(operateType)) {
-                if (fieldValue instanceof Number && ((Number) fieldValue).doubleValue() < 0) {
-                    buffer.append(columnName).append('=');
-                    buffer.append(columnName).append('-');
-                    buffer.addVariable(fieldName, fieldValue);
+            try {
+                if (condition instanceof UpdateCondition) {
+                    UpdateCondition subCondition = (UpdateCondition) condition;
+                    SqlBuffer subSql = buildUpdateSql(subCondition, false);
+                    if (!subSql.isEmpty()) {
+                        buffer.append(subSql);
+                    }
+                } else if (condition instanceof DbField) {
+                    DbField item = (DbField) condition;
+                    SqlBuffer fieldSql = buildUpdateSql(item, false);
+                    buffer.append(fieldSql);
                 } else {
-                    buffer.append(columnName).append('=');
-                    buffer.append(columnName).append('+');
-                    buffer.addVariable(fieldName, fieldValue);
+                    unsupported.add(condition.getClass().getSimpleName() + "#UnsupportedCondition");
                 }
-            } else if ("Set".equals(operateType)) {
-                buffer.append(columnName).append('=');
-                buffer.addVariable(fieldName, fieldValue);
-            } else {
-                unsupported.add(fieldName + '(' + operateType + ')');
+            } catch (UnsupportedFieldExeption e) {
+                unsupported.addAll(e.getFields());
             }
         }
         if (!unsupported.isEmpty()) {
             throw ufe("update values sql", unsupported);
         }
+        if (whole && !buffer.isEmpty()) {
+            buffer.prepend("SET", ' ');
+        }
+        return buffer;
+    }
+
+    public SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldExeption {
+        if (field == null) {
+            return null;
+        }
+        SqlBuffer buffer = new SqlBuffer();
+        String operateType = VerifyTools.nvl(field.getOperateType(), "Set");
+        String fieldName = field.getFieldName();
+        Object fieldValue = field.getFieldValue();
+        if (VerifyTools.isBlank(fieldName)) {
+            throw ufe("update sql", "fieldName$" + operateType + "#IsBlank");
+        }
+        if (VerifyTools.isBlank(fieldValue)) {
+            throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
+        }
+        String columnName = getColumnName(fieldName);
+        if (VerifyTools.isBlank(columnName)) {
+            throw ufe("update sql", fieldName);
+        }
+
+        if ("ToNull".equals(operateType)) {
+            buffer.append(columnName).append('=').append("NULL");
+        } else if ("Add".equals(operateType)) {
+            if (fieldValue instanceof Number && ((Number) fieldValue).doubleValue() < 0) {
+                buffer.append(columnName).append('=');
+                buffer.append(columnName).append('-');
+                buffer.addVariable(fieldName, fieldValue);
+            } else {
+                buffer.append(columnName).append('=');
+                buffer.append(columnName).append('+');
+                buffer.addVariable(fieldName, fieldValue);
+            }
+        } else if ("Set".equals(operateType)) {
+            buffer.append(columnName).append('=');
+            buffer.addVariable(fieldName, fieldValue);
+        } else {
+            throw ufe("update sql", fieldName + '$' + operateType + '(' + "#UnsupportedOperate" + ')');
+        }
+        if (whole && !buffer.isEmpty()) {
+            buffer.prepend("SET", ' ');
+        }
+        return buffer;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public <T extends UpdateCondition> SqlBuffer buildUpdateSql(T condition, boolean whole)
+            throws UnsupportedFieldExeption {
+        if (condition == null || condition.isEmpty()) {
+            return null;
+        }
+
+        Class<? extends UpdateCondition> type = condition.getClass();
+        // JDK8+不用强转
+        @SuppressWarnings("unchecked")
+        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.global.getUpdateSqlBuilder(type);
+        if (builder == null) {
+            throw ufe("update sql", condition.getClass().getSimpleName() + "#SqlBuilderNotFound");
+        }
+        SqlBuffer buffer = builder.buildSql(condition, this);
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("SET", ' ');
         }
