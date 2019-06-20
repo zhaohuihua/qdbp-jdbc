@@ -377,6 +377,13 @@ public class SqlBuffer implements Serializable {
         return string.replace("'", "\\'");
     }
     
+    /**
+     * SQL模板的格式化处理, 允许在占位符中插入另一个SqlBuffer片段
+     * 
+     * @param sqlTemplate SQL模板
+     * @param params 占位符变量
+     * @return SqlBuffer对象
+     */
     public static SqlBuffer format(String sqlTemplate, Map<String, Object> params) {
         throw new UnsupportedOperationException("TODO"); // TODO format sql template
     }
