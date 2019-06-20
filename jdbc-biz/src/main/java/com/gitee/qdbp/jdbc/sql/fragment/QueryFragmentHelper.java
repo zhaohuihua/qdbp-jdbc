@@ -20,14 +20,7 @@ public interface QueryFragmentHelper {
     /**
      * DbWhere转换为Where SQL语句
      * 
-     * @param where 查询条件
-     */
-    SqlBuffer buildWhereSql(DbWhere where) throws UnsupportedFieldExeption;
-
-    /**
-     * DbWhere转换为Where SQL语句
-     * 
-     * @param where 查询条件
+     * @param where 一组查询条件
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
     SqlBuffer buildWhereSql(DbWhere where, boolean whole) throws UnsupportedFieldExeption;
@@ -35,15 +28,15 @@ public interface QueryFragmentHelper {
     /**
      * 生成Where SQL语句
      * 
-     * @param condition 字段条件
+     * @param condition 单字段条件
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
     SqlBuffer buildWhereSql(DbField condition, boolean whole) throws UnsupportedFieldExeption;
 
     /**
-     * 生成Where SQL语句
+     * 生成自定义条件的Where SQL语句
      * 
-     * @param condition 字段条件
+     * @param condition 单字段条件
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
     <T extends WhereCondition> SqlBuffer buildWhereSql(T condition, boolean whole) throws UnsupportedFieldExeption;
@@ -55,8 +48,7 @@ public interface QueryFragmentHelper {
      * @param fieldValues 字段值
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
-    SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean whole)
-            throws UnsupportedFieldExeption;
+    SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean whole) throws UnsupportedFieldExeption;
 
     /**
      * 生成NOT IN语句
