@@ -63,7 +63,7 @@ public class SqlBuffer implements Serializable {
      * @param part SQL片段
      * @return 返回当前SQL容器用于连写
      */
-    public SqlBuffer append(char part) {
+    public SqlBuffer append(char... part) {
         this.buffer.add(new CharItem(part));
         return this;
     }
@@ -122,7 +122,7 @@ public class SqlBuffer implements Serializable {
      * @param part SQL片段
      * @return 返回当前SQL容器用于连写
      */
-    public SqlBuffer prepend(char part) {
+    public SqlBuffer prepend(char... part) {
         this.buffer.add(0, new CharItem(part));
         return this;
     }
@@ -396,18 +396,18 @@ public class SqlBuffer implements Serializable {
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
 
-        private char value;
+        private char[] value;
 
-        public CharItem(char value) {
+        public CharItem(char... value) {
             this.value = value;
         }
 
-        public char getValue() {
+        public char[] getValue() {
             return this.value;
         }
 
         public String toString() {
-            return String.valueOf(this.value);
+            return new String(this.value);
         }
     }
 
