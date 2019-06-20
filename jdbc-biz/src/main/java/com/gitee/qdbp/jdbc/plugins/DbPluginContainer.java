@@ -3,6 +3,7 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.util.ArrayList;
 import java.util.List;
 import com.gitee.qdbp.able.model.db.OrderByCondition;
+import com.gitee.qdbp.able.model.db.UpdateCondition;
 import com.gitee.qdbp.able.model.db.WhereCondition;
 
 /**
@@ -75,16 +76,43 @@ public class DbPluginContainer {
         whereSqlBuilders.addAll(builders);
     }
 
+    // JDK8+
+    // public <T extends WhereCondition, C extends T, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<C> type) {
     @SuppressWarnings("unchecked")
     public <T extends WhereCondition, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<T> type) {
-        // JDK8+
-        // public <T extends WhereCondition, C extends T, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<C> type) {
         for (WhereSqlBuilder<? extends WhereCondition> item : whereSqlBuilders) {
             if (item.supported() == type) {
                 return (B) item;
             }
         }
         for (WhereSqlBuilder<? extends WhereCondition> item : whereSqlBuilders) {
+            if (item.supported() != null && item.supported().isAssignableFrom(type)) {
+                return (B) item;
+            }
+        }
+        return null;
+    }
+
+    private List<UpdateSqlBuilder<? extends UpdateCondition>> UpdateSqlBuilders = new ArrayList<>();
+
+    public <T extends UpdateCondition> void registerUpdateSqlBuilder(UpdateSqlBuilder<T> builder) {
+        UpdateSqlBuilders.add(builder);
+    }
+
+    public <T extends UpdateCondition> void registerUpdateSqlBuilder(List<UpdateSqlBuilder<T>> builders) {
+        UpdateSqlBuilders.addAll(builders);
+    }
+
+    // JDK8+
+    // public <T extends UpdateCondition, C extends T, B extends UpdateSqlBuilder<T>> B getUpdateSqlBuilder(Class<C> type) {
+    @SuppressWarnings("unchecked")
+    public <T extends UpdateCondition, B extends UpdateSqlBuilder<T>> B getUpdateSqlBuilder(Class<T> type) {
+        for (UpdateSqlBuilder<? extends UpdateCondition> item : UpdateSqlBuilders) {
+            if (item.supported() == type) {
+                return (B) item;
+            }
+        }
+        for (UpdateSqlBuilder<? extends UpdateCondition> item : UpdateSqlBuilders) {
             if (item.supported() != null && item.supported().isAssignableFrom(type)) {
                 return (B) item;
             }
