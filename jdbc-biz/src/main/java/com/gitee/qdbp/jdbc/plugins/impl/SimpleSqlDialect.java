@@ -365,7 +365,7 @@ public class SimpleSqlDialect implements SqlDialect {
         params.put("selectFields", sqlHelper.buildFieldsSql(selectFields));
         params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, false));
         if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlHelper.buildWhereSql(where));
+            params.put("whereCondition", sqlHelper.buildWhereSql(where, true));
         }
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings));

@@ -88,7 +88,7 @@ public abstract class EasyTableQueryImpl<T> {
         modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
 
         // WHERE条件
-        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere);
+        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
         return this.doList(wsb, odpg);
     }
 

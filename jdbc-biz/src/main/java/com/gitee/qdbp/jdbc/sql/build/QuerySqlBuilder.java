@@ -33,12 +33,12 @@ public class QuerySqlBuilder {
         buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
         buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         return buffer;
     }
 
     public SqlBuffer buildListSql(DbWhere where, List<Ordering> orderings) {
-        SqlBuffer wsb = sqlBuilder.buildWhereSql(where);
+        SqlBuffer wsb = sqlBuilder.buildWhereSql(where, true);
         return buildListSql(wsb, orderings);
     }
 
@@ -57,7 +57,7 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildCountSql(DbWhere where) {
-        SqlBuffer wsb = sqlBuilder.buildWhereSql(where);
+        SqlBuffer wsb = sqlBuilder.buildWhereSql(where, true);
         return buildCountSql(wsb);
     }
 
@@ -80,7 +80,7 @@ public class QuerySqlBuilder {
         buffer.append(' ', fields).append(',').append("COUNT(*)");
         buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         // GROUP BY ...
         buffer.append(' ', "GROUP BY").append(' ', fields);
         return buffer;
@@ -98,7 +98,7 @@ public class QuerySqlBuilder {
         buffer.append(sqlBuilder.buildFieldsSql(fieldName));
         buffer.append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where));
+        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));

@@ -52,10 +52,10 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("UPDATE").append(' ', tableName);
-        buffer.append(' ', sqlHelper.buildUpdateSetSql(entity));
+        buffer.append(' ', sqlHelper.buildUpdateSetSql(entity, true));
 
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append(' ', sqlBuilder.buildWhereSql(where));
+            buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         }
         return buffer;
     }
@@ -67,7 +67,7 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("DELETE").append(' ', "FROM").append(' ', tableName);
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append(' ', sqlBuilder.buildWhereSql(where));
+            buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         }
         return buffer;
     }

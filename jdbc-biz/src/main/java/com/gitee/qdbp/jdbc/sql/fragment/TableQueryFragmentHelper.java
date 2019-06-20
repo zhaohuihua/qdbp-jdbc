@@ -43,12 +43,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildWhereSql(DbWhere where) throws UnsupportedFieldExeption {
-        return buildWhereSql(where, true);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
     public SqlBuffer buildWhereSql(DbWhere where, boolean whole) throws UnsupportedFieldExeption {
         if (where == null || where.isEmpty()) {
             return null;
@@ -222,6 +216,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
 
         Class<? extends WhereCondition> type = condition.getClass();
+        // JDK8+不用强转
         @SuppressWarnings("unchecked")
         WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.global.getWhereSqlBuilder(type);
         if (builder == null) {
