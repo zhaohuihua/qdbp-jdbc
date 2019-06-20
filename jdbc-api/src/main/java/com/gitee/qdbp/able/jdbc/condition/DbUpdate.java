@@ -51,23 +51,6 @@ public class DbUpdate extends DbItems {
         throw new UnsupportedOperationException("DbUpdate can't supported put(DbFields)");
     }
 
-    public List<DbField> fields() {
-        List<DbCondition> items = this.items();
-        List<DbField> result = new ArrayList<>();
-        if (items.isEmpty()) {
-            return result;
-        }
-
-        Iterator<DbCondition> itr = items.iterator();
-        while (itr.hasNext()) {
-            DbCondition item = itr.next();
-            if (item instanceof DbField) {
-                result.add((DbField) item);
-            }
-        }
-        return result;
-    }
-
     /**
      * 查询指定字段所有的条件
      * 
