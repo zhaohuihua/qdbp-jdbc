@@ -228,6 +228,22 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    private StringItem tryGetLastStringItem() {
+        if (this.buffer.isEmpty()) {
+            return null;
+        }
+        Item last = this.buffer.get(this.buffer.size() - 1);
+        return last instanceof StringItem ? (StringItem) last : null;
+    }
+
+    private StringItem tryGetFirstStringItem() {
+        if (this.buffer.isEmpty()) {
+            return null;
+        }
+        Item first = this.buffer.get(0);
+        return first instanceof StringItem ? (StringItem) first : null;
+    }
+
     /** 序号递增, 空出前面的位置 **/
     protected void raiseIndex(int offset) {
         if (offset == 0) {
