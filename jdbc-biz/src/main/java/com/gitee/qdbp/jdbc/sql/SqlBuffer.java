@@ -36,7 +36,7 @@ public class SqlBuffer implements Serializable {
     public SqlBuffer(String sql) {
         this.index = 0;
         this.buffer = new ArrayList<>();
-        this.buffer.add(new StringItem(sql));
+        this.append(sql);
     }
 
     /** 构造函数 **/
@@ -53,12 +53,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(String part) {
-        StringItem si = tryGetLastStringItem();
-        if (si != null) {
-            si.append(part);
-        } else {
-            this.buffer.add(new StringItem(part));
-        }
+        StringItem si = getLastStringItem();
+        si.append(part);
         return this;
     }
 
@@ -69,12 +65,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(char... part) {
-        StringItem si = tryGetLastStringItem();
-        if (si != null) {
-            si.append(part);
-        } else {
-            this.buffer.add(new StringItem(part));
-        }
+        StringItem si = getLastStringItem();
+        si.append(part);
         return this;
     }
 
@@ -86,12 +78,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(String part, char suffix) {
-        StringItem si = tryGetLastStringItem();
-        if (si != null) {
-            si.append(part, suffix);
-        } else {
-            this.buffer.add(new StringItem(part, suffix));
-        }
+        StringItem si = getLastStringItem();
+        si.append(part, suffix);
         return this;
     }
 
@@ -103,12 +91,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(char prefix, String part) {
-        StringItem si = tryGetLastStringItem();
-        if (si != null) {
-            si.append(prefix, part);
-        } else {
-            this.buffer.add(new StringItem(prefix, part));
-        }
+        StringItem si = getLastStringItem();
+        si.append(prefix, part);
         return this;
     }
 
@@ -121,12 +105,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(char prefix, String part, char suffix) {
-        StringItem si = tryGetLastStringItem();
-        if (si != null) {
-            si.append(prefix, part, suffix);
-        } else {
-            this.buffer.add(new StringItem(prefix, part, suffix));
-        }
+        StringItem si = getLastStringItem();
+        si.append(prefix, part, suffix);
         return this;
     }
 
@@ -137,12 +117,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(String part) {
-        StringItem si = tryGetFirstStringItem();
-        if (si != null) {
-            si.prepend(part);
-        } else {
-            this.buffer.add(0, new StringItem(part));
-        }
+        StringItem si = getFirstStringItem();
+        si.prepend(part);
         return this;
     }
 
@@ -153,12 +129,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(char... part) {
-        StringItem si = tryGetFirstStringItem();
-        if (si != null) {
-            si.prepend(part);
-        } else {
-            this.buffer.add(0, new StringItem(part));
-        }
+        StringItem si = getFirstStringItem();
+        si.prepend(part);
         return this;
     }
 
@@ -170,12 +142,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(String part, char suffix) {
-        StringItem si = tryGetFirstStringItem();
-        if (si != null) {
-            si.prepend(part, suffix);
-        } else {
-            this.buffer.add(0, new StringItem(part, suffix));
-        }
+        StringItem si = getFirstStringItem();
+        si.prepend(part, suffix);
         return this;
     }
 
@@ -187,12 +155,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(char prefix, String part) {
-        StringItem si = tryGetFirstStringItem();
-        if (si != null) {
-            si.prepend(prefix, part);
-        } else {
-            this.buffer.add(0, new StringItem(prefix, part));
-        }
+        StringItem si = getFirstStringItem();
+        si.prepend(prefix, part);
         return this;
     }
 
@@ -205,12 +169,8 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(char prefix, String part, char suffix) {
-        StringItem si = tryGetFirstStringItem();
-        if (si != null) {
-            si.prepend(prefix, part, suffix);
-        } else {
-            this.buffer.add(0, new StringItem(prefix, part, suffix));
-        }
+        StringItem si = getFirstStringItem();
+        si.prepend(prefix, part, suffix);
         return this;
     }
 
@@ -278,20 +238,26 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
-    private StringItem tryGetLastStringItem() {
-        if (this.buffer.isEmpty()) {
-            return null;
+    private StringItem getLastStringItem() {
+        Item last = this.buffer.isEmpty() ? null : this.buffer.get(this.buffer.size() - 1);
+        if (last instanceof StringItem) {
+            return (StringItem) last;
+        } else {
+            StringItem si = new StringItem();
+            this.buffer.add(si);
+            return si;
         }
-        Item last = this.buffer.get(this.buffer.size() - 1);
-        return last instanceof StringItem ? (StringItem) last : null;
     }
 
-    private StringItem tryGetFirstStringItem() {
-        if (this.buffer.isEmpty()) {
-            return null;
+    private StringItem getFirstStringItem() {
+        Item first = this.buffer.isEmpty() ? null : this.buffer.get(0);
+        if (first instanceof StringItem) {
+            return (StringItem) first;
+        } else {
+            StringItem si = new StringItem();
+            this.buffer.add(0, si);
+            return si;
         }
-        Item first = this.buffer.get(0);
-        return first instanceof StringItem ? (StringItem) first : null;
     }
 
     /** 序号递增, 空出前面的位置 **/
@@ -497,24 +463,8 @@ public class SqlBuffer implements Serializable {
 
         private final StringBuffer value;
 
-        public StringItem(char... chars) {
-            this.value = new StringBuffer().append(chars);
-        }
-
-        public StringItem(String value) {
-            this.value = new StringBuffer(value);
-        }
-
-        public StringItem(String value, char suffix) {
-            this.value = new StringBuffer(value).append(suffix);
-        }
-
-        public StringItem(char prefix, String value) {
-            this.value = new StringBuffer().append(prefix).append(value);
-        }
-
-        public StringItem(char prefix, String value, char suffix) {
-            this.value = new StringBuffer().append(prefix).append(value).append(suffix);
+        public StringItem() {
+            this.value = new StringBuffer();
         }
 
         public void append(char... chars) {
