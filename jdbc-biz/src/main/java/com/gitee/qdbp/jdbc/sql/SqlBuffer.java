@@ -36,7 +36,7 @@ public class SqlBuffer implements Serializable {
     public SqlBuffer(String sql) {
         this.index = 0;
         this.buffer = new ArrayList<>();
-        this.append(sql);
+        this.buffer.add(new StringItem(sql));
     }
 
     /** 构造函数 **/
@@ -64,7 +64,7 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer append(char... part) {
-        this.buffer.add(new CharItem(part));
+        this.buffer.add(new StringItem(part));
         return this;
     }
 
@@ -123,7 +123,7 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer prepend(char... part) {
-        this.buffer.add(0, new CharItem(part));
+        this.buffer.add(0, new StringItem(part));
         return this;
     }
 
@@ -269,6 +269,51 @@ public class SqlBuffer implements Serializable {
         return buffer.isEmpty();
     }
 
+    /** 缩进1个TAB **/
+    public SqlBuffer indent() {
+        return indent(1, true);
+    }
+
+    /**
+     * 缩进n个TAB
+     * 
+     * @param size 缩进多少个TAB
+     * @param leading 开头要不要缩进, 如果不是完整SQL则开头不能缩进
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuffer indent(int size, boolean leading) {
+        if (size <= 0 || this.buffer.isEmpty()) {
+            return this;
+        }
+        char[] tabs = getTabs(size);
+        for (Item item : this.buffer) {
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                stringItem.indent(tabs);
+            }
+        }
+        if (leading) {
+            Item first = this.buffer.get(0);
+            if (first instanceof StringItem) {
+                StringItem stringItem = (StringItem) first;
+                stringItem.prepend(tabs);
+            }
+        }
+        return this;
+    }
+
+    private char[] getTabs(int size) {
+        if (size == 1) {
+            return new char[] { '\t' };
+        } else {
+            char[] tabs = new char[size];
+            for (int i = 0; i < size; i++) {
+                tabs[i] = '\n';
+            }
+            return tabs;
+        }
+    }
+
     /**
      * 复制
      * 
@@ -290,11 +335,11 @@ public class SqlBuffer implements Serializable {
             if (item instanceof VarItem) {
                 VarItem placeholder = ((VarItem) item);
                 target.addVariable(placeholder.name, placeholder.value);
-            } else if (item instanceof CharItem) {
-                target.append(((CharItem) item).getValue());
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                target.append(stringItem.getPrefix(), stringItem.getValue(), stringItem.getSuffix());
+                target.buffer.add(stringItem);
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
     }
@@ -305,17 +350,11 @@ public class SqlBuffer implements Serializable {
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
                 temp.append(':').append(((VarItem) item).getKey());
-            } else if (item instanceof CharItem) {
-                temp.append(((CharItem) item).getValue());
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                if (stringItem.getPrefix() != 0) {
-                    temp.append(stringItem.getPrefix());
-                }
                 temp.append(stringItem.getValue());
-                if (stringItem.getSuffix() != 0) {
-                    temp.append(stringItem.getSuffix());
-                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
         return temp.toString();
@@ -339,17 +378,11 @@ public class SqlBuffer implements Serializable {
             if (item instanceof VarItem) {
                 VarItem placeholder = ((VarItem) item);
                 appendValue(sql, placeholder.getValue());
-            } else if (item instanceof CharItem) {
-                sql.append(((CharItem) item).getValue());
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                if (stringItem.getPrefix() != 0) {
-                    sql.append(stringItem.getPrefix());
-                }
                 sql.append(stringItem.getValue());
-                if (stringItem.getSuffix() != 0) {
-                    sql.append(stringItem.getSuffix());
-                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
         return sql.toString();
@@ -372,11 +405,11 @@ public class SqlBuffer implements Serializable {
             sb.append("'").append(escapeSingleQuotation(value.toString())).append("'");
         }
     }
-    
+
     private String escapeSingleQuotation(String string) {
         return string.replace("'", "\\'");
     }
-    
+
     /**
      * SQL模板的格式化处理, 允许在占位符中插入另一个SqlBuffer片段
      * 
@@ -391,84 +424,88 @@ public class SqlBuffer implements Serializable {
     protected static interface Item {
     }
 
-    protected static class CharItem implements Item, Serializable {
-
-        /** SerialVersionUID **/
-        private static final long serialVersionUID = 1L;
-
-        private char[] value;
-
-        public CharItem(char... value) {
-            this.value = value;
-        }
-
-        public char[] getValue() {
-            return this.value;
-        }
-
-        public String toString() {
-            return new String(this.value);
-        }
-    }
-
     protected static class StringItem implements Item, Serializable {
 
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
 
-        private final String value;
-        private final char prefix;
-        private final char suffix;
+        private final StringBuffer value;
+
+        public StringItem(char... chars) {
+            this.value = new StringBuffer().append(chars);
+        }
 
         public StringItem(String value) {
-            this.value = value;
-            this.prefix = 0;
-            this.suffix = 0;
+            this.value = new StringBuffer(value);
         }
 
         public StringItem(String value, char suffix) {
-            this.value = value;
-            this.prefix = 0;
-            this.suffix = suffix;
+            this.value = new StringBuffer(value).append(suffix);
         }
 
         public StringItem(char prefix, String value) {
-            this.value = value;
-            this.prefix = prefix;
-            this.suffix = 0;
+            this.value = new StringBuffer().append(prefix).append(value);
         }
 
         public StringItem(char prefix, String value, char suffix) {
-            this.value = value;
-            this.prefix = prefix;
-            this.suffix = suffix;
+            this.value = new StringBuffer().append(prefix).append(value).append(suffix);
         }
 
-        public String getValue() {
+        public void append(char... chars) {
+            this.value.append(chars);
+        }
+
+        public void append(String value) {
+            this.value.append(value);
+        }
+
+        public void append(String value, char suffix) {
+            this.value.append(value).append(suffix);
+        }
+
+        public void append(char prefix, String value) {
+            this.value.append(prefix).append(value);
+        }
+
+        public void append(char prefix, String value, char suffix) {
+            this.value.append(prefix).append(value).append(suffix);
+        }
+
+        public void prepend(char... chars) {
+            this.value.insert(0, chars);
+        }
+
+        public void prepend(String value) {
+            this.value.insert(0, value);
+        }
+
+        public void prepend(String value, char suffix) {
+            this.value.insert(0, suffix).insert(0, value);
+        }
+
+        public void prepend(char prefix, String value) {
+            this.value.insert(0, value).insert(0, prefix);
+        }
+
+        public void prepend(char prefix, String value, char suffix) {
+            this.value.insert(0, suffix).insert(0, value).insert(0, prefix);
+        }
+
+        /** 缩进TAB, 在换行符后面增加TAB **/
+        public void indent(char[] tabs) {
+            for (int i = value.length() - 1; i >= 0; i--) {
+                if (value.charAt(i) == '\n') {
+                    value.insert(i + 1, tabs);
+                }
+            }
+        }
+
+        public StringBuffer getValue() {
             return this.value;
         }
 
-        public char getPrefix() {
-            return prefix;
-        }
-
-        public char getSuffix() {
-            return suffix;
-        }
-
         public String toString() {
-            if (this.prefix == 0 && this.suffix == 0) {
-                return this.value;
-            }
-            StringBuilder sb = new StringBuilder();
-            if (this.prefix != 0) {
-                sb.append(this.prefix);
-            }
-            sb.append(this.value);
-            if (this.suffix != 0) {
-                sb.append(this.suffix);
-            }
-            return sb.toString();
+            return this.value.toString();
         }
     }
 
