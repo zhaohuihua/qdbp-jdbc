@@ -55,7 +55,7 @@ public abstract class EasyTableQueryImpl<T> {
      * 
      * @return 主表别名
      */
-    protected String getMajorTableAlais() {
+    protected String getMajorTableAlias() {
         return null;
     }
 
@@ -63,7 +63,7 @@ public abstract class EasyTableQueryImpl<T> {
         if (where == null || where.isEmpty()) {
             throw new IllegalArgumentException("where can't be empty");
         }
-        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildFindSql(where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
@@ -74,7 +74,7 @@ public abstract class EasyTableQueryImpl<T> {
 
     public List<T> listAll(List<Ordering> orderings) {
         DbWhere where = new DbWhere();
-        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
@@ -85,7 +85,7 @@ public abstract class EasyTableQueryImpl<T> {
         if (where == null || where instanceof EmptyDbWhere) {
             readyWhere = new DbWhere();
         }
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
@@ -105,7 +105,7 @@ public abstract class EasyTableQueryImpl<T> {
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         List<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
@@ -113,7 +113,7 @@ public abstract class EasyTableQueryImpl<T> {
     public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return doListFieldValues(fieldName, distinct, readyWhere, null, valueClazz);
     }
 
@@ -125,7 +125,7 @@ public abstract class EasyTableQueryImpl<T> {
 
     public int count(DbWhere where) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return doCount(readyWhere);
     }
 
@@ -137,7 +137,7 @@ public abstract class EasyTableQueryImpl<T> {
     public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
         VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlais());
+        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return this.doGroupCount(groupBy, readyWhere);
     }
 

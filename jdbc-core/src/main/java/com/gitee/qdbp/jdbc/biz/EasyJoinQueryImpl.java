@@ -30,7 +30,7 @@ public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJ
 
     /** {@inheritDoc} **/
     @Override
-    protected String getMajorTableAlais() {
+    protected String getMajorTableAlias() {
         return majorTableAlias;
     }
 
