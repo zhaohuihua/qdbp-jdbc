@@ -26,14 +26,14 @@ public class DbPluginContainer {
         return sqlFormatter;
     }
 
-    private SqlDialect SqlDialect;
+    private SqlDialect sqlDialect;
 
     public void registerSqlDialect(SqlDialect SqlDialect) {
-        this.SqlDialect = SqlDialect;
+        this.sqlDialect = SqlDialect;
     }
 
     public SqlDialect getSqlDialect() {
-        return SqlDialect;
+        return sqlDialect;
     }
 
     private TableInfoScans tableInfoScans;
