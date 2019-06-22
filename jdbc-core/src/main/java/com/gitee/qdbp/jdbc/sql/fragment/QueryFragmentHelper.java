@@ -63,14 +63,6 @@ public interface QueryFragmentHelper {
      * 生成OrderBy SQL语句
      * 
      * @param orderings 排序条件
-     * @return SQL语句
-     */
-    SqlBuffer buildOrderBySql(List<Ordering> orderings) throws UnsupportedFieldExeption;
-
-    /**
-     * 生成OrderBy SQL语句
-     * 
-     * @param orderings 排序条件
      * @param whole 是否输出完整的OrderBy语句, true=带ORDER BY前缀, false=不带ORDER BY前缀
      * @return SQL语句
      */

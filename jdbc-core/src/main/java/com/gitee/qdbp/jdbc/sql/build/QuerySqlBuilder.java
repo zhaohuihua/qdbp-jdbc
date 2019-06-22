@@ -51,7 +51,7 @@ public class QuerySqlBuilder {
         // WHERE ...
         buffer.append(' ', whereSql);
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings, true));
         }
         return buffer;
     }
@@ -101,7 +101,7 @@ public class QuerySqlBuilder {
         buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings));
+            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings, true));
         }
         return buffer;
     }

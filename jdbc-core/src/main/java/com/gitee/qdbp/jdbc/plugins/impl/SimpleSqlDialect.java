@@ -312,7 +312,7 @@ public class SimpleSqlDialect implements SqlDialect {
         }
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlHelper.buildOrderBySql(orderings));
+            buffer.append(' ', sqlHelper.buildOrderBySql(orderings, true));
         }
         return buffer;
     }
@@ -353,7 +353,9 @@ public class SimpleSqlDialect implements SqlDialect {
                 + "    SELECT {codeField} {fromTableName} INNER JOIN recursive_sub_table ON {parentField} = _temp_ "
                 + ") "
                 + "SELECT {selectFields} FROM {tableName} WHERE {codeField} IN ( "
-                + "    SELECT _temp_ FROM recursive_sub_table " + ") " + "{whereCondition:prepend(AND)} "
+                + "    SELECT _temp_ FROM recursive_sub_table "
+                + ") "
+                + "{whereCondition:prepend(AND)} "
                 + "{orderByCondition:prepend(ORDER BY)} ";
         // @formatter:on
 
@@ -368,7 +370,7 @@ public class SimpleSqlDialect implements SqlDialect {
             params.put("whereCondition", sqlHelper.buildWhereSql(where, true));
         }
         if (VerifyTools.isNotBlank(orderings)) {
-            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings));
+            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, true));
         }
         return SqlBuffer.format(sqlTemplate, params);
     }

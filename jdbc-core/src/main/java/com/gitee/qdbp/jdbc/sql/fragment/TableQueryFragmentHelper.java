@@ -267,12 +267,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildOrderBySql(List<Ordering> orderings) throws UnsupportedFieldExeption {
-        return buildOrderBySql(orderings, true);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
     public SqlBuffer buildOrderBySql(List<Ordering> orderings, boolean whole) throws UnsupportedFieldExeption {
         if (VerifyTools.isBlank(orderings)) {
             return null;
