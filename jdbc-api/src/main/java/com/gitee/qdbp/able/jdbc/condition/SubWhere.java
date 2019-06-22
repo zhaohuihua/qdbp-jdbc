@@ -1,6 +1,6 @@
 package com.gitee.qdbp.able.jdbc.condition;
 
-import com.gitee.qdbp.able.model.db.WhereCondition;
+import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

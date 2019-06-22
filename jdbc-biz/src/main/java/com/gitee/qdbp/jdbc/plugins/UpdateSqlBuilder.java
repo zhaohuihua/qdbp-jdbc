@@ -1,6 +1,6 @@
 package com.gitee.qdbp.jdbc.plugins;
 
-import com.gitee.qdbp.able.model.db.UpdateCondition;
+import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;

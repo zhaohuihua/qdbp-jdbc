@@ -1,9 +1,9 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.Map;
+import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.able.model.db.UpdateCondition;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import com.gitee.qdbp.able.model.db.DbCondition;
+import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

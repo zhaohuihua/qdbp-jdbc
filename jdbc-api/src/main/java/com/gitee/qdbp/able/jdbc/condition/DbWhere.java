@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import com.gitee.qdbp.able.model.db.DbCondition;
-import com.gitee.qdbp.able.model.db.WhereCondition;
+import com.gitee.qdbp.able.jdbc.base.DbCondition;
+import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 

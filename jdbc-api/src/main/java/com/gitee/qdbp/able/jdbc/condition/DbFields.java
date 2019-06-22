@@ -1,7 +1,7 @@
 package com.gitee.qdbp.able.jdbc.condition;
 
 import java.util.List;
-import com.gitee.qdbp.able.model.db.DbCondition;
+import com.gitee.qdbp.able.jdbc.base.DbCondition;
 
 /**
  * 字段容器接口

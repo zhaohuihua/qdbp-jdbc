@@ -5,9 +5,9 @@ import java.util.Map;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.model.ordering.OrderPaging;
-import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.able.model.paging.PageList;
+import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
+import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
 
 /**
  * 基础增删改查数据库操作

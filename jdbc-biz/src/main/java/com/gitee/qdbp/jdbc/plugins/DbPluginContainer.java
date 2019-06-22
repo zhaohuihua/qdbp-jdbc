@@ -2,9 +2,9 @@ package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.gitee.qdbp.able.model.db.OrderByCondition;
-import com.gitee.qdbp.able.model.db.UpdateCondition;
-import com.gitee.qdbp.able.model.db.WhereCondition;
+import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
+import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
+import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 
 /**
  * 自定义插件容器

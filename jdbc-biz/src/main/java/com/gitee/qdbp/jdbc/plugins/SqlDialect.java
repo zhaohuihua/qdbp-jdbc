@@ -3,8 +3,8 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.util.Collection;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.model.ordering.Ordering;
-import com.gitee.qdbp.able.model.paging.Paging;
+import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 
