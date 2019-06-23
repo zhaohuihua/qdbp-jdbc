@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.NamingTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -442,15 +444,46 @@ public class SqlBuffer implements Serializable {
         return string.replace("'", "\\'");
     }
 
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\{([\\.\\w]+)\\}");
+
     /**
-     * SQL模板的格式化处理, 允许在占位符中插入另一个SqlBuffer片段
+     * 从SQL模板解析获取SqlBuffer对象, 允许在占位符处插入另一个SqlBuffer片段
      * 
      * @param sqlTemplate SQL模板
      * @param params 占位符变量
      * @return SqlBuffer对象
      */
-    public static SqlBuffer format(String sqlTemplate, Map<String, Object> params) {
-        throw new UnsupportedOperationException("TODO"); // TODO format sql template
+    public static SqlBuffer parse(String sqlTemplate, Map<String, Object> params) {
+        SqlBuffer buffer = new SqlBuffer();
+        Matcher matcher = PLACEHOLDER.matcher(sqlTemplate);
+        int index = 0;
+        while (matcher.find()) {
+            if (index < matcher.start()) {
+                buffer.append(sqlTemplate.substring(index, matcher.start()));
+            }
+            String placeholder = matcher.group(1);
+            Object value = getMapValue(params, placeholder);
+            if (value != null) {
+                if (value instanceof SqlBuffer) {
+                    buffer.append((SqlBuffer) value);
+                } else {
+                    buffer.append(valueToString(value));
+                }
+            }
+            index = matcher.end();
+        }
+        if (index < sqlTemplate.length()) {
+            buffer.append(sqlTemplate.substring(index));
+        }
+        return buffer;
+    }
+
+    private static Object getMapValue(Map<String, Object> params, String key) {
+        return params.get(key);
+    }
+
+    private static String valueToString(Object value) {
+        return value == null ? "" : value.toString();
     }
 
     protected static interface Item {

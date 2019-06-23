@@ -321,13 +321,13 @@ public class SimpleSqlDialect implements SqlDialect {
      * 标准递归, 语法都差不多, 唯一的区别是关键字: <br>
      * MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可<br>
      * <pre>
-    WITH RECURSIVE recursive_sub_table(_temp_) AS (
-        SELECT {codeField} AS _temp_ FROM {tableName} WHERE {codeField} IN ( {startCodes} ) 
+    WITH RECURSIVE RECURSIVE_SUB_TABLE(_TEMP_) AS (
+        SELECT {codeField} AS _TEMP_ FROM {tableName} WHERE {codeField} IN ( {startCodes} ) 
         UNION ALL
-        SELECT {codeField} FROM {tableName} INNER JOIN recursive_sub_table ON {parentField} = _temp_
+        SELECT {codeField} FROM {tableName} INNER JOIN RECURSIVE_SUB_TABLE ON {parentField} = _TEMP_
     )
     SELECT * FROM {tableName} WHERE {codeField} IN (
-        SELECT _temp_ FROM recursive_sub_table
+        SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE
     )
     WHERE ...
     ORDER BY ...
@@ -347,16 +347,16 @@ public class SimpleSqlDialect implements SqlDialect {
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
-        String sqlTemplate = "{keyword} recursive_sub_table(_temp_) AS ( "
-                + "    SELECT {codeField} AS _temp_ FROM {tableName} WHERE {startCodeCondition} "
+        String sqlTemplate = "{keyword} RECURSIVE_SUB_TABLE(_TEMP_) AS ( "
+                + "    SELECT {codeField} AS _TEMP_ FROM {tableName} WHERE {startCodeCondition} "
                 + "    UNION ALL "
-                + "    SELECT {codeField} {fromTableName} INNER JOIN recursive_sub_table ON {parentField} = _temp_ "
+                + "    SELECT {codeField} FROM {tableName} INNER JOIN RECURSIVE_SUB_TABLE ON {parentField} = _TEMP_ "
                 + ") "
                 + "SELECT {selectFields} FROM {tableName} WHERE {codeField} IN ( "
-                + "    SELECT _temp_ FROM recursive_sub_table "
+                + "    SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE "
                 + ") "
-                + "{whereCondition:prepend(AND)} "
-                + "{orderByCondition:prepend(ORDER BY)} ";
+                + "{whereCondition} "
+                + "{orderByCondition} ";
         // @formatter:on
 
         Map<String, Object> params = new HashMap<>();
@@ -372,7 +372,7 @@ public class SimpleSqlDialect implements SqlDialect {
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, true));
         }
-        return SqlBuffer.format(sqlTemplate, params);
+        return SqlBuffer.parse(sqlTemplate, params);
     }
 
     /**
