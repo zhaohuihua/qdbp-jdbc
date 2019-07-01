@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -62,10 +64,10 @@ public class SimpleSqlDialect implements SqlDialect {
     private static void processPagingForMySql(SqlBuffer buffer, Paging paging) {
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append(' ').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
         } else {
             // limit {start}, {rows}
-            buffer.append(' ').append("LIMIT").append(' ');
+            buffer.append('\n').append("LIMIT").append(' ');
             buffer.addVariable("start", paging.getStart()).append(',').addVariable("rows", paging.getRows());
         }
     }
@@ -74,10 +76,10 @@ public class SimpleSqlDialect implements SqlDialect {
         // 逻辑参考自: org.hibernate.dialect.H2Dialect
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append(' ').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
         } else {
             // limit {start} offset {rows}
-            buffer.append(' ').append("LIMIT").append(' ');
+            buffer.append('\n').append("LIMIT").append(' ');
             buffer.addVariable("start", paging.getStart());
             buffer.append(" OFFSET ").addVariable("rows", paging.getRows());
         }
@@ -87,10 +89,10 @@ public class SimpleSqlDialect implements SqlDialect {
         // 逻辑参考自: org.hibernate.dialect.PostgreSQLDialect
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append(' ').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
         } else {
             // limit {start} offset {rows}
-            buffer.append(' ').append("LIMIT").append(' ');
+            buffer.append('\n').append("LIMIT").append(' ');
             buffer.addVariable("start", paging.getStart());
             buffer.append(" OFFSET ").addVariable("rows", paging.getRows());
         }
@@ -99,19 +101,22 @@ public class SimpleSqlDialect implements SqlDialect {
     private static void processPagingForOracle(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.OracleDialect
         if (paging.getStart() <= 0) {
-            // SELECT T_T.* FROM ( {sql} ) T_T WHERE ROWNUM <= {end}
-            buffer.prepend("SELECT T_T.* FROM ( ");
-            buffer.append(") T_T WHERE ROWNUM <= ");
-            buffer.addVariable("end", paging.getEnd());
+            buffer.indent(1, true);
+            // SELECT T_T.* FROM (
+            //     {sql}
+            // ) T_T WHERE ROWNUM <= {end}
+            buffer.prepend("SELECT T_T.* FROM (\n");
+            buffer.append("\n) T_T\nWHERE ROWNUM <= ").addVariable("end", paging.getEnd());
         } else {
+            buffer.indent(2, true);
             // SELECT * FROM (
-            //     SELECT ROWNUM R_N, T_T.* FROM ( {sql} ) T_T WHERE ROWNUM <= {end}
+            //     SELECT ROWNUM R_N, T_T.* FROM (
+            //         {sql}
+            //     ) T_T WHERE ROWNUM <= {end}
             // ) WHERE R_N > {start}
-            buffer.prepend("SELECT * FROM ( SELECT ROWNUM R_N, T_T.* FROM ( ");
-            buffer.append(") T_T WHERE ROWNUM <= ");
-            buffer.addVariable("end", paging.getEnd());
-            buffer.append(") WHERE R_N > ");
-            buffer.addVariable("start", paging.getStart());
+            buffer.prepend("SELECT * FROM (\n\tSELECT ROWNUM R_N, T_T.* FROM (\n");
+            buffer.append("\n\t) T_T WHERE ROWNUM <= ").addVariable("end", paging.getEnd());
+            buffer.append("\n) WHERE R_N > ").addVariable("start", paging.getStart());
         }
     }
 
@@ -119,21 +124,23 @@ public class SimpleSqlDialect implements SqlDialect {
         // 逻辑参考自: org.hibernate.dialect.DB2Dialect
         if (paging.getStart() <= 0) {
             // FETCH FIRST {end} ROWS ONLY
-            buffer.append(' ').append("FETCH FIRST").append(' ');
+            buffer.append('\n').append("FETCH FIRST").append(' ');
             buffer.addVariable("end", paging.getEnd());
             buffer.append(' ').append("ROWS ONLY");
         } else {
+            buffer.indent(2, true);
             // SELECT * FROM (
             //     SELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N 
-            //     FROM ( {sql} FETCH FIRST {end} ROWS ONLY ) AS T_T
-            // )
-            // WHERE R_N > {start} ORDER BY R_N
-            buffer.prepend("SELECT * FROM ( SELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N FROM ( ");
-            buffer.append(' ').append("FETCH FIRST").append(' ');
+            //     FROM (
+            //         {sql}
+            //         FETCH FIRST {end} ROWS ONLY
+            //     ) AS T_T
+            // ) WHERE R_N > {start} ORDER BY R_N
+            buffer.prepend("SELECT * FROM (\n\tSELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N FROM (\n");
+            buffer.append('\n', '\t').append("FETCH FIRST").append(' ');
             buffer.addVariable("end", paging.getEnd());
-            buffer.append(' ').append("ROWS ONLY").append(' ').append(") AS T_T )");
-            buffer.append(' ').append("WHERE").append(' ').append("R_N > ");
-            buffer.addVariable("start", paging.getStart());
+            buffer.append(' ').append("ROWS ONLY").append('\n', '\t').append(") AS T_T\n)");
+            buffer.append(' ').append("WHERE").append(' ').append("R_N > ").addVariable("start", paging.getStart());
             buffer.append(' ').append("ORDER BY").append(' ').append("R_N");
         }
     }
@@ -149,6 +156,39 @@ public class SimpleSqlDialect implements SqlDialect {
             return "CONVERT(" + columnName + " USING GBK)";
         default:
             return columnName;
+        }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String escapeSqlValue(String value) {
+        return value.replace("'", "''");
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String buildToTimestampSql(Date date) {
+        StringBuilder sb = new StringBuilder();
+        DbType dbType = dbVersion.getDbType();
+        switch (dbType) {
+        case DB2:
+        case Oracle:
+            sb.append("TO_TIMESTAMP").append('(');
+            sb.append("'").append(DateTools.toNormativeString(date)).append("'");
+            sb.append(',');
+            sb.append("'YYYY-MM-DD HH24:MI:SS.FF'");
+            sb.append(')');
+            return sb.toString();
+        case H2:
+            sb.append("PARSEDATETIME").append('(');
+            sb.append("'").append(DateTools.toNormativeString(date)).append("'");
+            sb.append(',');
+            sb.append("'yyyy-MM-dd HH:mm:ss.SSS'");
+            sb.append(')');
+            return sb.toString();
+        default:
+            sb.append("'").append(DateTools.toNormativeString(date)).append("'");
+            return sb.toString();
         }
     }
 

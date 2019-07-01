@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.gitee.qdbp.tools.utils.DateTools;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.NamingTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -378,8 +378,8 @@ public class SqlBuffer implements Serializable {
         }
     }
 
-    /** SQL语句(命名变量) **/
-    public String getNamedSqlString() {
+    /** 获取预编译SQL语句(命名变量) **/
+    public String getPreparedSqlString() {
         StringBuilder temp = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
@@ -394,8 +394,8 @@ public class SqlBuffer implements Serializable {
         return temp.toString();
     }
 
-    /** SQL命名变量 **/
-    public Map<String, Object> getNamedVariables() {
+    /** 获取SQL命名变量 **/
+    public Map<String, Object> getPreparedNamedVariables() {
         Map<String, Object> map = new HashMap<>();
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
@@ -407,6 +407,11 @@ public class SqlBuffer implements Serializable {
     }
 
     public String toString() {
+        return getNormalSqlString();
+    }
+
+    /** 获取普通SQL(不带预编译参数) **/
+    public String getNormalSqlString() {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
@@ -428,20 +433,19 @@ public class SqlBuffer implements Serializable {
         } else if (value instanceof Number || value instanceof Boolean) {
             sb.append(value);
         } else if (value instanceof CharSequence) {
-            sb.append("'").append(escapeSingleQuotation(value.toString())).append("'");
+            sb.append("'").append(DbTools.getSqlDialect().escapeSqlValue(value.toString())).append("'");
         } else if (value instanceof Character) {
             sb.append("'").append(value).append("'");
         } else if (value instanceof Date) {
-            sb.append("'").append(DateTools.toNormativeString((Date) value)).append("'");
+            // sb.append("'").append(DateTools.toNormativeString((Date) value)).append("'");
+            sb.append(DbTools.getSqlDialect().buildToTimestampSql((Date) value));
         } else if (value instanceof Enum) {
             sb.append(((Enum<?>) value).ordinal());
         } else {
-            sb.append("'").append(escapeSingleQuotation(value.toString())).append("'");
+            String string = valueToString(value);
+            String escaped = DbTools.getSqlDialect().escapeSqlValue(string);
+            sb.append("'").append(escaped).append("'");
         }
-    }
-
-    private String escapeSingleQuotation(String string) {
-        return string.replace("'", "\\'");
     }
 
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{([\\.\\w]+)\\}");

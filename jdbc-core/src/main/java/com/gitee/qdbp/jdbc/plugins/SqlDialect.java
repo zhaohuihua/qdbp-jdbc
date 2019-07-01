@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
@@ -19,7 +20,26 @@ public interface SqlDialect {
     /** 处理分页 **/
     void processPagingSql(SqlBuffer buffer, Paging paging);
 
+    /** 转换为按拼音排序的表达式 **/
     String toPinyinOrderByExpression(String columnName);
+
+    /**
+     * 转换SQL中的非法字符
+     * 
+     * @param value 字符串值
+     * @return 转换后的值, 如: "Let''s go."<br>
+     */
+    String escapeSqlValue(String value);
+
+    /**
+     * 生成TO_TIMESTAMP SQL语句<br>
+     * 
+     * @param date 指定日期
+     * @return TO_TIMESTAMP SQL语句(<b>不带</b>字段名前缀)<br>
+     *         ORACLE: TO_TIMESTAMP('2019-06-01 12:34:56.789', 'YYYY-MM-DD HH24:MI:SS.FF')<br>
+     *         MYSQL: '2019-06-01 12:34:56.789'<br>
+     */
+    String buildToTimestampSql(Date date);
 
     /**
      * 生成LIKE SQL语句

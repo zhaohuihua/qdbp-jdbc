@@ -41,7 +41,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     // Character类型不能自动识别
     // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
     private Map<String, Object> getVariables(SqlBuffer sb) {
-        Map<String, Object> params = sb.getNamedVariables();
+        Map<String, Object> params = sb.getPreparedNamedVariables();
         if (VerifyTools.isBlank(params)) {
             return params;
         }
@@ -63,7 +63,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.execute(sql, params, action);
     }
@@ -73,7 +73,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.query(sql, params, rse);
     }
@@ -83,7 +83,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         namedParameterJdbcOperations.query(sql, params, rch);
     }
@@ -93,7 +93,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         try {
             return namedParameterJdbcOperations.query(sql, params, rowMapper);
@@ -107,7 +107,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         try {
             return namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
@@ -123,7 +123,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 if (sb != null && log.isDebugEnabled()) {
                     log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
                 }
-                String sql = sb.getNamedSqlString();
+                String sql = sb.getPreparedSqlString();
                 Map<String, Object> params = getVariables(sb);
                 return namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             } else {
@@ -148,7 +148,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         try {
             return namedParameterJdbcOperations.queryForMap(sql, params);
@@ -159,7 +159,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException {
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         if (isSimpleClass(elementType)) {
             return namedParameterJdbcOperations.queryForList(sql, params, elementType);
@@ -173,7 +173,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.queryForList(sql, params);
     }
@@ -183,7 +183,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.queryForRowSet(sql, params);
     }
@@ -193,7 +193,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         return namedParameterJdbcOperations.update(sql, params);
     }
@@ -203,7 +203,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (sb != null && log.isDebugEnabled()) {
             log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
         }
-        String sql = sb.getNamedSqlString();
+        String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         SqlParameterSource msps = new MapSqlParameterSource(params);
         return namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);

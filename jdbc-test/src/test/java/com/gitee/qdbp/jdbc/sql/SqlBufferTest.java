@@ -25,7 +25,7 @@ public class SqlBufferTest {
 
         buffer.prepend("SELECT * FROM SYS_USER ");
 
-        System.out.println(buffer.getNamedSqlString());
+        System.out.println(buffer.getPreparedSqlString());
         System.out.println(buffer.toString());
         System.out.println(DbTools.formatSql(buffer, 0));
     }
