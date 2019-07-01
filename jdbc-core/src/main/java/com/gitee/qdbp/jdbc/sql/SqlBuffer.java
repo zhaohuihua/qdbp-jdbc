@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.NamingTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -448,7 +449,7 @@ public class SqlBuffer implements Serializable {
         }
     }
 
-    private static final Pattern PLACEHOLDER = Pattern.compile("\\{([\\.\\w]+)\\}");
+    private static final Pattern PLACEHOLDER = Pattern.compile("([\\$#])\\{([\\.\\w]+)\\}");
 
     /**
      * 从SQL模板解析获取SqlBuffer对象, 允许在占位符处插入另一个SqlBuffer片段
@@ -465,7 +466,8 @@ public class SqlBuffer implements Serializable {
             if (index < matcher.start()) {
                 buffer.append(sqlTemplate.substring(index, matcher.start()));
             }
-            String placeholder = matcher.group(1);
+            String prefix = matcher.group(1);
+            String placeholder = matcher.group(2);
             Object value = getMapValue(params, placeholder);
             if (value != null) {
                 if (value instanceof SqlBuffer) {

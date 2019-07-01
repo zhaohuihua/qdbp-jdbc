@@ -387,16 +387,16 @@ public class SimpleSqlDialect implements SqlDialect {
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
-        String sqlTemplate = "{keyword} RECURSIVE_SUB_TABLE(_TEMP_) AS ( "
-                + "    SELECT {codeField} AS _TEMP_ FROM {tableName} WHERE {startCodeCondition} "
-                + "    UNION ALL "
-                + "    SELECT {codeField} FROM {tableName} INNER JOIN RECURSIVE_SUB_TABLE ON {parentField} = _TEMP_ "
-                + ") "
-                + "SELECT {selectFields} FROM {tableName} WHERE {codeField} IN ( "
-                + "    SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE "
-                + ") "
-                + "{whereCondition} "
-                + "{orderByCondition} ";
+        String sqlTemplate = "#{keyword} RECURSIVE_SUB_TABLE(_TEMP_) AS (\n"
+                + "    SELECT #{codeField} AS _TEMP_ FROM #{tableName} WHERE ${startCodeCondition}\n"
+                + "    UNION ALL\n"
+                + "    SELECT #{codeField} FROM #{tableName} INNER JOIN RECURSIVE_SUB_TABLE ON #{parentField} = _TEMP_\n"
+                + ")\n"
+                + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
+                + "    SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE\n"
+                + ")\n"
+                + "${whereCondition}\n"
+                + "${orderByCondition} ";
         // @formatter:on
 
         Map<String, Object> params = new HashMap<>();
