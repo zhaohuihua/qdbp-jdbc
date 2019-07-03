@@ -2,14 +2,12 @@ package com.gitee.qdbp.jdbc.sql;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.NamingTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -417,7 +415,8 @@ public class SqlBuffer implements Serializable {
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
                 VarItem placeholder = ((VarItem) item);
-                appendValue(sql, placeholder.getValue());
+                String value = DbTools.variableToString(placeholder.getValue());
+                sql.append(value);
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -428,31 +427,11 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
-    protected void appendValue(StringBuilder sb, Object value) {
-        if (value == null) {
-            sb.append("NULL");
-        } else if (value instanceof Number || value instanceof Boolean) {
-            sb.append(value);
-        } else if (value instanceof CharSequence) {
-            sb.append("'").append(DbTools.getSqlDialect().escapeSqlValue(value.toString())).append("'");
-        } else if (value instanceof Character) {
-            sb.append("'").append(value).append("'");
-        } else if (value instanceof Date) {
-            // sb.append("'").append(DateTools.toNormativeString((Date) value)).append("'");
-            sb.append(DbTools.getSqlDialect().buildToTimestampSql((Date) value));
-        } else if (value instanceof Enum) {
-            sb.append(((Enum<?>) value).ordinal());
-        } else {
-            String string = valueToString(value);
-            String escaped = DbTools.getSqlDialect().escapeSqlValue(string);
-            sb.append("'").append(escaped).append("'");
-        }
-    }
-
     private static final Pattern PLACEHOLDER = Pattern.compile("([\\$#])\\{([\\.\\w]+)\\}");
 
     /**
-     * 从SQL模板解析获取SqlBuffer对象, 允许在占位符处插入另一个SqlBuffer片段
+     * 从SQL模板解析获取SqlBuffer对象, 允许在占位符处插入另一个SqlBuffer片段<br>
+     * #{fieldName}使用预编译方式, ${fieldName}使用SQL拼接方式
      * 
      * @param sqlTemplate SQL模板
      * @param params 占位符变量
@@ -469,11 +448,13 @@ public class SqlBuffer implements Serializable {
             String prefix = matcher.group(1);
             String placeholder = matcher.group(2);
             Object value = getMapValue(params, placeholder);
-            if (value != null) {
+            if ("$".equals(prefix)) {
+                buffer.append(DbTools.variableToString(value));
+            } else {
                 if (value instanceof SqlBuffer) {
                     buffer.append((SqlBuffer) value);
                 } else {
-                    buffer.append(valueToString(value));
+                    buffer.addVariable(value);
                 }
             }
             index = matcher.end();
@@ -486,10 +467,6 @@ public class SqlBuffer implements Serializable {
 
     private static Object getMapValue(Map<String, Object> params, String key) {
         return params.get(key);
-    }
-
-    private static String valueToString(Object value) {
-        return value == null ? "" : value.toString();
     }
 
     protected static interface Item {

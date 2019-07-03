@@ -161,13 +161,13 @@ public class SimpleSqlDialect implements SqlDialect {
 
     /** {@inheritDoc} **/
     @Override
-    public String escapeSqlValue(String value) {
-        return value.replace("'", "''");
+    public String variableToString(String value) {
+        return new StringBuilder().append("'").append(value.replace("'", "''")).append("'").toString();
     }
 
     /** {@inheritDoc} **/
     @Override
-    public String buildToTimestampSql(Date date) {
+    public String variableToString(Date date) {
         StringBuilder sb = new StringBuilder();
         DbType dbType = dbVersion.getDbType();
         switch (dbType) {

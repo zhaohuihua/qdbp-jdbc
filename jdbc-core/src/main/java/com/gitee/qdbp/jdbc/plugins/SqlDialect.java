@@ -24,22 +24,24 @@ public interface SqlDialect {
     String toPinyinOrderByExpression(String columnName);
 
     /**
-     * 转换SQL中的非法字符
+     * 字符串类型的变量转换为字符串<br>
+     * 用于拼接SQL, 需要替换特殊字符, 两侧加单引号
      * 
-     * @param value 字符串值
-     * @return 转换后的值, 如: "Let''s go."<br>
+     * @param variable 变量, 如: Let's go.
+     * @return 转换后的值, 如: 'Let''s go.'<br>
      */
-    String escapeSqlValue(String value);
+    String variableToString(String variable);
 
     /**
-     * 生成TO_TIMESTAMP SQL语句<br>
+     * 日期类型的变量转换为字符串<br>
+     * 用于拼接SQL, 一般需要生成TO_TIMESTAMP SQL语句(MYSQL例外,支持字符串)<br>
      * 
      * @param date 指定日期
-     * @return TO_TIMESTAMP SQL语句(<b>不带</b>字段名前缀)<br>
+     * @return TO_TIMESTAMP SQL语句<br>
      *         ORACLE: TO_TIMESTAMP('2019-06-01 12:34:56.789', 'YYYY-MM-DD HH24:MI:SS.FF')<br>
      *         MYSQL: '2019-06-01 12:34:56.789'<br>
      */
-    String buildToTimestampSql(Date date);
+    String variableToString(Date variable);
 
     /**
      * 生成LIKE SQL语句

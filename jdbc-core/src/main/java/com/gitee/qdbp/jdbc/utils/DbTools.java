@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,34 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public abstract class DbTools {
 
-    /** Entity的表名缓存 **/
-    private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
+    /**
+     * 将变量转换为字符串, 用于拼接SQL
+     * 
+     * @param value 变量
+     * @return 转换后的字符串
+     */
+    public static String variableToString(Object value) {
+        if (value == null) {
+            return "NULL";
+        } else if (value instanceof SqlBuffer) {
+            return ((SqlBuffer)value).getNormalSqlString();
+        } else if (value instanceof Number || value instanceof Boolean) {
+            return value.toString();
+        } else if (value instanceof CharSequence) {
+            return getSqlDialect().variableToString(value.toString());
+        } else if (value instanceof Character) {
+            return new StringBuilder().append("'").append(value).append("'").toString();
+        } else if (value instanceof Date) {
+            // sb.append("'").append(DateTools.toNormativeString((Date) value)).append("'");
+            return getSqlDialect().variableToString((Date) value);
+        } else if (value instanceof Enum) {
+            // TODO VariableConverter
+            return String.valueOf(((Enum<?>) value).ordinal());
+        } else {
+            // TODO VariableConverter + 递归
+            return getSqlDialect().variableToString(value.toString());
+        }
+    }
 
     /**
      * 获取实体业务执行接口
@@ -129,6 +156,9 @@ public abstract class DbTools {
         DbVersionFinder finder = DbPluginContainer.global.getDbVersionFinder();
         return finder.findDbVersion(jdbcOperations);
     }
+
+    /** Entity的表名缓存 **/
+    private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
 
     /**
      * 扫描表名信息
