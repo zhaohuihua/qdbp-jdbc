@@ -20,6 +20,7 @@ import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -159,7 +160,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedUpdateById, class=" + clazz);
         }
-        DbUpdate readyEntity = DbTools.parseUpdateFromEntity(entity);
+        DbUpdate readyEntity = ParseTools.parseUpdateFromEntity(entity);
         DbWhere where = new DbWhere();
         List<DbField> temp = readyEntity.fields(pk.getFieldName());
         String id = null;
@@ -188,7 +189,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
     @Override
     public int update(T entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
-        DbUpdate readyEntity = DbTools.parseUpdateFromEntity(entity);
+        DbUpdate readyEntity = ParseTools.parseUpdateFromEntity(entity);
         if (readyEntity == null || readyEntity.isEmpty()) {
             throw new IllegalArgumentException("entity can't be empty");
         }
@@ -254,7 +255,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
 
     @Override
     public int logicalDelete(T where, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
-        DbWhere readyWhere = DbTools.parseWhereFromEntity(where);
+        DbWhere readyWhere = ParseTools.parseWhereFromEntity(where);
         if (VerifyTools.isBlank(readyWhere)) {
             throw new IllegalArgumentException("where can't be empty, please use logicalDeleteAll()");
         }
@@ -286,7 +287,7 @@ public class EasyCrudDaoImpl<T> extends EasyTableQueryImpl<T> implements EasyCru
 
     @Override
     public int physicalDelete(T where, boolean errorOnUnaffected) throws ServiceException {
-        DbWhere readyWhere = DbTools.parseWhereFromEntity(where);
+        DbWhere readyWhere = ParseTools.parseWhereFromEntity(where);
         if (VerifyTools.isBlank(readyWhere)) {
             throw new IllegalArgumentException("where can't be empty, please use physicalDeleteAll()");
         }
