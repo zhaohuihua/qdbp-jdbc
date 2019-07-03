@@ -25,6 +25,7 @@ import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
+import com.gitee.qdbp.jdbc.plugins.VariableConverter;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
@@ -88,29 +89,41 @@ public abstract class DbTools {
     /**
      * 将变量转换为字符串, 用于拼接SQL
      * 
-     * @param value 变量
+     * @param variable 变量
      * @return 转换后的字符串
      */
-    public static String variableToString(Object value) {
-        if (value == null) {
+    public static String variableToString(Object variable) {
+        return variableToString(variable, true);
+    }
+
+    private static String variableToString(Object variable, boolean recursive) {
+        if (variable == null) {
             return "NULL";
-        } else if (value instanceof SqlBuffer) {
-            return ((SqlBuffer)value).getNormalSqlString();
-        } else if (value instanceof Number || value instanceof Boolean) {
-            return value.toString();
-        } else if (value instanceof CharSequence) {
-            return getSqlDialect().variableToString(value.toString());
-        } else if (value instanceof Character) {
-            return new StringBuilder().append("'").append(value).append("'").toString();
-        } else if (value instanceof Date) {
-            // sb.append("'").append(DateTools.toNormativeString((Date) value)).append("'");
-            return getSqlDialect().variableToString((Date) value);
-        } else if (value instanceof Enum) {
-            // TODO VariableConverter
-            return String.valueOf(((Enum<?>) value).ordinal());
+        } else if (variable instanceof SqlBuffer) {
+            return ((SqlBuffer) variable).getNormalSqlString();
+        } else if (variable instanceof Number) {
+            return variable.toString();
+        } else if (variable instanceof CharSequence) {
+            return getSqlDialect().variableToString(variable.toString());
+        } else if (variable instanceof Character) {
+            return new StringBuilder().append("'").append(variable).append("'").toString();
+        } else if (variable instanceof Boolean) {
+            return getSqlDialect().variableToString((Boolean) variable);
+        } else if (variable instanceof Date) {
+            return getSqlDialect().variableToString((Date) variable);
         } else {
-            // TODO VariableConverter + 递归
-            return getSqlDialect().variableToString(value.toString());
+            if (!recursive) {
+                return getSqlDialect().variableToString(variable.toString());
+            } else {
+                VariableConverter converter = DbPluginContainer.global.getVariableConverter();
+                if (variable instanceof Enum) {
+                    Object value = converter.variableToDbValue(((Enum<?>) variable));
+                    return variableToString(value, false);
+                } else {
+                    Object value = converter.variableToDbValue(variable);
+                    return variableToString(value, false);
+                }
+            }
         }
     }
 

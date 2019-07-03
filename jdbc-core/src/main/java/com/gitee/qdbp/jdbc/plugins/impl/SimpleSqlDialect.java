@@ -161,8 +161,14 @@ public class SimpleSqlDialect implements SqlDialect {
 
     /** {@inheritDoc} **/
     @Override
-    public String variableToString(String value) {
-        return new StringBuilder().append("'").append(value.replace("'", "''")).append("'").toString();
+    public String variableToString(Boolean variable) {
+        return String.valueOf(Boolean.TRUE.equals(variable) ? 1 : 0);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String variableToString(String variable) {
+        return new StringBuilder().append("'").append(variable.replace("'", "''")).append("'").toString();
     }
 
     /** {@inheritDoc} **/

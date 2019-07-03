@@ -65,6 +65,16 @@ public class DbPluginContainer {
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
     }
+    
+    private VariableConverter variableConverter;
+
+    public void registerVariableConverter(VariableConverter variableConverter) {
+        this.variableConverter = variableConverter;
+    }
+
+    public VariableConverter getVariableConverter() {
+        return variableConverter;
+    }
 
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();
 

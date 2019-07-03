@@ -24,17 +24,25 @@ public interface SqlDialect {
     String toPinyinOrderByExpression(String columnName);
 
     /**
-     * 字符串类型的变量转换为字符串<br>
-     * 用于拼接SQL, 需要替换特殊字符, 两侧加单引号
+     * Boolean类型的变量转换为字符串(用于拼接SQL)
+     * 
+     * @param variable 变量
+     * @return 转换后的值, true=1, false=0
+     */
+    String variableToString(Boolean variable);
+
+    /**
+     * 字符串类型的变量转换为字符串(用于拼接SQL)<br>
+     * 需要替换特殊字符, 并在两侧加单引号
      * 
      * @param variable 变量, 如: Let's go.
-     * @return 转换后的值, 如: 'Let''s go.'<br>
+     * @return 转换后的值, 如: 'Let''s go.'
      */
     String variableToString(String variable);
 
     /**
-     * 日期类型的变量转换为字符串<br>
-     * 用于拼接SQL, 一般需要生成TO_TIMESTAMP SQL语句(MYSQL例外,支持字符串)<br>
+     * 日期类型的变量转换为字符串(用于拼接SQL)<br>
+     * 一般需要生成TO_TIMESTAMP SQL语句(MYSQL例外,支持字符串)<br>
      * 
      * @param date 指定日期
      * @return TO_TIMESTAMP SQL语句<br>
