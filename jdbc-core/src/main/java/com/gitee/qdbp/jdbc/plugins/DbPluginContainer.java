@@ -66,14 +66,14 @@ public class DbPluginContainer {
         return dbVersionFinder;
     }
     
-    private VariableConverter variableConverter;
+    private VariableHelper variableHelper;
 
-    public void registerVariableConverter(VariableConverter variableConverter) {
-        this.variableConverter = variableConverter;
+    public void registerVariableHelper(VariableHelper variableHelper) {
+        this.variableHelper = variableHelper;
     }
 
-    public VariableConverter getVariableConverter() {
-        return variableConverter;
+    public VariableHelper getVariableHelper() {
+        return variableHelper;
     }
 
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();

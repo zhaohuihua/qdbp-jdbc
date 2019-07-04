@@ -7,7 +7,7 @@ package com.gitee.qdbp.jdbc.plugins;
  * @author zhaohuihua
  * @version 190703
  */
-public interface VariableConverter {
+public interface VariableHelper {
 
     /**
      * 在这里可以根据枚举类型决定转换为ordinal()还是name()<br>

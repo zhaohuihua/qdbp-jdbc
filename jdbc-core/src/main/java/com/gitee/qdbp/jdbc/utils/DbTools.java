@@ -25,7 +25,7 @@ import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.VariableConverter;
+import com.gitee.qdbp.jdbc.plugins.VariableHelper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
@@ -115,12 +115,12 @@ public abstract class DbTools {
             if (!recursive) {
                 return getSqlDialect().variableToString(variable.toString());
             } else {
-                VariableConverter converter = DbPluginContainer.global.getVariableConverter();
+                VariableHelper helper = DbPluginContainer.global.getVariableHelper();
                 if (variable instanceof Enum) {
-                    Object value = converter.variableToDbValue(((Enum<?>) variable));
+                    Object value = helper.variableToDbValue(((Enum<?>) variable));
                     return variableToString(value, false);
                 } else {
-                    Object value = converter.variableToDbValue(variable);
+                    Object value = helper.variableToDbValue(variable);
                     return variableToString(value, false);
                 }
             }
