@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
  * @author zhaohuihua
  * @version 190705
  */
-public class DataSourceDbVersionFinder extends BaseDbVersionFinder {
+public class DataSourceDbVersionFinder extends ConnectionDbVersionFinder {
 
     private static Logger log = LoggerFactory.getLogger(DataSourceDbVersionFinder.class);
 

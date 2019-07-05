@@ -7,7 +7,13 @@ import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 
-public abstract class BaseDbVersionFinder implements DbVersionFinder {
+/**
+ * 根据数据库连接查找数据库类型和版本信息
+ *
+ * @author zhaohuihua
+ * @version 190705
+ */
+public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
 
     protected DbVersion findDbVersion(Connection connection) {
         try {
