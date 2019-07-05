@@ -5,6 +5,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
 
 /**
  * 自定义插件容器
@@ -66,7 +67,7 @@ public class DbPluginContainer {
         return dbVersionFinder;
     }
     
-    private VariableHelper variableHelper;
+    private VariableHelper variableHelper = new SimpleVariableHelper();
 
     public void registerVariableHelper(VariableHelper variableHelper) {
         this.variableHelper = variableHelper;
