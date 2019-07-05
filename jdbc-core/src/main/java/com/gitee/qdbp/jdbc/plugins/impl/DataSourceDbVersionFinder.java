@@ -9,6 +9,12 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.support.JdbcAccessor;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 
+/**
+ * 根据数据库查找数据库类型和版本信息
+ *
+ * @author zhaohuihua
+ * @version 190705
+ */
 public class DataSourceDbVersionFinder extends BaseDbVersionFinder {
 
     private static Logger log = LoggerFactory.getLogger(DataSourceDbVersionFinder.class);

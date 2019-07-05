@@ -9,7 +9,8 @@ import com.gitee.qdbp.tools.utils.RandomTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 默认实体类业务处理类
+ * 默认实体类业务处理类<br>
+ * 自动填充逻辑删除/创建人/创建时间/修改人/修改时间字段
  *
  * @author zhaohuihua
  * @version 190602
