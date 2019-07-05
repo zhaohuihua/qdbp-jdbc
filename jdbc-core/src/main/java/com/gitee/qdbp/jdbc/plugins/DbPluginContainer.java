@@ -5,6 +5,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
 
 /**
@@ -57,7 +58,7 @@ public class DbPluginContainer {
         return modelDataHandler;
     }
 
-    private DbVersionFinder dbVersionFinder;
+    private DbVersionFinder dbVersionFinder = new DataSourceDbVersionFinder();
 
     public void registerDbVersionFinder(DbVersionFinder dbVersionFinder) {
         this.dbVersionFinder = dbVersionFinder;
