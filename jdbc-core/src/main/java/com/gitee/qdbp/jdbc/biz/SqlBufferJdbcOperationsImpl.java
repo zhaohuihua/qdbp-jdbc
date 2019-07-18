@@ -41,7 +41,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     // Character类型不能自动识别
     // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
     private Map<String, Object> getVariables(SqlBuffer sb) {
-        Map<String, Object> params = sb.getPreparedNamedVariables();
+        Map<String, Object> params = sb.getPreparedVariables();
         if (VerifyTools.isBlank(params)) {
             return params;
         }

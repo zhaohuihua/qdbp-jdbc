@@ -38,6 +38,14 @@ public class SimpleSqlDialect implements SqlDialect {
 
     /** {@inheritDoc} **/
     @Override
+    public SqlBuffer buildPagingSql(SqlBuffer buffer, Paging paging) {
+        SqlBuffer copied = buffer.copy();
+        processPagingSql(copied, paging);
+        return copied;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
     public void processPagingSql(SqlBuffer buffer, Paging paging) {
         DbType dbType = dbVersion.getDbType();
         switch (dbType) {

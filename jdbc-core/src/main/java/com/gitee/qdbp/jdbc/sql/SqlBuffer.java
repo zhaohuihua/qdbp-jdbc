@@ -312,7 +312,7 @@ public class SqlBuffer implements Serializable {
      * 缩进n个TAB
      * 
      * @param size 缩进多少个TAB
-     * @param leading 开头要不要缩进, 如果不是完整SQL则开头不能缩进
+     * @param leading 开头要不要缩进
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer indent(int size, boolean leading) {
@@ -331,6 +331,8 @@ public class SqlBuffer implements Serializable {
             if (first instanceof StringItem) {
                 StringItem stringItem = (StringItem) first;
                 stringItem.prepend(tabs);
+            } else {
+                this.prepend(tabs);
             }
         }
         return this;
@@ -371,14 +373,14 @@ public class SqlBuffer implements Serializable {
                 target.addVariable(placeholder.name, placeholder.value);
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                target.buffer.add(stringItem);
+                target.append(stringItem.value.toString());
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
     }
 
-    /** 获取预编译SQL语句(命名变量) **/
+    /** 获取预编译SQL语句 **/
     public String getPreparedSqlString() {
         StringBuilder temp = new StringBuilder();
         for (Object item : this.buffer) {
@@ -394,8 +396,8 @@ public class SqlBuffer implements Serializable {
         return temp.toString();
     }
 
-    /** 获取SQL命名变量 **/
-    public Map<String, Object> getPreparedNamedVariables() {
+    /** 获取预编译SQL参数 **/
+    public Map<String, Object> getPreparedVariables() {
         Map<String, Object> map = new HashMap<>();
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
@@ -406,12 +408,8 @@ public class SqlBuffer implements Serializable {
         return map;
     }
 
-    public String toString() {
-        return getNormalSqlString();
-    }
-
-    /** 获取普通SQL(不带预编译参数) **/
-    public String getNormalSqlString() {
+    /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
+    public String getExecutableSqlString() {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VarItem) {
@@ -428,11 +426,16 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
+    public String toString() {
+        return getExecutableSqlString();
+    }
+
     private static final Pattern PLACEHOLDER = Pattern.compile("([\\$#])\\{([\\.\\w\\[\\]\\$]+)\\}");
 
     /**
-     * 从SQL模板解析获取SqlBuffer对象, 允许在占位符处插入另一个SqlBuffer片段<br>
-     * #{fieldName}使用预编译方式, ${fieldName}使用SQL拼接方式
+     * 从SQL模板解析获取SqlBuffer对象, 替换占位符<br>
+     * #{fieldName}为预编译参数, ${fieldName}为拼写式参数<br>
+     * 占位符变量可以是另一个SqlBuffer片段<br>
      * 
      * @param sqlTemplate SQL模板
      * @param params 占位符变量
@@ -520,7 +523,7 @@ public class SqlBuffer implements Serializable {
             this.value.insert(0, suffix).insert(0, value).insert(0, prefix);
         }
 
-        /** 缩进TAB, 在换行符后面增加TAB **/
+        /** 缩进TAB(只在换行符后面增加TAB) **/
         public void indent(char[] tabs) {
             for (int i = value.length() - 1; i >= 0; i--) {
                 if (value.charAt(i) == '\n') {

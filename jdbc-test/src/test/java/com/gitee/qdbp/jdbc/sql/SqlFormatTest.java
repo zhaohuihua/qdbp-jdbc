@@ -2,12 +2,15 @@ package com.gitee.qdbp.jdbc.sql;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 public class SqlFormatTest {
 
     public static void main(String[] args) {
+        LoggerFactory.getLogger(SqlFormatTest.class);
+        System.out.println("------------------------------");
         test0();
         System.out.println("------------------------------");
         test1();
@@ -24,8 +27,13 @@ public class SqlFormatTest {
         Map<String, Object> params = new HashMap<>();
         params.put("eftflag", new SqlBuffer().addVariable('A').append(',').addVariable('E'));
         SqlBuffer buffer = SqlBuffer.parse(sqlTemplate, params);
-        DbTools.getSqlDialect().processPagingSql(buffer, new Paging(3, 10));
-        System.out.println(DbTools.formatSql(buffer, 1));
+        SqlBuffer paging1 = DbTools.getSqlDialect().buildPagingSql(buffer, new Paging(1, 10));
+        SqlBuffer paging2 = DbTools.getSqlDialect().buildPagingSql(buffer, new Paging(2, 10));
+        System.out.println(buffer.getPreparedSqlString());
+        System.out.println("------------------------------");
+        System.out.println(DbTools.formatSql(paging1, 1));
+        System.out.println("------------------------------");
+        System.out.println(DbTools.formatSql(paging2, 1));
     }
 
     private static void test1() {

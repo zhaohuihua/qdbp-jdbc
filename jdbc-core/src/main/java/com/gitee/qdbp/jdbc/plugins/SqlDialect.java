@@ -17,7 +17,10 @@ import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
  */
 public interface SqlDialect {
 
-    /** 处理分页 **/
+    /** 生成新的分页SQL对象, 原对象不受影响 **/
+    SqlBuffer buildPagingSql(SqlBuffer buffer, Paging paging);
+
+    /** 处理分页, 在原SQL前后追加分页语句 **/
     void processPagingSql(SqlBuffer buffer, Paging paging);
 
     /** 转换为按拼音排序的表达式 **/

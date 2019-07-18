@@ -100,7 +100,7 @@ public abstract class DbTools {
         if (variable == null) {
             return "NULL";
         } else if (variable instanceof SqlBuffer) {
-            return ((SqlBuffer) variable).getNormalSqlString();
+            return ((SqlBuffer) variable).getExecutableSqlString();
         } else if (variable instanceof Number) {
             return variable.toString();
         } else if (variable instanceof CharSequence) {
