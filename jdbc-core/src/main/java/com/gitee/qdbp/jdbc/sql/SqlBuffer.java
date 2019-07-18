@@ -342,7 +342,7 @@ public class SqlBuffer implements Serializable {
         } else {
             char[] tabs = new char[size];
             for (int i = 0; i < size; i++) {
-                tabs[i] = '\n';
+                tabs[i] = '\t';
             }
             return tabs;
         }
