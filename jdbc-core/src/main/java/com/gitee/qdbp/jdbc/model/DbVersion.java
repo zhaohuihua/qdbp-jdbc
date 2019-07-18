@@ -23,6 +23,16 @@ public class DbVersion implements Serializable {
     /** 次版本号 **/
     private int minorVersion;
 
+    /** 构造函数 **/
+    public DbVersion() {
+        this.dbType = DbType.Unknown;
+    }
+
+    /** 构造函数 **/
+    public DbVersion(DbType dbType) {
+        this.dbType = dbType;
+    }
+
     /** 数据库类型 **/
     public DbType getDbType() {
         return dbType;

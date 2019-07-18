@@ -1,18 +1,25 @@
 package com.gitee.qdbp.jdbc.sql;
 
+import java.util.HashMap;
+import java.util.Map;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 
 public class SqlFormatTest {
 
     public static void main(String[] args) {
+        test11();
+        System.out.println("------------------------------");
         test1();
-        System.out.println("\n------------------------------\n");
+        System.out.println("------------------------------");
         test2();
-        System.out.println("\n------------------------------\n");
+        System.out.println("------------------------------");
         test3();
     }
 
     private static void test1() {
+        // @formatter:off
         String sql = "SELECT * FROM ( " + // 
                 "    SELECT TT.*, ROWNUM RN  " + // 
                 "    FROM (  " + // 
@@ -23,7 +30,21 @@ public class SqlFormatTest {
                 "    WHERE ROWNUM <= 100 " + // 
                 ")  " + // 
                 "WHERE RN > 0";
+        // @formatter:on
         System.out.println(DbTools.formatSql(sql, 1));
+    }
+
+    private static void test11() {
+        // @formatter:off
+        String sqlTemplate = "SELECT ACCT_DEALPOSITION.*, ROWID T_RID  " + // 
+                "    FROM ACCT_DEALPOSITION " + // 
+                "    WHERE EFTFLAG IN ( #{eftflag} ) ";
+        // @formatter:on
+        Map<String, Object> params = new HashMap<>();
+        params.put("eftflag", ConvertTools.toList('A', 'E'));
+        SqlBuffer buffer = SqlBuffer.parse(sqlTemplate, params);
+        DbTools.getSqlDialect().processPagingSql(buffer, new Paging(3, 10));
+        System.out.println(DbTools.formatSql(buffer, 1));
     }
 
     private static void test2() {
@@ -51,19 +72,21 @@ public class SqlFormatTest {
     }
 
     private static void test3() {
-        String sql = "SELECT " + //
-                "    IF ( " + //
-                "        LOCATE ( familyKey, link, 1 ) = 0, NULL, " + //
-                "        SUBSTRING ( " + //
-                "            link, LOCATE(familyKey, link, 1) + LENGTH(familyKey) + 1, " + //
-                "            IF ( " + //
-                "                LOCATE ( '&', link, LOCATE(familyKey, link, 1) ) = 0, LENGTH ( link ), " + //
-                "                LOCATE ( '&', link, LOCATE(familyKey, link, 1) ) " + //
-                "                - ( LOCATE(familyKey, link, 1) + LENGTH(familyKey) + 1 ) " + //
-                "            ) " + //
-                "        ) " + //
-                "    ) familyKey " + //
+        // @formatter:off
+        String sql = "SELECT " +
+                "    IF ( " +
+                "        LOCATE ( familyKey, link, 1 ) = 0, NULL, " +
+                "        SUBSTRING ( " +
+                "            link, LOCATE(familyKey, link, 1) + LENGTH(familyKey) + 1, " +
+                "            IF ( " +
+                "                LOCATE ( '&', link, LOCATE(familyKey, link, 1) ) = 0, LENGTH ( link ), " +
+                "                LOCATE ( '&', link, LOCATE(familyKey, link, 1) ) " +
+                "                - ( LOCATE(familyKey, link, 1) + LENGTH(familyKey) + 1 ) " +
+                "            ) " +
+                "        ) " +
+                "    ) familyKey " +
                 "FROM illustrations;";
+        // @formatter:on
         System.out.println(DbTools.formatSql(sql, 1));
     }
 }

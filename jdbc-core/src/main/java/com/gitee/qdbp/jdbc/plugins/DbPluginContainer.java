@@ -5,7 +5,11 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
 
 /**
@@ -18,7 +22,7 @@ public class DbPluginContainer {
 
     public static final DbPluginContainer global = new DbPluginContainer();
 
-    private SqlFormatter sqlFormatter;
+    private SqlFormatter sqlFormatter = new SimpleSqlFormatter();
 
     public void registerSqlFormatter(SqlFormatter sqlFormatter) {
         this.sqlFormatter = sqlFormatter;
@@ -28,7 +32,11 @@ public class DbPluginContainer {
         return sqlFormatter;
     }
 
-    private SqlDialect sqlDialect;
+    private SqlDialect sqlDialect = new SimpleSqlDialect(new DbVersion(DbType.Oracle));
+
+    public void registerSqlDialect(DbVersion version) {
+        this.sqlDialect = new SimpleSqlDialect(version);
+    }
 
     public void registerSqlDialect(SqlDialect SqlDialect) {
         this.sqlDialect = SqlDialect;
@@ -67,7 +75,7 @@ public class DbPluginContainer {
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
     }
-    
+
     private VariableHelper variableHelper = new SimpleVariableHelper();
 
     public void registerVariableHelper(VariableHelper variableHelper) {
