@@ -269,9 +269,9 @@ public class SqlBuffer implements Serializable {
         }
         this.index += offset;
         for (Item item : this.buffer) {
-            if (item instanceof VarItem) {
-                VarItem placeholder = ((VarItem) item);
-                placeholder.index += offset;
+            if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                variable.index += offset;
             }
         }
     }
@@ -283,7 +283,7 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer addVariable(Object value) {
-        this.buffer.add(new VarItem(index++, value));
+        this.buffer.add(new VariableItem(index++, value));
         return this;
     }
 
@@ -295,7 +295,7 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer addVariable(String name, Object value) {
-        this.buffer.add(new VarItem(index++, name, value));
+        this.buffer.add(new VariableItem(index++, name, value));
         return this;
     }
 
@@ -368,9 +368,9 @@ public class SqlBuffer implements Serializable {
      */
     public void copyTo(SqlBuffer target) {
         for (Item item : this.buffer) {
-            if (item instanceof VarItem) {
-                VarItem placeholder = ((VarItem) item);
-                target.addVariable(placeholder.name, placeholder.value);
+            if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                target.addVariable(variable.name, variable.value);
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 target.append(stringItem.value.toString());
@@ -384,8 +384,8 @@ public class SqlBuffer implements Serializable {
     public String getPreparedSqlString() {
         StringBuilder temp = new StringBuilder();
         for (Object item : this.buffer) {
-            if (item instanceof VarItem) {
-                temp.append(':').append(((VarItem) item).getKey());
+            if (item instanceof VariableItem) {
+                temp.append(':').append(((VariableItem) item).getKey());
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 temp.append(stringItem.getValue());
@@ -400,9 +400,9 @@ public class SqlBuffer implements Serializable {
     public Map<String, Object> getPreparedVariables() {
         Map<String, Object> map = new HashMap<>();
         for (Object item : this.buffer) {
-            if (item instanceof VarItem) {
-                VarItem placeholder = ((VarItem) item);
-                map.put(placeholder.getKey(), placeholder.getValue());
+            if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                map.put(variable.getKey(), variable.getValue());
             }
         }
         return map;
@@ -410,12 +410,24 @@ public class SqlBuffer implements Serializable {
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString() {
+        return getExecutableSqlString(false);
+    }
+
+    /**
+     * 获取可执行SQL语句(预编译参数替换为拼写式参数)
+     * 
+     * @param commentVariableName 是否备注变量名称
+     * @return 可执行SQL语句
+     */
+    public String getExecutableSqlString(boolean commentVariableName) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
-            if (item instanceof VarItem) {
-                VarItem placeholder = ((VarItem) item);
-                String value = DbTools.variableToString(placeholder.getValue());
-                sql.append(value);
+            if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                sql.append(DbTools.variableToString(variable.value));
+                if (commentVariableName && VerifyTools.isNotBlank(variable.name)) {
+                    sql.append("/*").append(variable.name).append("*/");
+                }
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -453,12 +465,16 @@ public class SqlBuffer implements Serializable {
             String placeholder = matcher.group(2);
             Object value = ReflectTools.getDepthValue(params, placeholder);
             if ("$".equals(prefix)) {
-                buffer.append(DbTools.variableToString(value));
+                if (value instanceof SqlBuffer) {
+                    buffer.append(((SqlBuffer) value).getExecutableSqlString());
+                } else {
+                    buffer.append(DbTools.variableToString(value));
+                }
             } else {
                 if (value instanceof SqlBuffer) {
                     buffer.append((SqlBuffer) value);
                 } else {
-                    buffer.addVariable(value);
+                    buffer.addVariable(placeholder, value);
                 }
             }
             index = matcher.end();
@@ -541,7 +557,7 @@ public class SqlBuffer implements Serializable {
         }
     }
 
-    protected static class VarItem implements Item, Serializable {
+    protected static class VariableItem implements Item, Serializable {
 
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
@@ -550,12 +566,12 @@ public class SqlBuffer implements Serializable {
         private String name;
         private Object value;
 
-        public VarItem(int index, Object value) {
+        public VariableItem(int index, Object value) {
             this.index = index;
             this.value = value;
         }
 
-        public VarItem(int index, String name, Object value) {
+        public VariableItem(int index, String name, Object value) {
             this.index = index;
             this.name = NamingTools.toCamelString(name, true);
             this.value = value;
