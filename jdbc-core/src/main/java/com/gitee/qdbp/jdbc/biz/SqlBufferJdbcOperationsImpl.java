@@ -60,8 +60,9 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public <T> T execute(SqlBuffer sb, PreparedStatementCallback<T> action) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL statement:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
@@ -70,8 +71,9 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public <T> T query(SqlBuffer sb, ResultSetExtractor<T> rse) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
@@ -80,8 +82,9 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public void query(SqlBuffer sb, RowCallbackHandler rch) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
@@ -90,28 +93,37 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public <T> List<T> query(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
-        try {
-            return namedParameterJdbcOperations.query(sql, params, rowMapper);
-        } catch (EmptyResultDataAccessException e) {
-            return null;
+        List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
         }
+        return list;
     }
 
     @Override
     public <T> T queryForObject(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         try {
-            return namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
+            T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+            }
+            return result;
         } catch (EmptyResultDataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns 0 row.");
+            }
             return null;
         }
     }
@@ -119,69 +131,92 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public <T> T queryForObject(SqlBuffer sb, Class<T> resultType) throws DataAccessException {
         try {
+            T result;
             if (isSimpleClass(resultType)) {
-                if (sb != null && log.isDebugEnabled()) {
-                    log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+                VerifyTools.requireNotBlank(sb, "sqlBuffer");
+                if (log.isDebugEnabled()) {
+                    log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
                 }
                 String sql = sb.getPreparedSqlString();
                 Map<String, Object> params = getVariables(sb);
-                return namedParameterJdbcOperations.queryForObject(sql, params, resultType);
+                result = namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             } else {
-                return queryForObject(sb, new TableRowToBeanMapper<T>(resultType));
+                result = queryForObject(sb, new TableRowToBeanMapper<T>(resultType));
             }
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+            }
+            return result;
         } catch (EmptyResultDataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns 0 row.");
+            }
             return null;
         }
     }
 
-    private boolean isSimpleClass(Class<?> clazz) {
-        if (clazz == String.class || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz)
-                || clazz == Boolean.class || clazz == double.class || clazz == int.class || clazz == long.class
-                || clazz == short.class || clazz == float.class || clazz == boolean.class || clazz == byte.class) {
-            return true;
-        }
-        return false;
-    }
-
     @Override
     public Map<String, Object> queryForMap(SqlBuffer sb) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         try {
-            return namedParameterJdbcOperations.queryForMap(sql, params);
+            Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+            }
+            return result;
         } catch (EmptyResultDataAccessException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("SQL query returns 0 row.");
+            }
             return null;
         }
     }
 
     @Override
     public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
+        }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
+        List<T> list;
         if (isSimpleClass(elementType)) {
-            return namedParameterJdbcOperations.queryForList(sql, params, elementType);
+            list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
         } else {
-            return namedParameterJdbcOperations.query(sql, params, new TableRowToBeanMapper<T>(elementType));
+            list = namedParameterJdbcOperations.query(sql, params, new TableRowToBeanMapper<T>(elementType));
         }
+        if (log.isDebugEnabled()) {
+            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
+        }
+        return list;
     }
 
     @Override
     public List<Map<String, Object>> queryForList(SqlBuffer sb) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
-        return namedParameterJdbcOperations.queryForList(sql, params);
+        List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
+        }
+        return list;
     }
 
     @Override
     public SqlRowSet queryForRowSet(SqlBuffer sb) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
@@ -190,23 +225,39 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     @Override
     public int update(SqlBuffer sb) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL update:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
-        return namedParameterJdbcOperations.update(sql, params);
+        int rows = namedParameterJdbcOperations.update(sql, params);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL update affected " + rows + " rows");
+        }
+        return rows;
     }
 
     @Override
     public int update(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException {
-        if (sb != null && log.isDebugEnabled()) {
-            log.debug("SQL:\n{}", DbTools.formatSql(sb, 1));
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL update:\n{}", DbTools.formatSql(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = getVariables(sb);
         SqlParameterSource msps = new MapSqlParameterSource(params);
-        return namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
+        int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
+        if (log.isDebugEnabled()) {
+            log.debug("SQL update affected " + rows + " rows");
+        }
+        return rows;
+    }
+
+    private boolean isSimpleClass(Class<?> clazz) {
+        return clazz == String.class || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz)
+                || clazz == Boolean.class || clazz == double.class || clazz == int.class || clazz == long.class
+                || clazz == short.class || clazz == float.class || clazz == boolean.class || clazz == byte.class;
     }
 
     @Override
