@@ -3,6 +3,7 @@ package com.gitee.qdbp.jdbc.sql;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.DateTools;
 
 public class SqlBufferTest {
 
@@ -11,7 +12,7 @@ public class SqlBufferTest {
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(" AND CREATE_USER = ").addVariable("zhh");
-        buffer.append(" AND CREATE_TIME >= ").addVariable("2019-01-01");
+        buffer.append(" AND CREATE_TIME >= ").addVariable(DateTools.parse("2019-01-01"));
 
         SqlBuffer appendBuffer = new SqlBuffer();
         appendBuffer.append(" AND USER_STATE = ").addVariable(1);
