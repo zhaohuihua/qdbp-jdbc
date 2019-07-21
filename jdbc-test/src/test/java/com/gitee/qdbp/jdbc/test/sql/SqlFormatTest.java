@@ -1,9 +1,10 @@
-package com.gitee.qdbp.jdbc.sql;
+package com.gitee.qdbp.jdbc.test.sql;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
+import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 public class SqlFormatTest {

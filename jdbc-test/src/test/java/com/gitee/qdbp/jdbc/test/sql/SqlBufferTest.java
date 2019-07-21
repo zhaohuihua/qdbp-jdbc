@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.sql;
+package com.gitee.qdbp.jdbc.test.sql;
 
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
