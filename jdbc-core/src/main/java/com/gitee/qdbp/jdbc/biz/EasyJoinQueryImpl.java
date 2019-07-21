@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190606
  */
-public class EasyJoinQueryImpl<T> extends EasyTableQueryImpl<T> implements EasyJoinQuery<T> {
+public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements EasyJoinQuery<T> {
 
     private String majorTableAlias;
 
