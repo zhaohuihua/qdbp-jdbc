@@ -11,7 +11,11 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
  */
 public interface CoreJdbcBoot {
 
-    /** 查找当前数据源的数据库版本信息 **/
+    /**
+     * 查找数据库版本信息
+     * 
+     * @return 数据库版本信息
+     */
     DbVersion findDbVersion();
 
     /**
@@ -72,4 +76,11 @@ public interface CoreJdbcBoot {
      * @return 表关联查询对象
      */
     <T> EasyJoinQuery<T> buildJoinQuery(TableJoin tables, Class<T> resultType);
+
+    /**
+     * 获取SqlBuffer数据库操作类
+     * 
+     * @return SqlBufferJdbcOperations
+     */
+    SqlBufferJdbcOperations getSqlBufferJdbcOperations();
 }

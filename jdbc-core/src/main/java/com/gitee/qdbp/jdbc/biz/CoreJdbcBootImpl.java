@@ -51,12 +51,22 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
         }
     }
 
+    /**
+     * 查找数据库版本信息(从当前数据源查找)
+     * 
+     * @return 数据库版本信息
+     */
     @Override
     public DbVersion findDbVersion() {
         if (dbVersion == null) {
             dbVersion = DbTools.findDbVersion(sqlBufferJdbcOperations.getJdbcOperations());
         }
         return dbVersion;
+    }
+
+    @Override
+    public SqlBufferJdbcOperations getSqlBufferJdbcOperations() {
+        return this.sqlBufferJdbcOperations;
     }
 
     public void setSqlBufferJdbcOperations(SqlBufferJdbcOperations sqlBufferJdbcOperations) {
