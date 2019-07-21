@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/jdbc
+	http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/cache
+	http://www.springframework.org/schema/cache/spring-cache.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- dataSource 配置 -->
+	<bean id="sysDataSource" class="com.gitee.qdbp.base.settings.druid.EasyDruidDataSource" init-method="init" destroy-method="close">
+		<!-- 基本属性 url、user、password -->
+		<property name="settings" value="${jdbc.sys}" />
+		<property name="url" value="jdbc:mysql://{address}/{dbname}" />
+		<property name="params" value="?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false" />
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="1" />
+		<property name="minIdle" value="1" />
+		<property name="maxActive" value="20" />
+
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />
+
+		<!-- 配置间隔多久才进行一次检测, 检测需要关闭的空闲连接, 单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+		<!-- 配置一个连接在池中最小生存的时间, 单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+
+		<property name="validationQuery" value="SELECT 'x' FROM DUAL" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<!-- 打开PSCache, 并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="false" />
+		<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+
+		<!-- 合并多个DruidDataSource的监控数据 -->
+		<property name="useGlobalDataSourceStat" value="true" />
+		<!-- 配置filters -->
+		<property name="filters" value="config,stat,wall" />
+		<property name="connectionProperties" value="druid.stat.mergeSql=true;druid.stat.slowSqlMillis=10000" />
+	</bean>
+
+	<!-- 对dataSource数据源进行事务管理 -->
+	<bean id="sysTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="sysDataSource" />
+	</bean>
+
+	<!-- 启用对事务注解的支持 -->
+	<tx:annotation-driven transaction-manager="sysTransactionManager" />
+	
+	<bean id="sysSqlBufferJdbcOperations" class="com.gitee.qdbp.jdbc.biz.SqlBufferJdbcOperationsImpl">
+		<property name="namedParameterJdbcOperations">
+			<bean class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+				<constructor-arg ref="sysDataSource" />
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl">
+		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
+	</bean>
+
+</beans>

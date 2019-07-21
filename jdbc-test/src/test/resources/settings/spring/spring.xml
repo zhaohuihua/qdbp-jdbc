@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/jdbc
+	http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/cache
+	http://www.springframework.org/schema/cache/spring-cache.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<!-- 配置使Spring采用CGLIB代理 -->
+	<aop:config proxy-target-class="true" />
+	<!-- 支付AspectJ风格的切面声明 -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- 自动扫描包 ,将带有注解的类 纳入spring容器管理 -->
+	<context:component-scan base-package="com.gitee.qdbp.**.biz.**.service" />
+	<context:component-scan base-package="com.gitee.qdbp.**.biz.**.basic" />
+
+	<!-- 引入配置文件 -->
+	<!-- 可以在Controller中通过@Value注入配置文本, 如@Value("#{setting['wechat.appid']}") -->
+	<bean id="setting" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property  name="fileEncoding" value="UTF-8" />
+		<property name="locations">
+			<list>
+				<value>classpath:setting.properties</value>
+			</list>
+		</property>
+	</bean>
+	<bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+		<property name="properties" ref="setting" />
+	</bean>
+
+	<import resource="datasource-sys.xml" />
+
+</beans>
