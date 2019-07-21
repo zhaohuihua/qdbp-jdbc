@@ -64,6 +64,7 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
         return dbVersion;
     }
 
+    /** {@inheritDoc} **/
     @Override
     public SqlBufferJdbcOperations getSqlBufferJdbcOperations() {
         return this.sqlBufferJdbcOperations;
