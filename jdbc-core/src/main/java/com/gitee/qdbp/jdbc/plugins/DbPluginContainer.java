@@ -10,6 +10,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
 
 /**
@@ -46,7 +47,7 @@ public class DbPluginContainer {
         return sqlDialect;
     }
 
-    private TableInfoScans tableInfoScans;
+    private TableInfoScans tableInfoScans = new SimpleTableInfoScans();
 
     public void registerTableInfoScans(TableInfoScans tableInfoScans) {
         this.tableInfoScans = tableInfoScans;
