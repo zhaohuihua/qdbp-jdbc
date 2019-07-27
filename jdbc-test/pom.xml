@@ -21,6 +21,10 @@
 
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
+			<artifactId>qdbp-tools</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-spring</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
