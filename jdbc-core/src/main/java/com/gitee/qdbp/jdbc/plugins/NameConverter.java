@@ -21,4 +21,15 @@ public interface NameConverter {
     /** 列名转换为字段名 **/
     String columnNameToFieldName(String columnName);
 
+    /**
+     * 名称转换类设置接口
+     *
+     * @author zhaohuihua
+     * @version 190727
+     */
+    public static interface Aware {
+
+        /** 设置名称转换类 **/
+        void setNameConverter(NameConverter nameConverter);
+    }
 }
