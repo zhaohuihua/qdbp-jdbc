@@ -3,11 +3,11 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 import java.lang.reflect.Field;
 import javax.persistence.Column;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import com.gitee.qdbp.able.matches.StringMatcher;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
+import com.gitee.qdbp.jdbc.plugins.TableNameScans;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -25,6 +25,11 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     private NameConverter nameConverter;
     /** 查找主键字段的处理器(仅在useMissAnnotationField=true时使用) **/
     private StringMatcher primaryKeyMatcher;
+
+    /** 默认构造函数 **/
+    public PersistenceAnnotationTableScans() {
+        this.setTableNameScans(new SimpleTableNameScans());
+    }
 
     /** 是否使用无注解的字段 **/
     public boolean isUseMissAnnotationField() {
@@ -44,6 +49,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     /** 名称转换处理器 **/
     public void setNameConverter(NameConverter nameConverter) {
         this.nameConverter = nameConverter;
+        this.handleNameConverterAware();
     }
 
     /** 查找ID的处理器 **/
@@ -56,15 +62,17 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         this.primaryKeyMatcher = primaryKeyMatcher;
     }
 
-    @Override
-    public String scanTableName(Class<?> clazz) {
-        Table annotation = clazz.getAnnotation(Table.class);
-        if (annotation != null && VerifyTools.isNotBlank(annotation.name())) {
-            return annotation.name();
-        } else if (nameConverter == null) {
-            return clazz.getSimpleName();
-        } else {
-            return nameConverter.beanNameToTableName(clazz.getSimpleName());
+    /** 设置表名扫描类 **/
+    public void setTableNameScans(TableNameScans tableNameScans) {
+        super.setTableNameScans(tableNameScans);
+        this.handleNameConverterAware();
+    }
+
+    /** 处理NameConverterAware **/
+    protected void handleNameConverterAware() {
+        TableNameScans tableNameScans = this.getTableNameScans();
+        if (this.nameConverter != null && tableNameScans instanceof NameConverter.Aware) {
+            ((NameConverter.Aware) tableNameScans).setNameConverter(this.nameConverter);
         }
     }
 
