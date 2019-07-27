@@ -9,7 +9,7 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
  * 实体业务处理接口<br>
  * 每个项目的处理方式不一样, 抽象成接口由各项目提供实现类<br>
  * 命名说明:<br>
- * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给EasyTableQueryImpl和EasyJoinQueryImpl调用<br>
+ * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给EasyBaseQueryImpl(EasyJoinQueryImpl/EasyCrudDaoImpl的查询)调用<br>
  * fillTableXxx是单表增删改查用到的, 只支持单表, 主要是给EasyCrudDaoImpl调用<br>
  *
  * @author zhaohuihua

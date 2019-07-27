@@ -29,7 +29,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void testBeanQuery() {
+    public void testUserBeanQuery() {
         UserCoreBean bean = new UserCoreBean();
         bean.setUserType(AccountType.ADMIN);
         bean.setUserCode("super");
