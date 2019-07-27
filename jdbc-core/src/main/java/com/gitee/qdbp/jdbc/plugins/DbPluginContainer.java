@@ -8,6 +8,7 @@ import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
@@ -57,7 +58,7 @@ public class DbPluginContainer {
         return tableInfoScans;
     }
 
-    private ModelDataHandler modelDataHandler;
+    private ModelDataHandler modelDataHandler = new SimpleModelDataHandler<>();
 
     public void registerModelDataHandler(ModelDataHandler modelDataHandler) {
         this.modelDataHandler = modelDataHandler;
