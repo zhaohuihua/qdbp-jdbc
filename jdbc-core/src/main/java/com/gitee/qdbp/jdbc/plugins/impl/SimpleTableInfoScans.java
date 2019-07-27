@@ -1,13 +1,12 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.lang.reflect.Field;
-import javax.persistence.Table;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
-import com.gitee.qdbp.tools.utils.VerifyTools;
+import com.gitee.qdbp.jdbc.plugins.TableNameScans;
 
 /**
  * 提取全部字段, 而不是扫描注解
@@ -19,9 +18,13 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
 
     /** 查找ID的处理器 **/
     private StringMatcher primaryKeyMatcher = new EqualsStringMatcher("id");
-
     /** 名称转换处理器 **/
     private NameConverter nameConverter = new SimpleNameConverter();
+
+    /** 默认构造函数 **/
+    public SimpleTableInfoScans() {
+        this.setTableNameScans(new SimpleTableNameScans());
+    }
 
     /** 查找主键字段的处理器 **/
     public StringMatcher getPrimaryKeyMatcher() {
@@ -41,15 +44,20 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
     /** 名称转换处理器 **/
     public void setNameConverter(NameConverter nameConverter) {
         this.nameConverter = nameConverter;
+        this.handleNameConverterAware();
     }
 
-    @Override
-    public String scanTableName(Class<?> clazz) {
-        Table annotation = clazz.getAnnotation(Table.class);
-        if (annotation != null && VerifyTools.isNotBlank(annotation.name())) {
-            return annotation.name();
-        } else {
-            return nameConverter.beanNameToTableName(clazz.getSimpleName());
+    /** 设置表名扫描类 **/
+    public void setTableNameScans(TableNameScans tableNameScans) {
+        super.setTableNameScans(tableNameScans);
+        this.handleNameConverterAware();
+    }
+
+    /** 处理NameConverterAware **/
+    protected void handleNameConverterAware() {
+        TableNameScans tableNameScans = this.getTableNameScans();
+        if (this.nameConverter != null && tableNameScans instanceof NameConverter.Aware) {
+            ((NameConverter.Aware) tableNameScans).setNameConverter(this.nameConverter);
         }
     }
 

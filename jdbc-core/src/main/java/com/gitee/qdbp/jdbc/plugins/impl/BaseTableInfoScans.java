@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
+import com.gitee.qdbp.jdbc.plugins.TableNameScans;
 
 /**
  * TableAnnotationScans的一种基础实现类
@@ -20,20 +22,44 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
     /** 扫描普通列信息 **/
     protected abstract SimpleFieldColumn scanColumn(Field field, Class<?> clazz);
 
-    /** 扫描主键列信息, 一般情况下column为空, 只有在调用前已经扫描了column则可能column不为空 **/
+    /**
+     * 扫描主键列信息
+     * 
+     * @param field 字段名称
+     * @param column 列信息(一般情况下该参数为空, 只有在调用前已经扫描了column则可能column不为空)
+     * @param clazz 待扫描的类
+     * @return 主键列信息
+     */
     protected abstract PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz);
 
+    /** 表名扫描类 **/
+    private TableNameScans tableNameScans;
     /** 判断是否公共字段的处理器 **/
     private CommonFieldResolver commonFieldResolver;
 
-    /** 判断是否公共字段的处理器 **/
+    /** 获取表名扫描类 **/
+    public TableNameScans getTableNameScans() {
+        return tableNameScans;
+    }
+
+    /** 设置表名扫描类 **/
+    public void setTableNameScans(TableNameScans tableNameScans) {
+        this.tableNameScans = tableNameScans;
+    }
+
+    /** 获取判断是否公共字段的处理器 **/
     public CommonFieldResolver getCommonFieldResolver() {
         return commonFieldResolver;
     }
 
-    /** 判断是否公共字段的处理器 **/
+    /** 设置判断是否公共字段的处理器 **/
     public void setCommonFieldResolver(CommonFieldResolver commonFieldResolver) {
         this.commonFieldResolver = commonFieldResolver;
+    }
+
+    @Override
+    public String scanTableName(Class<?> clazz) {
+        return getTableNameScans().scanTableName(clazz);
     }
 
     @Override
@@ -74,12 +100,14 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
             List<SimpleFieldColumn> innerNormalColumns = new ArrayList<>();
             Field[] fields = temp.getDeclaredFields();
             for (Field field : fields) {
+                field.setAccessible(true);
                 if (map.containsKey(field.getName())) {
                     continue;
                 }
-                field.setAccessible(true);
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue; // 排除静态字段
+                }
                 String fieldName = field.getName();
-
                 SimpleFieldColumn column = scanColumn(field, temp);
                 if (idColumn == null) {
                     SimpleFieldColumn tempColumn = scanPrimaryKey(field, column, temp);
