@@ -17,53 +17,53 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public class QuerySqlBuilder {
 
-    protected QueryFragmentHelper sqlBuilder; // TODO sqlHelper
+    protected QueryFragmentHelper sqlHelper;
 
     public QuerySqlBuilder(QueryFragmentHelper sqlHelper) {
-        this.sqlBuilder = sqlHelper;
+        this.sqlHelper = sqlHelper;
     }
 
     public QueryFragmentHelper helper() {
-        return sqlBuilder;
+        return sqlHelper;
     }
 
     public SqlBuffer buildFindSql(DbWhere where) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append('\n', sqlBuilder.buildFromSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         return buffer;
     }
 
     public SqlBuffer buildListSql(DbWhere where, List<Ordering> orderings) {
-        SqlBuffer wsb = sqlBuilder.buildWhereSql(where, true);
+        SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
         return buildListSql(wsb, orderings);
     }
 
     public SqlBuffer buildListSql(SqlBuffer whereSql, List<Ordering> orderings) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append('\n', sqlBuilder.buildFromSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', whereSql);
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append('\n', sqlBuilder.buildOrderBySql(orderings, true));
+            buffer.append('\n', sqlHelper.buildOrderBySql(orderings, true));
         }
         return buffer;
     }
 
     public SqlBuffer buildCountSql(DbWhere where) {
-        SqlBuffer wsb = sqlBuilder.buildWhereSql(where, true);
+        SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
         return buildCountSql(wsb);
     }
 
     public SqlBuffer buildCountSql(SqlBuffer whereSql) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT COUNT(*) FROM
-        buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlBuilder.buildFromSql());
+        buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', whereSql);
         return buffer;
@@ -71,15 +71,15 @@ public class QuerySqlBuilder {
 
     public SqlBuffer buildGroupCountSql(String groupBy, DbWhere where) {
         // 字段列表
-        SqlBuffer fields = sqlBuilder.buildFieldsSql(groupBy);
+        SqlBuffer fields = sqlHelper.buildFieldsSql(groupBy);
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT");
         buffer.append(' ', fields).append(',').append("COUNT(*)");
-        buffer.append('\n', sqlBuilder.buildFromSql());
+        buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         // GROUP BY ...
         buffer.append('\n', "GROUP BY").append(' ', fields);
         return buffer;
@@ -94,13 +94,13 @@ public class QuerySqlBuilder {
         if (distinct) {
             buffer.append("DISTINCT", ' ');
         }
-        buffer.append(sqlBuilder.buildFieldsSql(fieldName));
-        buffer.append('\n', sqlBuilder.buildFromSql());
+        buffer.append(sqlHelper.buildFieldsSql(fieldName));
+        buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append('\n', sqlBuilder.buildOrderBySql(orderings, true));
+            buffer.append('\n', sqlHelper.buildOrderBySql(orderings, true));
         }
         return buffer;
     }
