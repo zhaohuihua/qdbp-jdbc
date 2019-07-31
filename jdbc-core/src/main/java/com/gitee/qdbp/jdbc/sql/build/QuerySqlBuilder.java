@@ -31,9 +31,9 @@ public class QuerySqlBuilder {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', sqlBuilder.buildFromSql());
+        buffer.append('\n', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
         return buffer;
     }
 
@@ -45,13 +45,12 @@ public class QuerySqlBuilder {
     public SqlBuffer buildListSql(SqlBuffer whereSql, List<Ordering> orderings) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT");
-        buffer.append(' ', sqlBuilder.buildFieldsSql());
-        buffer.append(' ', sqlBuilder.buildFromSql());
+        buffer.append("SELECT").append(' ', sqlBuilder.buildFieldsSql());
+        buffer.append('\n', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', whereSql);
+        buffer.append('\n', whereSql);
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings, true));
+            buffer.append('\n', sqlBuilder.buildOrderBySql(orderings, true));
         }
         return buffer;
     }
@@ -66,7 +65,7 @@ public class QuerySqlBuilder {
         // SELECT COUNT(*) FROM
         buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', whereSql);
+        buffer.append('\n', whereSql);
         return buffer;
     }
 
@@ -78,11 +77,11 @@ public class QuerySqlBuilder {
         // SELECT ... FROM
         buffer.append("SELECT");
         buffer.append(' ', fields).append(',').append("COUNT(*)");
-        buffer.append(' ', sqlBuilder.buildFromSql());
+        buffer.append('\n', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
         // GROUP BY ...
-        buffer.append(' ', "GROUP BY").append(' ', fields);
+        buffer.append('\n', "GROUP BY").append(' ', fields);
         return buffer;
     }
 
@@ -96,12 +95,12 @@ public class QuerySqlBuilder {
             buffer.append("DISTINCT", ' ');
         }
         buffer.append(sqlBuilder.buildFieldsSql(fieldName));
-        buffer.append(' ', sqlBuilder.buildFromSql());
+        buffer.append('\n', sqlBuilder.buildFromSql());
         // WHERE ...
-        buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
+        buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlBuilder.buildOrderBySql(orderings, true));
+            buffer.append('\n', sqlBuilder.buildOrderBySql(orderings, true));
         }
         return buffer;
     }

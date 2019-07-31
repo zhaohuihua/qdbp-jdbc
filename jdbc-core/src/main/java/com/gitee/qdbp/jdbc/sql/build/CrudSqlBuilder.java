@@ -9,7 +9,7 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 完整的单表增删改查SQL生成工具<br>
+ * 单表增删改查完整SQL生成工具<br>
  * 将CrudFragmentHelper生成的SQL片段拼接成完整SQL
  *
  * @author zhaohuihua
@@ -40,7 +40,7 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         buffer.append(fieldsSqlBuffer);
         buffer.append(')');
         // VALUES (...)
-        buffer.append(' ', "VALUES", ' ').append('(');
+        buffer.append('\n', "VALUES", ' ').append('(');
         buffer.append(valuesSqlBuffer);
         buffer.append(')');
         return buffer;
@@ -52,10 +52,10 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("UPDATE").append(' ', tableName);
-        buffer.append(' ', sqlHelper.buildUpdateSetSql(entity, true));
+        buffer.append('\n', sqlHelper.buildUpdateSetSql(entity, true));
 
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
+            buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
         }
         return buffer;
     }
@@ -67,7 +67,7 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("DELETE").append(' ', "FROM").append(' ', tableName);
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append(' ', sqlBuilder.buildWhereSql(where, true));
+            buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
         }
         return buffer;
     }
