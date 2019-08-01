@@ -22,11 +22,10 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
     }
 
     public CrudFragmentHelper helper() {
-        return (CrudFragmentHelper) sqlBuilder;
+        return (CrudFragmentHelper) sqlHelper;
     }
 
     public SqlBuffer buildInsertSql(Map<String, Object> entity) {
-
         CrudFragmentHelper sqlHelper = helper();
         String tableName = sqlHelper.getTableName();
         Set<String> fieldNames = entity.keySet();
@@ -55,7 +54,7 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         buffer.append('\n', sqlHelper.buildUpdateSetSql(entity, true));
 
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
+            buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         }
         return buffer;
     }
@@ -67,7 +66,7 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("DELETE").append(' ', "FROM").append(' ', tableName);
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append('\n', sqlBuilder.buildWhereSql(where, true));
+            buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         }
         return buffer;
     }
