@@ -96,6 +96,17 @@ public abstract class DbTools {
         return variableToString(variable, true);
     }
 
+    /**
+     * 将变量转换为字符串, 用于拼接SQL<br>
+     * recursive说明:<br>
+     * 当变量不是基本对象时, 调用VariableHelper.variableToDbValue()方法转换, 转换结果是否再次递归转换<br>
+     * 在variableToString(variable, recursive)方法外部调用时传true, 内部调用时只能传false, 保证只会递归一次<br>
+     * 基本对象是指string/number/boolean/date/sqlbuffer
+     * 
+     * @param variable 变量
+     * @param recursive 是否递归转换
+     * @return 转换后的字符串
+     */
     private static String variableToString(Object variable, boolean recursive) {
         if (variable == null) {
             return "NULL";
