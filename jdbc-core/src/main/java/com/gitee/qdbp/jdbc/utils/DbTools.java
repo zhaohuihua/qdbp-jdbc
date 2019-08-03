@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.utils;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -7,8 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.jdbc.core.JdbcOperations;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import org.springframework.jdbc.core.SqlParameterValue;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
@@ -82,12 +82,54 @@ public abstract class DbTools {
         if (object == null) {
             return null;
         }
-        Map<String, Object> map = (JSONObject) JSON.toJSON(object);
+        Map<String, Object> map = ParseTools.beanToMap(object);
         return clearBlankValue ? ConvertTools.clearBlankValue(map, false) : map;
     }
 
     /**
-     * 将变量转换为字符串, 用于拼接SQL
+     * 将变量转换为数据库字段值<br>
+     * 基本对象不做转换, 直接返回, 其他对象转换为基本对象后返回<br>
+     * 基本对象是指Boolean/Character/Date/Number/String
+     * 
+     * @param variable 变量
+     * @return 转换后的字段值对象
+     */
+    public static Object variableToDbValue(Object variable) {
+        if (variable == null) {
+            return variable;
+        } else if (variable instanceof Number) {
+            return variable;
+        } else if (variable instanceof CharSequence) {
+            return variable.toString();
+        } else if (variable instanceof Boolean) {
+            return variable;
+        } else if (variable instanceof Date) {
+            return variable;
+        } else if (variable instanceof Character) {
+            // Character类型不能自动识别
+            // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
+            // 调用的是PreparedStatement.setObject(int index, Object x)
+            // 而不是PreparedStatement.setObject(int index, Object x, int Types.xxx)
+            return new SqlParameterValue(Types.VARCHAR, variable);
+        } else {
+            return doVariableToDbValue(variable);
+        }
+    }
+
+    private static Object doVariableToDbValue(Object variable) {
+        VariableHelper helper = DbPluginContainer.global.getVariableHelper();
+        if (variable instanceof Enum) {
+            return helper.variableToDbValue(((Enum<?>) variable));
+        } else {
+            return helper.variableToDbValue(variable);
+        }
+    }
+
+    /**
+     * 将变量转换为字符串, 用于拼接SQL<br>
+     * 如字符串会返回'stringValue', Boolean会返回1或0<br>
+     * 日期: MYSQL: '2019-06-01 12:34:56.789'<br>
+     * ORACLE: TO_TIMESTAMP('2019-06-01 12:34:56.789', 'YYYY-MM-DD HH24:MI:SS.FF')
      * 
      * @param variable 变量
      * @return 转换后的字符串
@@ -101,7 +143,7 @@ public abstract class DbTools {
      * recursive说明:<br>
      * 当变量不是基本对象时, 调用VariableHelper.variableToDbValue()方法转换, 转换结果是否再次递归转换<br>
      * 在variableToString(variable, recursive)方法外部调用时传true, 内部调用时只能传false, 保证只会递归一次<br>
-     * 基本对象是指string/number/boolean/date/sqlbuffer
+     * 基本对象是指Boolean/Character/Date/Number/String
      * 
      * @param variable 变量
      * @param recursive 是否递归转换
@@ -110,30 +152,22 @@ public abstract class DbTools {
     private static String variableToString(Object variable, boolean recursive) {
         if (variable == null) {
             return "NULL";
-        } else if (variable instanceof SqlBuffer) {
-            return ((SqlBuffer) variable).getExecutableSqlString();
         } else if (variable instanceof Number) {
             return variable.toString();
         } else if (variable instanceof CharSequence) {
             return getSqlDialect().variableToString(variable.toString());
-        } else if (variable instanceof Character) {
-            return new StringBuilder().append("'").append(variable).append("'").toString();
         } else if (variable instanceof Boolean) {
             return getSqlDialect().variableToString((Boolean) variable);
         } else if (variable instanceof Date) {
             return getSqlDialect().variableToString((Date) variable);
+        } else if (variable instanceof Character) {
+            return getSqlDialect().variableToString(variable.toString());
         } else {
             if (!recursive) {
                 return getSqlDialect().variableToString(variable.toString());
             } else {
-                VariableHelper helper = DbPluginContainer.global.getVariableHelper();
-                if (variable instanceof Enum) {
-                    Object value = helper.variableToDbValue(((Enum<?>) variable));
-                    return variableToString(value, false);
-                } else {
-                    Object value = helper.variableToDbValue(variable);
-                    return variableToString(value, false);
-                }
+                Object value = doVariableToDbValue(variable);
+                return variableToString(value, false);
             }
         }
     }
@@ -206,7 +240,7 @@ public abstract class DbTools {
      * @return 已格式化的SQL语句
      */
     public static String formatSql(SqlBuffer sql, int indent) {
-        return formatSql(sql.toString(), indent);
+        return formatSql(sql.getExecutableSqlString(true), indent);
     }
 
     /**

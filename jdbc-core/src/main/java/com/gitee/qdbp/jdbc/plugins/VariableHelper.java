@@ -2,7 +2,7 @@ package com.gitee.qdbp.jdbc.plugins;
 
 /**
  * 将变量转换为可插入数据库的字段值<br>
- * 返回值只能是Number/String/Date/Boolean/Character/SqlBuffer之一
+ * 返回值只能是Boolean/Character/Date/Number/String之一
  *
  * @author zhaohuihua
  * @version 190703
@@ -14,7 +14,7 @@ public interface VariableHelper {
      * 也就是说在同一个系统中同一个枚举类型的转换方式是相同的
      * 
      * @param variable 变量
-     * @return 转换后的字段值
+     * @return 转换后的字段值, Boolean/Character/Date/Number/String之一
      */
     Object variableToDbValue(Enum<?> variable);
 
@@ -23,7 +23,7 @@ public interface VariableHelper {
      * 也就是说在同一个系统中同一个变量类型的转换方式是相同的
      * 
      * @param variable 变量
-     * @return 转换后的字段值
+     * @return 转换后的字段值, Boolean/Character/Date/Number/String之一
      */
     Object variableToDbValue(Object variable);
 }
