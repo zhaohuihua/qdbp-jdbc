@@ -402,7 +402,7 @@ public class SqlBuffer implements Serializable {
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
-                map.put(variable.getKey(), variable.getValue());
+                map.put(variable.getKey(), DbTools.variableToDbValue(variable.getValue()));
             }
         }
         return map;
@@ -464,13 +464,13 @@ public class SqlBuffer implements Serializable {
             String prefix = matcher.group(1);
             String placeholder = matcher.group(2);
             Object value = ReflectTools.getDepthValue(params, placeholder);
-            if ("$".equals(prefix)) {
+            if ("$".equals(prefix)) { // 拼写式参数
                 if (value instanceof SqlBuffer) {
                     buffer.append(((SqlBuffer) value).getExecutableSqlString());
                 } else {
                     buffer.append(DbTools.variableToString(value));
                 }
-            } else {
+            } else { // 预编译参数
                 if (value instanceof SqlBuffer) {
                     buffer.append((SqlBuffer) value);
                 } else {
