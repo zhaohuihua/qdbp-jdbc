@@ -14,6 +14,7 @@ import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.test.enums.AccountType;
+import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.model.UserCoreBean;
 import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
@@ -44,6 +45,8 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         UserCoreBean bean = new UserCoreBean();
         bean.setUserType(AccountType.ADMIN);
         bean.setUserCode("super");
+        bean.setSuperman(true);
+        bean.setUserState(UserState.NORMAL);
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
