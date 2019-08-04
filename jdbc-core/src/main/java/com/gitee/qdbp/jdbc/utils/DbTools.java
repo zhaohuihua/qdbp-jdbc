@@ -7,13 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.jdbc.core.JdbcOperations;
+import javax.sql.DataSource;
 import org.springframework.jdbc.core.SqlParameterValue;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
@@ -26,12 +27,8 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.VariableHelper;
-import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
-import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
-import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.fragment.TableJoinFragmentHelper;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
+import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -132,10 +129,11 @@ public abstract class DbTools {
      * ORACLE: TO_TIMESTAMP('2019-06-01 12:34:56.789', 'YYYY-MM-DD HH24:MI:SS.FF')
      * 
      * @param variable 变量
+     * @param dialect 数据库方言
      * @return 转换后的字符串
      */
-    public static String variableToString(Object variable) {
-        return variableToString(variable, true);
+    public static String variableToString(Object variable, SqlDialect dialect) {
+        return variableToString(variable, dialect, true);
     }
 
     /**
@@ -146,28 +144,29 @@ public abstract class DbTools {
      * 基本对象是指Boolean/Character/Date/Number/String
      * 
      * @param variable 变量
+     * @param dialect 数据库方言
      * @param recursive 是否递归转换
      * @return 转换后的字符串
      */
-    private static String variableToString(Object variable, boolean recursive) {
+    private static String variableToString(Object variable, SqlDialect dialect, boolean recursive) {
         if (variable == null) {
             return "NULL";
         } else if (variable instanceof Number) {
             return variable.toString();
         } else if (variable instanceof CharSequence) {
-            return getSqlDialect().variableToString(variable.toString());
+            return dialect.variableToString(variable.toString());
         } else if (variable instanceof Boolean) {
-            return getSqlDialect().variableToString((Boolean) variable);
+            return dialect.variableToString((Boolean) variable);
         } else if (variable instanceof Date) {
-            return getSqlDialect().variableToString((Date) variable);
+            return dialect.variableToString((Date) variable);
         } else if (variable instanceof Character) {
-            return getSqlDialect().variableToString(variable.toString());
+            return dialect.variableToString(variable.toString());
         } else {
             if (!recursive) {
-                return getSqlDialect().variableToString(variable.toString());
+                return dialect.variableToString(variable.toString());
             } else {
                 Object value = doVariableToDbValue(variable);
-                return variableToString(value, false);
+                return variableToString(value, dialect, false);
             }
         }
     }
@@ -201,23 +200,16 @@ public abstract class DbTools {
         return new ModelDataExecutor(allFields, handler);
     }
 
-    public static CrudSqlBuilder getCrudSqlBuilder(Class<?> clazz) {
-        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz);
-        return new CrudSqlBuilder(sqlHelper);
+    public static SqlDialect buildSqlDialect(DbType dbType) {
+        return buildSqlDialect(new DbVersion(dbType));
     }
 
-    public static QuerySqlBuilder getCrudSqlBuilder(TableJoin tables) {
-        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables);
-        return new QuerySqlBuilder(sqlHelper);
+    public static SqlDialect buildSqlDialect(DbVersion version) {
+        return new SimpleSqlDialect(version);
     }
-
-    /**
-     * 获取数据库方言处理类
-     * 
-     * @return 方言处理类
-     */
-    public static SqlDialect getSqlDialect() {
-        return DbPluginContainer.global.getSqlDialect();
+    
+    public static SqlParser buildSqlParser(SqlDialect dialect) {
+        return new SqlParser(dialect);
     }
 
     /**
@@ -233,25 +225,14 @@ public abstract class DbTools {
     }
 
     /**
-     * 格式化SQL语句
-     * 
-     * @param sql 待格式化的SQL语句
-     * @param indent 缩进层数
-     * @return 已格式化的SQL语句
-     */
-    public static String formatSql(SqlBuffer sql, int indent) {
-        return formatSql(sql.getExecutableSqlString(true), indent);
-    }
-
-    /**
      * 查找数据库版本信息
      * 
-     * @param jdbcOperations JDBC操作类
+     * @param datasource 数据源
      * @return 数据库版本信息
      */
-    public static DbVersion findDbVersion(JdbcOperations jdbcOperations) {
+    public static DbVersion findDbVersion(DataSource datasource) {
         DbVersionFinder finder = DbPluginContainer.global.getDbVersionFinder();
-        return finder.findDbVersion(jdbcOperations);
+        return finder.findDbVersion(datasource);
     }
 
     /** Entity的表名缓存 **/

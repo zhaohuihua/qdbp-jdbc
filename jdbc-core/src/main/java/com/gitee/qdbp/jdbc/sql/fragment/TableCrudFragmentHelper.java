@@ -12,6 +12,7 @@ import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -30,8 +31,8 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     private final PrimaryKeyFieldColumn primaryKey;
 
     /** 构造函数 **/
-    public TableCrudFragmentHelper(Class<?> clazz) {
-        super(DbTools.parseFieldColumns(clazz));
+    public TableCrudFragmentHelper(Class<?> clazz, SqlDialect dialect) {
+        super(DbTools.parseFieldColumns(clazz), dialect);
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);
         this.primaryKey = DbTools.parsePrimaryKey(clazz);

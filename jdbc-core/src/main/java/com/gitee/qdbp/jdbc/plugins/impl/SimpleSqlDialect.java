@@ -13,6 +13,8 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -426,7 +428,8 @@ public class SimpleSqlDialect implements SqlDialect {
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, true));
         }
-        return SqlBuffer.parse(sqlTemplate, params);
+        SqlParser parser = DbTools.buildSqlParser(this);
+        return parser.parse(sqlTemplate, params);
     }
 
     /**

@@ -21,7 +21,6 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
-import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -34,11 +33,13 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     protected final List<? extends SimpleFieldColumn> columns;
+    protected final SqlDialect dialect;
 
     /** 构造函数 **/
-    public TableQueryFragmentHelper(List<? extends SimpleFieldColumn> columns) {
+    public TableQueryFragmentHelper(List<? extends SimpleFieldColumn> columns, SqlDialect dialect) {
         VerifyTools.requireNotBlank(columns, "columns");
         this.columns = columns;
+        this.dialect = dialect;
     }
 
     /** {@inheritDoc} **/
@@ -108,9 +109,12 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return buffer;
         } else {
             // 此处必须报错, 否则将可能由于疏忽大意导致严重的问题
-            // 由于前面的判断都是基于where.isEmpty(), 逻辑只要where不是空就必定会生成where语句
-            // 如果不报错, 那么有可能因为字段名写错导致where语句为空, 从而导致表记录被全部删除!
-            // 例如delete操作where.on("id", "=", "xxx");的字段名写成idd, 生成的语句就是DELETE FROM tableName
+            // 由于前面的判断都是基于where.isEmpty(), 逻辑是只要where不是空就必定会生成where语句
+            // 如果不报错, 那么有可能因为字段名写错导致where条件为空
+            // -- 例如delete操作where.on("userId", "=", "xxx");的字段名写成userIdd
+            // -- 期望的语句是DELETE FROM tableName WHERE USER_ID='xxx'
+            // -- 但根据userIdd找不到对应的column信息, 实际上生成的语句会是DELETE FROM tableName
+            // -- 如果不报错, 在这个场景下将会导致表记录被全部删除!
             throw ufe("where sql", unsupported);
         }
     }
@@ -176,7 +180,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         } else if ("IsNotNull".equals(operateType)) {
             buffer.append(columnName).append(' ', "IS NOT NULL");
         } else {
-            SqlDialect dialect = DbTools.getSqlDialect();
             if ("GreaterThen".equals(operateType)) {
                 buffer.append(columnName).append(">").addVariable(fieldName, fieldValue);
             } else if ("GreaterEqualsThen".equals(operateType)) {
@@ -288,7 +291,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 continue;
             }
             if (usePinyin) { // 根据数据库类型转换为拼音排序表达式
-                SqlDialect dialect = DbTools.getSqlDialect();
                 columnName = dialect.toPinyinOrderByExpression(columnName);
             }
             if (first) {

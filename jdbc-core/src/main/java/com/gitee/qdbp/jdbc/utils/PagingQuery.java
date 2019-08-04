@@ -46,7 +46,7 @@ public class PagingQuery {
             if (total != null && total == 0) {
                 list = new ArrayList<>(); // 已知无数据, 不需要再查询
             } else {
-                SqlDialect dialect = DbTools.getSqlDialect();
+                SqlDialect dialect = jdbc.findSqlDialect();
                 // 处理分页
                 dialect.processPagingSql(qsb, paging);
                 // 查询数据列表
@@ -82,7 +82,7 @@ public class PagingQuery {
             if (total != null && total == 0) {
                 list = new ArrayList<T>(); // 已知无数据, 不需要再查询
             } else {
-                SqlDialect dialect = DbTools.getSqlDialect();
+                SqlDialect dialect = jdbc.findSqlDialect();
                 // 处理分页
                 dialect.processPagingSql(qsb, paging);
                 // 查询数据列表
@@ -118,7 +118,7 @@ public class PagingQuery {
             if (total != null && total == 0) {
                 list = new ArrayList<T>(); // 已知无数据, 不需要再查询
             } else {
-                SqlDialect dialect = DbTools.getSqlDialect();
+                SqlDialect dialect = jdbc.findSqlDialect();
                 // 处理分页
                 dialect.processPagingSql(qsb, paging);
                 // 查询数据列表

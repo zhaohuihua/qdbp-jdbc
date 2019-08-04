@@ -5,11 +5,8 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
-import com.gitee.qdbp.jdbc.model.DbType;
-import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleModelDataHandler;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
@@ -32,20 +29,6 @@ public class DbPluginContainer {
 
     public SqlFormatter getSqlFormatter() {
         return sqlFormatter;
-    }
-
-    private SqlDialect sqlDialect = new SimpleSqlDialect(new DbVersion(DbType.Oracle));
-
-    public void registerSqlDialect(DbVersion version) {
-        this.sqlDialect = new SimpleSqlDialect(version);
-    }
-
-    public void registerSqlDialect(SqlDialect SqlDialect) {
-        this.sqlDialect = SqlDialect;
-    }
-
-    public SqlDialect getSqlDialect() {
-        return sqlDialect;
     }
 
     private TableInfoScans tableInfoScans = new SimpleTableInfoScans();

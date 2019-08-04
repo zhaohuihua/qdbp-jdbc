@@ -8,6 +8,7 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinType;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -23,8 +24,8 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
     private TableJoin tables;
 
     /** 构造函数 **/
-    public TableJoinFragmentHelper(TableJoin tables) {
-        super(DbTools.parseFieldColumns(tables));
+    public TableJoinFragmentHelper(TableJoin tables, SqlDialect dialect) {
+        super(DbTools.parseFieldColumns(tables), dialect);
         this.tables = tables;
     }
 
