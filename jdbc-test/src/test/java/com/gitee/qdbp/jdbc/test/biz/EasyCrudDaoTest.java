@@ -17,6 +17,7 @@ import com.gitee.qdbp.jdbc.test.enums.AccountType;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.model.UserCoreBean;
 import com.gitee.qdbp.jdbc.utils.ParseTools;
+import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
 @Test
@@ -48,6 +49,20 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         bean.setUserType(AccountType.ADMIN);
         bean.setUserState(UserState.NORMAL);
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
+        EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
+        UserCoreBean user = dao.find(where);
+        System.out.println(JsonTools.toLogString(user));
+        Assert.assertNotNull(user);
+    }
+
+    @Test
+    public void testUserWhereQuery() {
+        DbWhere where = new DbWhere();
+        where.on("userCode", "=", "super");
+        where.on("userType", "=", AccountType.ADMIN);
+        where.on("superman", "=", true);
+        where.on("userState", "=", UserState.NORMAL);
+        where.on("createTime", ">=", DateTools.parse("2017-01-01"));
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
         System.out.println(JsonTools.toLogString(user));
