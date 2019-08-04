@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
+import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 public class SqlFormatTest {
@@ -22,19 +25,20 @@ public class SqlFormatTest {
     }
 
     private static void test0() {
+        SqlDialect dialect = DbTools.buildSqlDialect(DbType.Oracle);
         // @formatter:off
         String sqlTemplate = "SELECT * FROM ACCT_DEALPOSITION WHERE EFTFLAG IN ( #{eftflag} ) ";
         // @formatter:on
         Map<String, Object> params = new HashMap<>();
         params.put("eftflag", new SqlBuffer().addVariable('A').append(',').addVariable('E'));
-        SqlBuffer buffer = SqlBuffer.parse(sqlTemplate, params);
-        SqlBuffer paging1 = DbTools.getSqlDialect().buildPagingSql(buffer, new Paging(1, 10));
-        SqlBuffer paging2 = DbTools.getSqlDialect().buildPagingSql(buffer, new Paging(2, 10));
+        SqlBuffer buffer = new SqlParser(dialect).parse(sqlTemplate, params);
+        SqlBuffer paging1 = dialect.buildPagingSql(buffer, new Paging(1, 10));
+        SqlBuffer paging2 = dialect.buildPagingSql(buffer, new Paging(2, 10));
         System.out.println(buffer.getPreparedSqlString());
         System.out.println("------------------------------");
-        System.out.println(DbTools.formatSql(paging1, 1));
+        System.out.println(DbTools.formatSql(paging1.getExecutableSqlString(dialect), 1));
         System.out.println("------------------------------");
-        System.out.println(DbTools.formatSql(paging2, 1));
+        System.out.println(DbTools.formatSql(paging2.getExecutableSqlString(dialect), 1));
     }
 
     private static void test1() {

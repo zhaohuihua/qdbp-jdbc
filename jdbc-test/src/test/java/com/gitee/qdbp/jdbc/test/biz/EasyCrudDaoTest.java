@@ -35,7 +35,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testVersionQuery() {
-        DbVersion version = coreJdbcBoot.findDbVersion();
+        DbVersion version = coreJdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
         System.out.println(version);
         Assert.assertNotNull(version);
     }
@@ -43,9 +43,9 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testUserBeanQuery() {
         UserCoreBean bean = new UserCoreBean();
-        bean.setUserType(AccountType.ADMIN);
         bean.setUserCode("super");
         bean.setSuperman(true);
+        bean.setUserType(AccountType.ADMIN);
         bean.setUserState(UserState.NORMAL);
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
