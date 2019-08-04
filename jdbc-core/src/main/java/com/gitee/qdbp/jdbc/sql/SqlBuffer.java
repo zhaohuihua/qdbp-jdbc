@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.NamingTools;
-import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -409,25 +409,17 @@ public class SqlBuffer implements Serializable {
     }
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
-    public String getExecutableSqlString() {
-        return getExecutableSqlString(false);
+    public String getExecutableSqlString(DbVersion version) {
+        return getExecutableSqlString(DbTools.buildSqlDialect(version));
     }
 
-    /**
-     * 获取可执行SQL语句(预编译参数替换为拼写式参数)
-     * 
-     * @param commentVariableName 是否备注变量名称
-     * @return 可执行SQL语句
-     */
-    public String getExecutableSqlString(boolean commentVariableName) {
+    /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
+    public String getExecutableSqlString(SqlDialect dialect) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
-                sql.append(DbTools.variableToString(variable.value));
-                if (commentVariableName && VerifyTools.isNotBlank(variable.name)) {
-                    sql.append("/*").append(variable.name).append("*/");
-                }
+                sql.append(DbTools.variableToString(variable.value, dialect));
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -439,50 +431,8 @@ public class SqlBuffer implements Serializable {
     }
 
     public String toString() {
-        return getExecutableSqlString();
-    }
-
-    private static final Pattern PLACEHOLDER = Pattern.compile("([\\$#])\\{([\\.\\w\\[\\]\\$]+)\\}");
-
-    /**
-     * 从SQL模板解析获取SqlBuffer对象, 替换占位符<br>
-     * #{fieldName}为预编译参数, ${fieldName}为拼写式参数<br>
-     * 占位符变量可以是另一个SqlBuffer片段<br>
-     * 
-     * @param sqlTemplate SQL模板
-     * @param params 占位符变量
-     * @return SqlBuffer对象
-     */
-    public static SqlBuffer parse(String sqlTemplate, Map<String, Object> params) {
-        SqlBuffer buffer = new SqlBuffer();
-        Matcher matcher = PLACEHOLDER.matcher(sqlTemplate);
-        int index = 0;
-        while (matcher.find()) {
-            if (index < matcher.start()) {
-                buffer.append(sqlTemplate.substring(index, matcher.start()));
-            }
-            String prefix = matcher.group(1);
-            String placeholder = matcher.group(2);
-            Object value = ReflectTools.getDepthValue(params, placeholder);
-            if ("$".equals(prefix)) { // 拼写式参数
-                if (value instanceof SqlBuffer) {
-                    buffer.append(((SqlBuffer) value).getExecutableSqlString());
-                } else {
-                    buffer.append(DbTools.variableToString(value));
-                }
-            } else { // 预编译参数
-                if (value instanceof SqlBuffer) {
-                    buffer.append((SqlBuffer) value);
-                } else {
-                    buffer.addVariable(placeholder, value);
-                }
-            }
-            index = matcher.end();
-        }
-        if (index < sqlTemplate.length()) {
-            buffer.append(sqlTemplate.substring(index));
-        }
-        return buffer;
+        SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(DbType.Oracle));
+        return getExecutableSqlString(dialect);
     }
 
     protected static interface Item {
