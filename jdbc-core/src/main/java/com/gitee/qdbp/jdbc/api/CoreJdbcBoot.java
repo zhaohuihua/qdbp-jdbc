@@ -1,7 +1,6 @@
 package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
-import com.gitee.qdbp.jdbc.model.DbVersion;
 
 /**
  * 数据库操作对象的构造器
@@ -10,13 +9,6 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
  * @version 190601
  */
 public interface CoreJdbcBoot {
-
-    /**
-     * 查找数据库版本信息
-     * 
-     * @return 数据库版本信息
-     */
-    DbVersion findDbVersion();
 
     /**
      * 构造单表增删改查对象<br>

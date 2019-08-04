@@ -13,6 +13,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
@@ -33,6 +34,7 @@ public abstract class EasyBaseQueryImpl<T> {
     protected QuerySqlBuilder sqlBuilder;
     protected ModelDataExecutor modelDataExecutor;
     protected SqlBufferJdbcOperations jdbc;
+    protected SqlDialect dialect;
 
     /**
      * 构造函数
@@ -48,6 +50,7 @@ public abstract class EasyBaseQueryImpl<T> {
         this.sqlBuilder = sqlBuilder;
         this.modelDataExecutor = modelDataExecutor;
         this.jdbc = jdbcOperations;
+        this.dialect = jdbcOperations.findSqlDialect();
     }
 
     /**

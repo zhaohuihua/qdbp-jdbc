@@ -7,6 +7,8 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.result.TablesRowToProperyMapper;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.TableJoinFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -20,12 +22,17 @@ public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements EasyJo
     private String majorTableAlias;
 
     public EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
-        super(DbTools.getCrudSqlBuilder(t), DbTools.getModelDataExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
+        super(newQuerySqlBuilder(t, jdbc), DbTools.getModelDataExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
         for (JoinItem item : joins) {
             modelDataExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
         }
+    }
+
+    private static QuerySqlBuilder newQuerySqlBuilder(TableJoin tables, SqlBufferJdbcOperations jdbc) {
+        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables, jdbc.findSqlDialect());
+        return new QuerySqlBuilder(sqlHelper);
     }
 
     /** {@inheritDoc} **/

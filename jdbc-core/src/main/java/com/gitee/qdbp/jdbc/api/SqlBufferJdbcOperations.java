@@ -11,6 +11,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -21,6 +23,20 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @version 190601
  */
 public interface SqlBufferJdbcOperations {
+
+    /**
+     * 查找数据库版本信息(从当前数据源查找)
+     * 
+     * @return 数据库版本信息
+     */
+    DbVersion findDbVersion();
+
+    /**
+     * 查找数据库版本信息并生成SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    SqlDialect findSqlDialect();
 
     /**
      * Execute a JDBC data access operation, implemented as callback action

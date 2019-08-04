@@ -14,14 +14,15 @@ import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
-import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
-import com.gitee.qdbp.jdbc.utils.ParseTools;
+import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -38,8 +39,13 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     private Class<T> clazz;
 
     EasyCrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
-        super(DbTools.getCrudSqlBuilder(c), DbTools.getModelDataExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
+        super(newQuerySqlBuilder(c, jdbc), DbTools.getModelDataExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
         this.clazz = c;
+    }
+
+    private static QuerySqlBuilder newQuerySqlBuilder(Class<?> clazz, SqlBufferJdbcOperations jdbc) {
+        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, jdbc.findSqlDialect());
+        return new CrudSqlBuilder(sqlHelper);
     }
 
     private CrudSqlBuilder builder() {
@@ -80,7 +86,6 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
             List<Ordering> orderings) throws ServiceException {
         CrudFragmentHelper sqlHelper = builder().helper();
         List<String> selectFields = sqlHelper.getFieldNames();
-        SqlDialect dialect = DbTools.getSqlDialect();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
         return jdbc.query(buffer, this.rowToBeanMapper);
@@ -111,7 +116,6 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
             DbWhere where, List<Ordering> orderings) throws ServiceException {
         CrudFragmentHelper sqlHelper = builder().helper();
         Set<String> selectFields = ConvertTools.toSet(codeField);
-        SqlDialect dialect = DbTools.getSqlDialect();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
         return jdbc.query(buffer, FIRST_COLUMN_STRING_MAPPER);

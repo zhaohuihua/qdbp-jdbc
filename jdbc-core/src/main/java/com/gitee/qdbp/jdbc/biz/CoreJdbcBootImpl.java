@@ -7,7 +7,6 @@ import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -20,7 +19,6 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
 
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
-    private DbVersion dbVersion;
     private Map<Class<?>, EasyCrudDao<?>> crudDaoCache = new HashMap<>();
     private Map<String, EasyJoinQuery<?>> joinQueryCache = new HashMap<>();
 
@@ -49,19 +47,6 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
             joinQueryCache.put(cacheKey, instance);
             return instance;
         }
-    }
-
-    /**
-     * 查找数据库版本信息(从当前数据源查找)
-     * 
-     * @return 数据库版本信息
-     */
-    @Override
-    public DbVersion findDbVersion() {
-        if (dbVersion == null) {
-            dbVersion = DbTools.findDbVersion(sqlBufferJdbcOperations.getJdbcOperations());
-        }
-        return dbVersion;
     }
 
     /** {@inheritDoc} **/
