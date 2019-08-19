@@ -1,5 +1,7 @@
 package com.gitee.qdbp.jdbc.test.biz;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -23,6 +25,8 @@ import com.gitee.qdbp.tools.utils.JsonTools;
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
+    
+    private Logger log = LoggerFactory.getLogger(EasyCrudDaoTest.class);
 
     @Autowired
     private CoreJdbcBoot coreJdbcBoot;
@@ -37,7 +41,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testVersionQuery() {
         DbVersion version = coreJdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
-        System.out.println(version);
+        log.debug("DbVersion: ", version);
         Assert.assertNotNull(version);
     }
 
@@ -51,7 +55,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
-        System.out.println(JsonTools.toLogString(user));
+        log.debug("UserBeanQuery: ", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 
@@ -65,7 +69,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
-        System.out.println(JsonTools.toLogString(user));
+        log.debug("UserWhereQuery: ", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 }
