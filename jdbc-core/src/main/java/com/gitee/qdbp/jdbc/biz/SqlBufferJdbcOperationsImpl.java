@@ -87,8 +87,9 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             } finally {
                 dbInitLock.unlock();
             }
+            return;
         }
-        throw new IllegalStateException("Unsupported JdbcOperations. " + jdbcOperations.getClass().getName());
+        throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
     }
     
     private String getFormattedSqlString(SqlBuffer sb, int indent) {
