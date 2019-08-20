@@ -41,7 +41,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testVersionQuery() {
         DbVersion version = coreJdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
-        log.debug("DbVersion: ", version);
+        log.debug("DbVersion: {}", version);
         Assert.assertNotNull(version);
     }
 
@@ -55,7 +55,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
-        log.debug("UserBeanQuery: ", JsonTools.toLogString(user));
+        log.debug("UserBeanQuery: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 
@@ -69,7 +69,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
-        log.debug("UserWhereQuery: ", JsonTools.toLogString(user));
+        log.debug("UserWhereQuery: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 }
