@@ -26,7 +26,7 @@
 		<!-- 基本属性 url、user、password -->
 		<property name="settings" value="${jdbc.sys}" />
 		<property name="url" value="jdbc:mysql://{address}/{dbname}" />
-		<property name="params" value="?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false" />
+		<property name="params" value="?tinyInt1isBit=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false" />
 
 		<!-- 配置初始化大小、最小、最大 -->
 		<property name="initialSize" value="1" />
