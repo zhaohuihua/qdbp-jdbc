@@ -7,5 +7,18 @@ package com.gitee.qdbp.jdbc.model;
  * @version 190601
  */
 public enum DbType {
-    Unknown, Oracle, MySQL, DB2, H2, PostgreSQL, SqlServer
+    /** 未知 **/
+    Unknown,
+    /** Oracle **/
+    Oracle,
+    /** MySQL **/
+    MySQL,
+    /** DB2 **/
+    DB2,
+    /** H2 **/
+    H2,
+    /** PostgreSQL **/
+    PostgreSQL,
+    /** SqlServer **/
+    SqlServer
 }
