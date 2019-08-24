@@ -156,7 +156,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         try {
             T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -183,7 +183,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 result = queryForObject(sb, new TableRowToBeanMapper<T>(resultType));
             }
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -205,7 +205,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         try {
             Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} row.", result == null ? 0 : 1);
+                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
