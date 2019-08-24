@@ -41,7 +41,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
 
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
-    private Lock dbInitLock = new ReentrantLock();
+    private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
 
     /**
@@ -77,7 +77,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             if (datasource == null) {
                 throw new IllegalStateException("Datasource is null.");
             }
-            dbInitLock.lock();
+            jdbcInitLock.lock();
             try {
                 if (dbVersion == null) {
                     dbVersion = DbTools.findDbVersion(datasource);
@@ -85,7 +85,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                     log.trace("Database version: {}", dbVersion);
                 }
             } finally {
-                dbInitLock.unlock();
+                jdbcInitLock.unlock();
             }
             return;
         }
