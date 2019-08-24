@@ -38,14 +38,14 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         DbPluginContainer.global.registerTableInfoScans(tableInfoScans);
     }
 
-    @Test
+    @Test(priority = 1)
     public void testVersionQuery() {
         DbVersion version = coreJdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
         log.debug("DbVersion: {}", version);
         Assert.assertNotNull(version);
     }
 
-    @Test
+    @Test(priority = 2)
     public void testUserBeanQuery() {
         UserCoreBean bean = new UserCoreBean();
         bean.setUserCode("super");
@@ -59,7 +59,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         Assert.assertNotNull(user);
     }
 
-    @Test
+    @Test(priority = 3)
     public void testUserWhereQuery() {
         DbWhere where = new DbWhere();
         where.on("userCode", "=", "super");
