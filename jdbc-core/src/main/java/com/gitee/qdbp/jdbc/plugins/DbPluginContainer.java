@@ -61,13 +61,13 @@ public class DbPluginContainer {
         return dbVersionFinder;
     }
 
-    private VariableHelper variableHelper = new SimpleVariableHelper();
+    private DataConvertHelper variableHelper = new SimpleVariableHelper();
 
-    public void registerVariableHelper(VariableHelper variableHelper) {
+    public void registerVariableHelper(DataConvertHelper variableHelper) {
         this.variableHelper = variableHelper;
     }
 
-    public VariableHelper getVariableHelper() {
+    public DataConvertHelper getConvertHelper() {
         return variableHelper;
     }
 

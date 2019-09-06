@@ -19,6 +19,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
+import com.gitee.qdbp.jdbc.model.VariableValue;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -26,7 +27,7 @@ import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.VariableHelper;
+import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -42,7 +43,8 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 public abstract class DbTools {
 
     /**
-     * 将Java对象转换为Map, 只保留有列信息的字段
+     * 将Java对象转换为Map, 只保留有列信息的字段<br>
+     * 先调用ParseTools.beanToMap()转换为map, 再解析列名, 只保留有列信息的字段
      * 
      * @param object Java对象
      * @return Map对象
@@ -92,33 +94,19 @@ public abstract class DbTools {
      * @return 转换后的字段值对象
      */
     public static Object variableToDbValue(Object variable) {
-        if (variable == null) {
-            return variable;
-        } else if (variable instanceof Number) {
-            return variable;
-        } else if (variable instanceof CharSequence) {
-            return variable.toString();
-        } else if (variable instanceof Boolean) {
-            return variable;
-        } else if (variable instanceof Date) {
-            return variable;
-        } else if (variable instanceof Character) {
+        DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
+        Object result = helper.variableToDbValue(variable);
+        if (result instanceof VariableValue) {
+            VariableValue temp = (VariableValue) result;
+            return new SqlParameterValue(temp.getSqlType(), temp.getValue());
+        } else if (result instanceof Character) {
             // Character类型不能自动识别
             // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
             // 调用的是PreparedStatement.setObject(int index, Object x)
             // 而不是PreparedStatement.setObject(int index, Object x, int Types.xxx)
             return new SqlParameterValue(Types.VARCHAR, variable);
         } else {
-            return doVariableToDbValue(variable);
-        }
-    }
-
-    private static Object doVariableToDbValue(Object variable) {
-        VariableHelper helper = DbPluginContainer.global.getVariableHelper();
-        if (variable instanceof Enum) {
-            return helper.variableToDbValue(((Enum<?>) variable));
-        } else {
-            return helper.variableToDbValue(variable);
+            return result;
         }
     }
 
@@ -133,41 +121,29 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        return variableToString(variable, dialect, true);
-    }
-
-    /**
-     * 将变量转换为字符串, 用于拼接SQL<br>
-     * recursive说明:<br>
-     * 当变量不是基本对象时, 调用VariableHelper.variableToDbValue()方法转换, 转换结果是否再次递归转换<br>
-     * 在variableToString(variable, recursive)方法外部调用时传true, 内部调用时只能传false, 保证只会递归一次<br>
-     * 基本对象是指Boolean/Character/Date/Number/String
-     * 
-     * @param variable 变量
-     * @param dialect 数据库方言
-     * @param recursive 是否递归转换
-     * @return 转换后的字符串
-     */
-    private static String variableToString(Object variable, SqlDialect dialect, boolean recursive) {
-        if (variable == null) {
+        DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
+        Object result = helper.variableToDbValue(variable);
+        if (result instanceof VariableValue) {
+            VariableValue temp = (VariableValue) result;
+            result = temp.getValue();
+        } else if (result instanceof SqlParameterValue) {
+            SqlParameterValue temp = (SqlParameterValue) result;
+            result = temp.getValue();
+        }
+        if (result == null) {
             return "NULL";
-        } else if (variable instanceof Number) {
-            return variable.toString();
-        } else if (variable instanceof CharSequence) {
-            return dialect.variableToString(variable.toString());
-        } else if (variable instanceof Boolean) {
-            return dialect.variableToString((Boolean) variable);
-        } else if (variable instanceof Date) {
-            return dialect.variableToString((Date) variable);
-        } else if (variable instanceof Character) {
-            return dialect.variableToString(variable.toString());
+        } else if (result instanceof Number) {
+            return result.toString();
+        } else if (result instanceof CharSequence) {
+            return dialect.variableToString(result.toString());
+        } else if (result instanceof Boolean) {
+            return dialect.variableToString((Boolean) result);
+        } else if (result instanceof Date) {
+            return dialect.variableToString((Date) result);
+        } else if (result instanceof Character) {
+            return dialect.variableToString(result.toString());
         } else {
-            if (!recursive) {
-                return dialect.variableToString(variable.toString());
-            } else {
-                Object value = doVariableToDbValue(variable);
-                return variableToString(value, dialect, false);
-            }
+            return dialect.variableToString(result.toString());
         }
     }
 
@@ -207,7 +183,7 @@ public abstract class DbTools {
     public static SqlDialect buildSqlDialect(DbVersion version) {
         return new SimpleSqlDialect(version);
     }
-    
+
     public static SqlParser buildSqlParser(SqlDialect dialect) {
         return new SqlParser(dialect);
     }
