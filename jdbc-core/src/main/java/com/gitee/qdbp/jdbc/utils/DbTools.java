@@ -94,7 +94,7 @@ public abstract class DbTools {
      * @return 转换后的字段值对象
      */
     public static Object variableToDbValue(Object variable) {
-        DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
+        DataConvertHelper helper = DbPluginContainer.global.getDataConvertHelper();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
@@ -121,7 +121,7 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
+        DataConvertHelper helper = DbPluginContainer.global.getDataConvertHelper();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;

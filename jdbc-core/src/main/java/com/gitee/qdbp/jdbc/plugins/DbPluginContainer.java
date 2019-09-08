@@ -9,7 +9,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleVariableHelper;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHelper;
 
 /**
  * 自定义插件容器
@@ -61,14 +61,14 @@ public class DbPluginContainer {
         return dbVersionFinder;
     }
 
-    private DataConvertHelper variableHelper = new SimpleVariableHelper();
+    private DataConvertHelper dataConvertHelper = new SimpleDataConvertHelper();
 
-    public void registerVariableHelper(DataConvertHelper variableHelper) {
-        this.variableHelper = variableHelper;
+    public void registerDataConvertHelper(DataConvertHelper dataConvertHelper) {
+        this.dataConvertHelper = dataConvertHelper;
     }
 
-    public DataConvertHelper getConvertHelper() {
-        return variableHelper;
+    public DataConvertHelper getDataConvertHelper() {
+        return dataConvertHelper;
     }
 
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();

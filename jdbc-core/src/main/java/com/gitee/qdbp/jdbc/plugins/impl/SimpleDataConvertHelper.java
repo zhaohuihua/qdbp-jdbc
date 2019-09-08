@@ -8,12 +8,12 @@ import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
 import com.gitee.qdbp.tools.utils.DateTools;
 
 /**
- * VariableHelper简单实现类
+ * DataConvertHelper简单实现类
  *
  * @author zhaohuihua
  * @version 190705
  */
-public class SimpleVariableHelper implements DataConvertHelper {
+public class SimpleDataConvertHelper implements DataConvertHelper {
 
     @Override
     public Object variableToDbValue(Object variable) {
