@@ -19,7 +19,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
-import com.gitee.qdbp.jdbc.model.VariableValue;
+import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -96,8 +96,8 @@ public abstract class DbTools {
     public static Object variableToDbValue(Object variable) {
         DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
         Object result = helper.variableToDbValue(variable);
-        if (result instanceof VariableValue) {
-            VariableValue temp = (VariableValue) result;
+        if (result instanceof TypedDbVariable) {
+            TypedDbVariable temp = (TypedDbVariable) result;
             return new SqlParameterValue(temp.getSqlType(), temp.getValue());
         } else if (result instanceof Character) {
             // Character类型不能自动识别
@@ -123,8 +123,8 @@ public abstract class DbTools {
     public static String variableToString(Object variable, SqlDialect dialect) {
         DataConvertHelper helper = DbPluginContainer.global.getConvertHelper();
         Object result = helper.variableToDbValue(variable);
-        if (result instanceof VariableValue) {
-            VariableValue temp = (VariableValue) result;
+        if (result instanceof TypedDbVariable) {
+            TypedDbVariable temp = (TypedDbVariable) result;
             result = temp.getValue();
         } else if (result instanceof SqlParameterValue) {
             SqlParameterValue temp = (SqlParameterValue) result;

@@ -3,10 +3,9 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 import java.sql.Types;
 import java.util.Date;
 import com.alibaba.fastjson.util.TypeUtils;
-import com.gitee.qdbp.jdbc.model.VariableValue;
+import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
 import com.gitee.qdbp.tools.utils.DateTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 
 /**
  * VariableHelper简单实现类
@@ -19,108 +18,120 @@ public class SimpleVariableHelper implements DataConvertHelper {
     @Override
     public Object variableToDbValue(Object variable) {
         if (variable == null) {
-            return variable;
+            return null;
         } else if (variable instanceof String) {
-            return doVariableToDbValue((String) variable);
+            return doStringToDbValue((String) variable);
         } else if (variable instanceof Number) {
-            return doVariableToDbValue((Number) variable);
+            return doNumberToDbValue((Number) variable);
         } else if (variable instanceof Date) {
-            return doVariableToDbValue((Date) variable);
+            return doDateToDbValue((Date) variable);
         } else if (variable instanceof Boolean) {
-            return doVariableToDbValue((Boolean) variable);
+            return doBooleanToDbValue((Boolean) variable);
         } else if (variable instanceof Character) {
-            return doVariableToDbValue((Character) variable);
+            return doCharacterToDbValue((Character) variable);
         } else if (variable instanceof CharSequence) {
-            return doVariableToDbValue((CharSequence) variable);
+            return doStringToDbValue(((CharSequence) variable).toString());
         } else if (variable.getClass().isEnum()) {
-            return doVariableToDbValue((Enum<?>) variable);
+            return doEnumToDbValue((Enum<?>) variable);
+        } else if (variable instanceof TypedDbVariable) {
+            return doVariableToTypedValue((TypedDbVariable) variable);
         } else {
-            return doVariableToDbValue(variable);
+            return doObjectToDbValue(variable);
         }
     }
 
-    protected Object doVariableToDbValue(Enum<?> variable) {
+    protected Object doEnumToDbValue(Enum<?> variable) {
         return variable.ordinal();
     }
 
-    protected Object doVariableToDbValue(String variable) {
+    protected Object doStringToDbValue(String variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(CharSequence variable) {
-        return variable.toString();
-    }
-
-    protected Object doVariableToDbValue(Number variable) {
+    protected Object doNumberToDbValue(Number variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(Boolean variable) {
+    protected Object doBooleanToDbValue(Boolean variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(Character variable) {
+    protected Object doCharacterToDbValue(Character variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(Date variable) {
+    protected Object doDateToDbValue(Date variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(Object variable) {
+    protected Object doObjectToDbValue(Object variable) {
         return variable;
     }
 
-    protected Object doVariableToDbValue(VariableValue variable) {
+    protected Object doVariableToTypedValue(TypedDbVariable variable) {
+        if (variable == null) {
+            return null;
+        }
         Object value = variable.getValue();
         if (value == null) {
             return null;
         }
         Integer sqlType = variable.getSqlType();
         if (sqlType == null) {
-            return doVariableToDbValue(value);
+            return variableToDbValue(value);
         }
 
-        // TODO 转换为指定类型
         switch (sqlType) {
+        case Types.BOOLEAN:
+            return doVariableToBoolean(value);
         case Types.BIT:
+            return doVariableToBit(value);
         case Types.TINYINT:
         case Types.SMALLINT:
         case Types.INTEGER:
+            return doVariableToInteger(value);
         case Types.BIGINT:
+            return doVariableToLong(value);
         case Types.FLOAT:
         case Types.REAL:
         case Types.DOUBLE:
         case Types.NUMERIC:
         case Types.DECIMAL:
+            return doVariableToDouble(value);
         case Types.CHAR:
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
+        case Types.NCHAR:
+        case Types.NVARCHAR:
+        case Types.LONGNVARCHAR:
+            return doVariableToString(value);
         case Types.DATE:
         case Types.TIME:
         case Types.TIMESTAMP:
+            return doVariableToDate(value);
+        case Types.BLOB:
+            return doVariableToBlob(value);
+        case Types.CLOB:
+        case Types.NCLOB:
+            return doVariableToClob(value);
         case Types.BINARY:
+            return doVariableToBinary(value);
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
+            return doVariableToVarBinary(value);
         case Types.NULL:
         case Types.OTHER:
         case Types.JAVA_OBJECT:
         case Types.DISTINCT:
         case Types.STRUCT:
         case Types.ARRAY:
-        case Types.BLOB:
-        case Types.CLOB:
         case Types.REF:
         case Types.DATALINK:
-        case Types.BOOLEAN:
         case Types.ROWID:
-        case Types.NCHAR:
-        case Types.NVARCHAR:
-        case Types.LONGNVARCHAR:
-        case Types.NCLOB:
         case Types.SQLXML:
+        default:
+            return variableToDbValue(value);
         }
-        return doVariableToDbValue(value);
     }
 
     protected String doVariableToString(Object variable) {
@@ -128,26 +139,59 @@ public class SimpleVariableHelper implements DataConvertHelper {
     }
 
     protected Boolean doVariableToBoolean(Object variable) {
-        if (variable instanceof CharSequence) {
-            return StringTools.isPositive(variable.toString(), false);
-        } else {
-            return TypeUtils.castToBoolean(variable);
-        }
+        return TypeUtils.castToBoolean(variable);
     }
 
-    protected Double doVariableToDouble(Object variable) {
-        return TypeUtils.castToDouble(variable);
+    protected Byte doVariableToBit(Object variable) {
+        return TypeUtils.castToByte(variable);
+    }
+
+    protected Integer doVariableToInteger(Object variable) {
+        return TypeUtils.castToInt(variable);
     }
 
     protected Long doVariableToLong(Object variable) {
         return TypeUtils.castToLong(variable);
     }
 
+    protected Double doVariableToDouble(Object variable) {
+        return TypeUtils.castToDouble(variable);
+    }
+
     protected Date doVariableToDate(Object variable) {
         if (variable instanceof CharSequence) {
-            return DateTools.parse((String) variable);
+            return DateTools.parse(variable.toString());
         } else {
             return TypeUtils.castToDate(variable);
         }
+    }
+
+    protected Object doVariableToBlob(Object variable) {
+        return doObjectToDbValue(variable);
+    }
+
+    protected Object doVariableToBinary(Object variable) {
+        return doVariableToBlob(variable);
+    }
+
+    protected Object doVariableToClob(Object variable) {
+        return doVariableToString(variable);
+    }
+
+    protected Object doVariableToVarBinary(Object variable) {
+        return doVariableToClob(variable);
+    }
+
+    /**
+     * 将变量转换为其他的指定类型值<br>
+     * 已经对常见的类型作了处理, 只有一些不常见的类型会调用该方法:<br>
+     * Types.NULL, Types.JAVA_OBJECT, Types.DISTINCT, Types.STRUCT,<br>
+     * Types.ARRAY, Types.REF, Types.DATALINK, Types.ROWID, Types.SQLXML, Types.OTHER
+     * 
+     * @param sqlType SQL数据类型({@code java.sql.Types})
+     * @param value 变量值
+     */
+    protected Object doVariableToOtherTypedValue(int sqlType, Object variable) {
+        return doObjectToDbValue(variable);
     }
 }

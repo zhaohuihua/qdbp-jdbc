@@ -6,7 +6,7 @@ package com.gitee.qdbp.jdbc.model;
  * @author zhaohuihua
  * @version 190824
  */
-public class VariableValue {
+public class TypedDbVariable {
 
     /** SQL数据类型({@code java.sql.Types}) **/
     private Integer sqlType;
@@ -19,7 +19,7 @@ public class VariableValue {
      * @param sqlType SQL数据类型({@code java.sql.Types})
      * @param value 变量值
      */
-    public VariableValue(int sqlType, Object value) {
+    public TypedDbVariable(int sqlType, Object value) {
         this.sqlType = sqlType;
         this.value = value;
     }
