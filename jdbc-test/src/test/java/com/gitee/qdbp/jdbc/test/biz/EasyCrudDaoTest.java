@@ -63,9 +63,9 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     public void testUserWhereQuery() {
         DbWhere where = new DbWhere();
         where.on("userCode", "=", "super");
-        where.on("userType", "=", AccountType.ADMIN);
         where.on("superman", "=", true);
-        where.on("userState", "=", UserState.NORMAL);
+        where.on("userType", "=", AccountType.ADMIN);
+        where.on("userState", "in", UserState.NORMAL, UserState.LOCKED);
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
         EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
         UserCoreBean user = dao.find(where);
