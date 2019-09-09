@@ -134,31 +134,31 @@ public class SimpleDataConvertHelper implements DataConvertHelper {
         }
     }
 
-    protected String doVariableToString(Object variable) {
+    protected Object doVariableToString(Object variable) {
         return TypeUtils.castToString(variable);
     }
 
-    protected Boolean doVariableToBoolean(Object variable) {
+    protected Object doVariableToBoolean(Object variable) {
         return TypeUtils.castToBoolean(variable);
     }
 
-    protected Byte doVariableToBit(Object variable) {
+    protected Object doVariableToBit(Object variable) {
         return TypeUtils.castToByte(variable);
     }
 
-    protected Integer doVariableToInteger(Object variable) {
+    protected Object doVariableToInteger(Object variable) {
         return TypeUtils.castToInt(variable);
     }
 
-    protected Long doVariableToLong(Object variable) {
+    protected Object doVariableToLong(Object variable) {
         return TypeUtils.castToLong(variable);
     }
 
-    protected Double doVariableToDouble(Object variable) {
+    protected Object doVariableToDouble(Object variable) {
         return TypeUtils.castToDouble(variable);
     }
 
-    protected Date doVariableToDate(Object variable) {
+    protected Object doVariableToDate(Object variable) {
         if (variable instanceof CharSequence) {
             return DateTools.parse(variable.toString());
         } else {
