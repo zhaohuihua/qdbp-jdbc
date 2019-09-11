@@ -167,19 +167,23 @@ public class SimpleDataConvertHelper implements DataConvertHelper {
     }
 
     protected Object doVariableToBlob(Object variable) {
-        return doObjectToDbValue(variable);
-    }
-
-    protected Object doVariableToBinary(Object variable) {
-        return doVariableToBlob(variable);
+        return variable;
     }
 
     protected Object doVariableToClob(Object variable) {
         return doVariableToString(variable);
     }
 
+    protected Object doVariableToBinary(Object variable) {
+        // Types.BINARY
+        return variable;
+    }
+
     protected Object doVariableToVarBinary(Object variable) {
-        return doVariableToClob(variable);
+        // Types.VARBINARY, Types.LONGVARBINARY
+        // 根据网上资料 https://blog.csdn.net/senssic/article/details/37509993
+        // Oracle的LONG类型对应Types.VARBINARY
+        return doVariableToString(variable);
     }
 
     /**
@@ -192,6 +196,6 @@ public class SimpleDataConvertHelper implements DataConvertHelper {
      * @param value 变量值
      */
     protected Object doVariableToOtherTypedValue(int sqlType, Object variable) {
-        return doObjectToDbValue(variable);
+        return variable;
     }
 }
