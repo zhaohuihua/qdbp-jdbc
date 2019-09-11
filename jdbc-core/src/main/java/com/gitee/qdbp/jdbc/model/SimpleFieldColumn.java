@@ -20,6 +20,10 @@ public class SimpleFieldColumn implements Serializable {
     private String columnName;
     /** 描述文本 **/
     private String columnText;
+    /** Java字段类型 **/
+    private Class<?> javaType;
+    /** SQL数据类型({@code java.sql.Types}) **/
+    private Integer sqlType;
 
     /** 默认构造函数 **/
     public SimpleFieldColumn() {
@@ -59,6 +63,26 @@ public class SimpleFieldColumn implements Serializable {
     /** 描述文本 **/
     public void setColumnText(String columnText) {
         this.columnText = columnText;
+    }
+
+    /** Java字段类型 **/
+    public Class<?> getJavaType() {
+        return javaType;
+    }
+
+    /** Java字段类型 **/
+    public void setJavaType(Class<?> javaType) {
+        this.javaType = javaType;
+    }
+
+    /** SQL数据类型({@code java.sql.Types}) **/
+    public Integer getSqlType() {
+        return sqlType;
+    }
+
+    /** SQL数据类型({@code java.sql.Types}) **/
+    public void setSqlType(Integer sqlType) {
+        this.sqlType = sqlType;
     }
 
     /**
