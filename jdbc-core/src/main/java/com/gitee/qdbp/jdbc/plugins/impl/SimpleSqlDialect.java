@@ -71,7 +71,7 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
-    private static void processPagingForMySql(SqlBuffer buffer, Paging paging) {
+    protected void processPagingForMySql(SqlBuffer buffer, Paging paging) {
         if (paging.getStart() <= 0) {
             // limit {rows}
             buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
@@ -82,7 +82,7 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
-    private static void processPagingForH2(SqlBuffer buffer, Paging paging) {
+    protected void processPagingForH2(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.H2Dialect
         if (paging.getStart() <= 0) {
             // limit {rows}
@@ -95,7 +95,7 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
-    private static void processPagingForPostgreSql(SqlBuffer buffer, Paging paging) {
+    protected void processPagingForPostgreSql(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.PostgreSQLDialect
         if (paging.getStart() <= 0) {
             // limit {rows}
@@ -108,7 +108,7 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
-    private static void processPagingForOracle(SqlBuffer buffer, Paging paging) {
+    protected void processPagingForOracle(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.OracleDialect
         if (paging.getStart() <= 0) {
             buffer.indent(1, true);
@@ -130,13 +130,13 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
-    private static void processPagingForDb2(SqlBuffer buffer, Paging paging) {
+    // DB2的分页参数不支持占位符
+    protected void processPagingForDb2(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.DB2Dialect
         if (paging.getStart() <= 0) {
             // FETCH FIRST {end} ROWS ONLY
-            buffer.append('\n').append("FETCH FIRST").append(' ');
-            buffer.addVariable("end", paging.getEnd());
-            buffer.append(' ').append("ROWS ONLY");
+            String end = String.valueOf(paging.getEnd());
+            buffer.append('\n').append("FETCH FIRST").append(' ', end, ' ').append("ROWS ONLY");
         } else {
             buffer.indent(2, true);
             // SELECT * FROM (
@@ -146,11 +146,12 @@ public class SimpleSqlDialect implements SqlDialect {
             //         FETCH FIRST {end} ROWS ONLY
             //     ) AS T_T
             // ) WHERE R_N > {start} ORDER BY R_N
+            String start = String.valueOf(paging.getStart());
+            String end = String.valueOf(paging.getEnd());
             buffer.prepend("SELECT * FROM (\n\tSELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N FROM (\n");
-            buffer.append('\n', '\t').append("FETCH FIRST").append(' ');
-            buffer.addVariable("end", paging.getEnd());
-            buffer.append(' ').append("ROWS ONLY").append('\n', '\t').append(") AS T_T\n)");
-            buffer.append(' ').append("WHERE").append(' ').append("R_N > ").addVariable("start", paging.getStart());
+            buffer.append('\n', '\t').append("FETCH FIRST").append(' ', end, ' ').append("ROWS ONLY");
+            buffer.append('\n', '\t').append(") AS T_T\n)");
+            buffer.append(' ').append("WHERE").append(' ').append("R_N > ").append(start);
             buffer.append(' ').append("ORDER BY").append(' ').append("R_N");
         }
     }
@@ -273,7 +274,6 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public SqlBuffer buildEndsWithSql(Object fieldValue) {
         return buildEndsWithSql(null, fieldValue);
-
     }
 
     /** {@inheritDoc} **/
@@ -308,9 +308,9 @@ public class SimpleSqlDialect implements SqlDialect {
         VerifyTools.requireNotBlank(startCodes, "startCodes");
 
         if (dbType == DbType.Oracle) {
-            return oracleRecursive(startCodes, codeField, parentField, selectFields, where, orderings, builder);
+            return oracleRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings, builder);
         } else if (dbType == DbType.MySQL && dbVersion.getMajorVersion() < 8) {
-            return productionRecursive(startCodes, codeField, parentField, selectFields, where, orderings, builder);
+            return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings, builder);
         } else { // 标准递归语法
             // MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可
             String key;
@@ -323,7 +323,7 @@ public class SimpleSqlDialect implements SqlDialect {
             } else {
                 throw new UnsupportedOperationException("Unsupported db type: " + dbType);
             }
-            return normalRecursive(key, startCodes, codeField, parentField, selectFields, where, orderings, builder);
+            return normalRecursiveFindChildren(key, startCodes, codeField, parentField, selectFields, where, orderings, builder);
         }
     }
 
@@ -346,7 +346,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
-    private SqlBuffer oracleRecursive(List<String> startCodes, String codeField, String parentField,
+    protected SqlBuffer oracleRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         SqlBuffer buffer = new SqlBuffer();
@@ -399,8 +399,9 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
-    private SqlBuffer normalRecursive(String keyword, List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
+    protected SqlBuffer normalRecursiveFindChildren(String keyword, List<String> startCodes, String codeField,
+            String parentField, Collection<String> selectFields, DbWhere where, List<Ordering> orderings,
+            QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
         String sqlTemplate = "#{keyword} RECURSIVE_SUB_TABLE(_TEMP_) AS (\n"
@@ -455,7 +456,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @param sqlHelper 生成SQL的帮助类
      * @return SQL语句
      */
-    private SqlBuffer productionRecursive(List<String> startCodes, String codeField, String parentField,
+    protected SqlBuffer productionRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
         String selectFieldSql = sqlHelper.buildFieldsSql(selectFields).toString();
