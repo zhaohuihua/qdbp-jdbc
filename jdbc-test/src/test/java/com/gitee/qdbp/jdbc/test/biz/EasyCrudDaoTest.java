@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.test.enums.AccountType;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
-import com.gitee.qdbp.jdbc.test.model.UserCoreBean;
+import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
 import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
@@ -47,14 +47,14 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
 
     @Test(priority = 2)
     public void testUserBeanQuery() {
-        UserCoreBean bean = new UserCoreBean();
+        SysUserEntity bean = new SysUserEntity();
         bean.setUserCode("super");
         bean.setSuperman(true);
         bean.setUserType(AccountType.ADMIN);
         bean.setUserState(UserState.NORMAL);
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
-        EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
-        UserCoreBean user = dao.find(where);
+        EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
+        SysUserEntity user = dao.find(where);
         log.debug("UserBeanQuery: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
@@ -67,8 +67,8 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         where.on("userType", "=", AccountType.ADMIN);
         where.on("userState", "in", UserState.NORMAL, UserState.LOCKED);
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
-        EasyCrudDao<UserCoreBean> dao = coreJdbcBoot.buildCrudDao(UserCoreBean.class);
-        UserCoreBean user = dao.find(where);
+        EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
+        SysUserEntity user = dao.find(where);
         log.debug("UserWhereQuery: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
