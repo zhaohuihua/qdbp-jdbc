@@ -82,7 +82,10 @@ public abstract class DbTools {
             return null;
         }
         Map<String, Object> map = ParseTools.beanToMap(object);
-        return clearBlankValue ? ConvertTools.clearBlankValue(map, false) : map;
+        if (clearBlankValue) {
+            ConvertTools.clearBlankValue(map);
+        }
+        return map;
     }
 
     /**
