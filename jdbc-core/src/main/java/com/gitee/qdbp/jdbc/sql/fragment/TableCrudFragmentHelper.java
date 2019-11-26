@@ -116,9 +116,6 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         if (VerifyTools.isBlank(fieldName)) {
             throw ufe("update sql", "fieldName$" + operateType + "#IsBlank");
         }
-        if (VerifyTools.isBlank(fieldValue)) {
-            throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
-        }
         String columnName = getColumnName(fieldName);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("update sql", fieldName);
@@ -127,6 +124,9 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         if ("ToNull".equals(operateType)) {
             buffer.append(columnName).append('=').append("NULL");
         } else if ("Add".equals(operateType)) {
+            if (VerifyTools.isBlank(fieldValue)) {
+                throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
+            }
             if (fieldValue instanceof Number && ((Number) fieldValue).doubleValue() < 0) {
                 buffer.append(columnName).append('=');
                 buffer.append(columnName).append('-');
@@ -137,6 +137,9 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
                 buffer.addVariable(fieldName, fieldValue);
             }
         } else if ("Set".equals(operateType)) {
+            if (VerifyTools.isBlank(fieldValue)) {
+                throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
+            }
             buffer.append(columnName).append('=');
             buffer.addVariable(fieldName, fieldValue);
         } else {
