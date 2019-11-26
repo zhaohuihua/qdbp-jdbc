@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserState;
  * @author zhh
  * @version 170712
  */
-public class UserCoreBean implements Serializable {
+public class SysUserEntity implements Serializable {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
@@ -297,7 +297,7 @@ public class UserCoreBean implements Serializable {
      * @param clazz 目标类型
      * @return 目标对象
      */
-    public <T extends UserCoreBean> T to(Class<T> clazz) {
+    public <T extends SysUserEntity> T to(Class<T> clazz) {
         T instance;
         try {
             instance = clazz.newInstance();
@@ -337,7 +337,7 @@ public class UserCoreBean implements Serializable {
      * @param <C> T的子类
      * @return 目标对象列表
      */
-    public static <T extends UserCoreBean, C extends T> List<C> to(List<T> beans, Class<C> clazz) {
+    public static <T extends SysUserEntity, C extends T> List<C> to(List<T> beans, Class<C> clazz) {
         if (beans == null) {
             return null;
         }
@@ -349,7 +349,7 @@ public class UserCoreBean implements Serializable {
         } else {
             list = new ArrayList<>();
         }
-        for (UserCoreBean bean : beans) {
+        for (SysUserEntity bean : beans) {
             list.add(bean.to(clazz));
         }
         return list;
