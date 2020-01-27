@@ -56,7 +56,7 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
         }
         for (TableItem item : tables.getJoins()) {
             String itemField = item.getResultField();
-            if (VerifyTools.isNotBlank(itemField) && !majorField.equals("this")) {
+            if (VerifyTools.isNotBlank(itemField) && !itemField.equals("this")) {
                 subs.put(itemField, new HashMap<String, Object>());
             }
         }

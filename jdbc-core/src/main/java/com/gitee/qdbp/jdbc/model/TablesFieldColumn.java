@@ -132,7 +132,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
      * @return 是否匹配
      */
     public boolean matchesByColumnAlias(String columnAlias) {
-        if (VerifyTools.isBlank(this.columnAlias)) {
+        if (VerifyTools.isNotBlank(this.columnAlias)) {
             return this.columnAlias.equalsIgnoreCase(columnAlias);
         } else {
             return this.getColumnName().equalsIgnoreCase(columnAlias);
