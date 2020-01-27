@@ -39,7 +39,7 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     @Override
     @SuppressWarnings("unchecked")
     public <T> EasyJoinQuery<T> buildJoinQuery(TableJoin tables, Class<T> resultType) {
-        String cacheKey = DbTools.buildCacheKey(tables);
+        String cacheKey = buildCacheKey(tables, resultType);
         if (joinQueryCache.containsKey(cacheKey)) {
             return (EasyJoinQuery<T>) joinQueryCache.get(cacheKey);
         } else {
@@ -47,6 +47,10 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
             joinQueryCache.put(cacheKey, instance);
             return instance;
         }
+    }
+
+    private String buildCacheKey(TableJoin tables, Class<?> resultType) {
+        return DbTools.buildCacheKey(tables) + '>' + resultType;
     }
 
     /** {@inheritDoc} **/
