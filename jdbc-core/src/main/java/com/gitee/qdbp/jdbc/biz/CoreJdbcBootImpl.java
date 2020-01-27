@@ -7,7 +7,6 @@ import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
  * 基础增删改查对象的构造器
@@ -50,7 +49,7 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     }
 
     private String buildCacheKey(TableJoin tables, Class<?> resultType) {
-        return DbTools.buildCacheKey(tables) + '>' + resultType;
+        return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
     }
 
     /** {@inheritDoc} **/

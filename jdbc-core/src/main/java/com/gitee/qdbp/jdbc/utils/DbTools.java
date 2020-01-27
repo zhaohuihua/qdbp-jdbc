@@ -287,31 +287,6 @@ public abstract class DbTools {
     /** TableJoin的列名缓存 **/
     private static Map<String, List<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
 
-    public static String buildCacheKey(TableJoin tables) {
-        StringBuilder buffer = new StringBuilder();
-        TableItem major = tables.getMajor();
-        buffer.append(major.getTableType().getName());
-        if (VerifyTools.isNotBlank(major.getTableAlias())) {
-            buffer.append(':').append(major.getTableAlias());
-        }
-        if (VerifyTools.isNotBlank(major.getResultField())) {
-            buffer.append(':').append(major.getResultField());
-        }
-        List<JoinItem> joins = tables.getJoins();
-        if (VerifyTools.isNotBlank(joins)) {
-            for (JoinItem item : joins) {
-                buffer.append('+').append(item.getTableType().getName());
-                if (VerifyTools.isNotBlank(item.getTableAlias())) {
-                    buffer.append(':').append(item.getTableAlias());
-                }
-                if (VerifyTools.isNotBlank(item.getResultField())) {
-                    buffer.append(':').append(item.getResultField());
-                }
-            }
-        }
-        return buffer.toString();
-    }
-
     private static List<TablesFieldColumn> scanColumnList(TableItem table) {
         TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
         List<SimpleFieldColumn> fields = scans.scanColumnList(table.getTableType());
@@ -337,7 +312,7 @@ public abstract class DbTools {
         if (tables == null) {
             throw new IllegalArgumentException("tables is null");
         }
-        String cacheKey = buildCacheKey(tables);
+        String cacheKey = TableJoin.buildCacheKey(tables, false);
         if (joinColumnsCache.containsKey(cacheKey)) {
             return joinColumnsCache.get(cacheKey);
         }
