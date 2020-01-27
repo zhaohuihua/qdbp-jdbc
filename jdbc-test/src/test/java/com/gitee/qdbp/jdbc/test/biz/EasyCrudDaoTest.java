@@ -55,7 +55,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
         EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
         SysUserEntity user = dao.find(where);
-        log.debug("UserBeanQuery: {}", JsonTools.toLogString(user));
+        log.debug("UserBeanQueryResult: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 
@@ -69,7 +69,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
         EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
         SysUserEntity user = dao.find(where);
-        log.debug("UserWhereQuery: {}", JsonTools.toLogString(user));
+        log.debug("UserWhereQueryResult: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
     }
 }
