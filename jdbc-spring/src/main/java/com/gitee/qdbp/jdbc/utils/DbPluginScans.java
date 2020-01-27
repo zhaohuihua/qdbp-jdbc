@@ -45,6 +45,7 @@ public class DbPluginScans implements ApplicationContextAware {
             for (Object item : orderByBuilderInstances.values()) {
                 OrderBySqlBuilder<?> builder = (OrderBySqlBuilder<?>) item;
                 DbPluginContainer.global.registerOrderBySqlBuilder(builder);
+                registered.add(builder.supported().getSimpleName());
             }
             log.debug("DbPluginRegister.global.registerOrderBySqlBuilder({})", registered);
         }

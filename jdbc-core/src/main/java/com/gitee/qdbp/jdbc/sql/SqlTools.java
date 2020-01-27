@@ -20,42 +20,18 @@ public abstract class SqlTools {
      * @param fieldValues 字段值
      */
     public static SqlBuffer buildInSql(Collection<?> fieldValues) {
-        return buildInSql(null, fieldValues, true);
-    }
-
-    /**
-     * 生成IN语句<br>
-     * 如果fieldValues只有一项, 输出={fieldValue}<br>
-     * 否则输出 IN ( :fieldValue1, :fieldValue2, ... )<br>
-     * 
-     * @param fieldName 字段名称
-     * @param fieldValues 字段值
-     */
-    public static SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues) {
-        return buildInSql(fieldName, fieldValues, true);
+        return buildInSql(fieldValues, true);
     }
 
     /**
      * 生成NOT IN语句<br>
-     * 如果fieldValues只有一项, 输出={fieldValue}<br>
-     * 否则输出 IN ( :fieldValue1, :fieldValue2, ... )<br>
+     * 如果fieldValues只有一项, 输出!={fieldValue}<br>
+     * 否则输出 NOT IN ( :fieldValue1, :fieldValue2, ... )<br>
      * 
      * @param fieldValues 字段值
      */
     public static SqlBuffer buildNotInSql(Collection<?> fieldValues) {
-        return buildInSql(null, fieldValues, false);
-    }
-
-    /**
-     * 生成NOT IN语句<br>
-     * 如果fieldValues只有一项, 输出={fieldValue}<br>
-     * 否则输出 IN ( :fieldValue1, :fieldValue2, ... )<br>
-     * 
-     * @param fieldName 字段名称
-     * @param fieldValues 字段值
-     */
-    public static SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues) {
-        return buildInSql(fieldName, fieldValues, false);
+        return buildInSql(fieldValues, false);
     }
 
     /**
@@ -63,11 +39,10 @@ public abstract class SqlTools {
      * 如果fieldValues只有一项, 输出={fieldValue}<br>
      * 否则输出 IN ( :fieldValue1, :fieldValue2, ... )<br>
      * 
-     * @param fieldName 字段名称
      * @param fieldValues 字段值
      * @param matches true=in, false=not in
      */
-    private static SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues, boolean matches)
+    private static SqlBuffer buildInSql(Collection<?> fieldValues, boolean matches)
             throws UnsupportedFieldExeption {
         SqlBuffer buffer = new SqlBuffer();
         if (VerifyTools.isBlank(fieldValues)) {
@@ -75,13 +50,13 @@ public abstract class SqlTools {
         }
 
         if (fieldValues.size() == 1) {
-            String operate = matches ? "=" : " != ";
+            String operate = matches ? "=" : "!=";
             Object firstValue = null;
             for (Object value : fieldValues) {
                 firstValue = value;
                 break;
             }
-            buffer.append(operate).addVariable(fieldName, firstValue);
+            buffer.append(operate).addVariable(firstValue);
         } else {
             String operate = matches ? "IN" : "NOT IN";
             buffer.append(' ', operate, ' ').append('(');
@@ -91,7 +66,7 @@ public abstract class SqlTools {
                     buffer.append(',');
                 }
                 first = false;
-                buffer.addVariable(fieldName, value);
+                buffer.addVariable(value);
             }
             buffer.append(')');
         }

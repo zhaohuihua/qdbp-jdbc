@@ -74,11 +74,11 @@ public class SimpleSqlDialect implements SqlDialect {
     protected void processPagingForMySql(SqlBuffer buffer, Paging paging) {
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
         } else {
             // limit {start}, {rows}
             buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable("start", paging.getStart()).append(',').addVariable("rows", paging.getRows());
+            buffer.addVariable(paging.getStart()).append(',').addVariable(paging.getRows());
         }
     }
 
@@ -86,12 +86,12 @@ public class SimpleSqlDialect implements SqlDialect {
         // 逻辑参考自: org.hibernate.dialect.H2Dialect
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
         } else {
             // limit {start} offset {rows}
             buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable("start", paging.getStart());
-            buffer.append(" OFFSET ").addVariable("rows", paging.getRows());
+            buffer.addVariable(paging.getStart());
+            buffer.append(" OFFSET ").addVariable(paging.getRows());
         }
     }
 
@@ -99,12 +99,12 @@ public class SimpleSqlDialect implements SqlDialect {
         // 逻辑参考自: org.hibernate.dialect.PostgreSQLDialect
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable("rows", paging.getRows());
+            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
         } else {
             // limit {start} offset {rows}
             buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable("start", paging.getStart());
-            buffer.append(" OFFSET ").addVariable("rows", paging.getRows());
+            buffer.addVariable(paging.getStart());
+            buffer.append(" OFFSET ").addVariable(paging.getRows());
         }
     }
 
@@ -116,7 +116,7 @@ public class SimpleSqlDialect implements SqlDialect {
             //     {sql}
             // ) T_T WHERE ROWNUM <= {end}
             buffer.prepend("SELECT T_T.* FROM (\n");
-            buffer.append("\n) T_T\nWHERE ROWNUM <= ").addVariable("end", paging.getEnd());
+            buffer.append("\n) T_T\nWHERE ROWNUM <= ").addVariable(paging.getEnd());
         } else {
             buffer.indent(2, true);
             // SELECT * FROM (
@@ -125,8 +125,8 @@ public class SimpleSqlDialect implements SqlDialect {
             //     ) T_T WHERE ROWNUM <= {end}
             // ) WHERE R_N > {start}
             buffer.prepend("SELECT * FROM (\n\tSELECT ROWNUM R_N, T_T.* FROM (\n");
-            buffer.append("\n\t) T_T WHERE ROWNUM <= ").addVariable("end", paging.getEnd());
-            buffer.append("\n) WHERE R_N > ").addVariable("start", paging.getStart());
+            buffer.append("\n\t) T_T WHERE ROWNUM <= ").addVariable(paging.getEnd());
+            buffer.append("\n) WHERE R_N > ").addVariable(paging.getStart());
         }
     }
 
@@ -212,29 +212,23 @@ public class SimpleSqlDialect implements SqlDialect {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildLikeSql(Object fieldValue) {
-        return buildLikeSql(null, fieldValue);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public SqlBuffer buildLikeSql(String fieldName, Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
         // TODO chooseEscapeChar
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
         switch (dbType) {
         case Oracle:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
         case DB2:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
         case PostgreSQL:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
         case MySQL:
-            return buffer.append("CONCAT('%',").addVariable(fieldName, fieldValue).append(",'%')");
+            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
         case H2:
-            return buffer.append("CONCAT('%',").addVariable(fieldName, fieldValue).append(",'%')");
+            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
         case SqlServer:
-            return buffer.append("('%'+").addVariable(fieldName, fieldValue).append("+'%')");
+            return buffer.append("('%'+").addVariable(fieldValue).append("+'%')");
         default:
             throw new UnsupportedOperationException("Unsupported db type: " + dbType);
         }
@@ -243,28 +237,22 @@ public class SimpleSqlDialect implements SqlDialect {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildStartsWithSql(Object fieldValue) {
-        return buildStartsWithSql(null, fieldValue);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public SqlBuffer buildStartsWithSql(String fieldName, Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
         switch (dbType) {
         case Oracle:
-            return buffer.append('(').addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append('(').addVariable(fieldValue).append("||'%')");
         case DB2:
-            return buffer.append('(').addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append('(').addVariable(fieldValue).append("||'%')");
         case PostgreSQL:
-            return buffer.append('(').addVariable(fieldName, fieldValue).append("||'%')");
+            return buffer.append('(').addVariable(fieldValue).append("||'%')");
         case MySQL:
-            return buffer.append("CONCAT(").addVariable(fieldName, fieldValue).append(",'%')");
+            return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
         case H2:
-            return buffer.append("CONCAT(").addVariable(fieldName, fieldValue).append(",'%')");
+            return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
         case SqlServer:
-            return buffer.append('(').addVariable(fieldName, fieldValue).append("+'%')");
+            return buffer.append('(').addVariable(fieldValue).append("+'%')");
         default:
             throw new UnsupportedOperationException("Unsupported db type: " + dbType);
         }
@@ -273,28 +261,22 @@ public class SimpleSqlDialect implements SqlDialect {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildEndsWithSql(Object fieldValue) {
-        return buildEndsWithSql(null, fieldValue);
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public SqlBuffer buildEndsWithSql(String fieldName, Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
         switch (dbType) {
         case Oracle:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("('%'||").addVariable(fieldValue).append(")");
         case DB2:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("('%'||").addVariable(fieldValue).append(")");
         case PostgreSQL:
-            return buffer.append("('%'||").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("('%'||").addVariable(fieldValue).append(")");
         case MySQL:
-            return buffer.append("CONCAT('%',").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
         case H2:
-            return buffer.append("CONCAT('%',").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
         case SqlServer:
-            return buffer.append("('%'+").addVariable(fieldName, fieldValue).append(")");
+            return buffer.append("('%'+").addVariable(fieldValue).append(")");
         default:
             throw new UnsupportedOperationException("Unsupported db type: " + dbType);
         }
@@ -471,19 +453,19 @@ public class SimpleSqlDialect implements SqlDialect {
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("{CALL RECURSIVE_FIND_CHILDREN", '(');
-        buffer.addVariable("tableName", sqlHelper.buildFromSql(false));
+        buffer.addVariable(sqlHelper.buildFromSql(false)); // tableName
         buffer.append(',');
-        buffer.addVariable("startCodes", ConvertTools.joinToString(startCodes));
+        buffer.addVariable(ConvertTools.joinToString(startCodes));
         buffer.append(',');
-        buffer.addVariable("codeField", sqlHelper.getColumnName(codeField));
+        buffer.addVariable(sqlHelper.getColumnName(codeField));
         buffer.append(',');
-        buffer.addVariable("parentField", sqlHelper.getColumnName(parentField));
+        buffer.addVariable(sqlHelper.getColumnName(parentField));
         buffer.append(',');
-        buffer.addVariable("selectFields", selectFieldSql);
+        buffer.addVariable(selectFieldSql);
         buffer.append(',');
-        buffer.addVariable("whereSql", whereSql);
+        buffer.addVariable(whereSql);
         buffer.append(',');
-        buffer.addVariable("orderBySql", orderBySql);
+        buffer.addVariable(orderBySql);
         buffer.append(")}");
         return buffer;
     }

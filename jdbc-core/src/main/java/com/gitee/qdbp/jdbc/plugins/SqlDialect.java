@@ -58,7 +58,7 @@ public interface SqlDialect {
      * 生成LIKE SQL语句
      * 
      * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
+     * @return LIKE SQL语句<br>
      *         ORACLE: LIKE ('%'|| ? ||'%')<br>
      *         MYSQL: LIKE CONCAT('%', ?, '%')<br>
      */
@@ -67,19 +67,8 @@ public interface SqlDialect {
     /**
      * 生成LIKE SQL语句
      * 
-     * @param fieldName 字段名, 这个字段名只是用来标记变量的, 并不一定是数据库的列名, 生成的SQL也不带字段名前缀
      * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
-     *         ORACLE: LIKE ('%'|| ? ||'%')<br>
-     *         MYSQL: LIKE CONCAT('%', ?, '%')<br>
-     */
-    SqlBuffer buildLikeSql(String fieldName, Object fieldValue);
-
-    /**
-     * 生成LIKE SQL语句
-     * 
-     * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
+     * @return LIKE SQL语句<br>
      *         ORACLE: LIKE ( ? ||'%')<br>
      *         MYSQL: LIKE CONCAT( ?, '%')<br>
      */
@@ -88,34 +77,12 @@ public interface SqlDialect {
     /**
      * 生成LIKE SQL语句
      * 
-     * @param fieldName 字段名, 这个字段名只是用来标记变量的, 并不一定是数据库的列名, 生成的SQL也不带字段名前缀
      * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
-     *         ORACLE: LIKE ( ? ||'%')<br>
-     *         MYSQL: LIKE CONCAT( ?, '%')<br>
-     */
-    SqlBuffer buildStartsWithSql(String fieldName, Object fieldValue);
-
-    /**
-     * 生成LIKE SQL语句
-     * 
-     * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
+     * @return LIKE SQL语句<br>
      *         ORACLE: LIKE ('%'|| ? )<br>
      *         MYSQL: LIKE CONCAT('%', ? )<br>
      */
     SqlBuffer buildEndsWithSql(Object fieldValue);
-
-    /**
-     * 生成LIKE SQL语句
-     * 
-     * @param fieldName 字段名, 这个字段名只是用来标记变量的, 并不一定是数据库的列名, 生成的SQL也不带字段名前缀
-     * @param fieldValue 字段值
-     * @return LIKE SQL语句(<b>不带</b>字段名前缀)<br>
-     *         ORACLE: LIKE ('%'|| ? )<br>
-     *         MYSQL: LIKE CONCAT('%', ? )<br>
-     */
-    SqlBuffer buildEndsWithSql(String fieldName, Object fieldValue);
 
     /**
      * 递归查询所有子节点<br>

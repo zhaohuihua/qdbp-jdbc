@@ -20,6 +20,9 @@ import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
+import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
+import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
+import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
@@ -27,7 +30,6 @@ import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -192,6 +194,28 @@ public abstract class DbTools {
     }
 
     /**
+     * 根据运算符获取WhereOperator处理类
+     * 
+     * @param operatorType 运算符
+     * @return WhereOperator处理类
+     */
+    public static DbBaseOperator getWhereOperator(String operatorType) {
+        DbOperatorContainer container = DbPluginContainer.global.getOperatorContainer();
+        return container == null ? null : container.getWhereOperator(operatorType);
+    }
+
+    /**
+     * 根据运算符获取UpdateOperator处理类
+     * 
+     * @param operatorType 运算符
+     * @return UpdateOperator处理类
+     */
+    public static DbBaseOperator getUpdateOperator(String operatorType) {
+        DbOperatorContainer container = DbPluginContainer.global.getOperatorContainer();
+        return container == null ? null : container.getUpdateOperator(operatorType);
+    }
+
+    /**
      * 格式化SQL语句
      * 
      * @param sql 待格式化的SQL语句
@@ -266,16 +290,22 @@ public abstract class DbTools {
     public static String buildCacheKey(TableJoin tables) {
         StringBuilder buffer = new StringBuilder();
         TableItem major = tables.getMajor();
-        buffer.append(parseTableName(major.getTableType()));
+        buffer.append(major.getTableType().getName());
         if (VerifyTools.isNotBlank(major.getTableAlias())) {
-            buffer.append(' ').append(major.getTableAlias().toUpperCase());
+            buffer.append(':').append(major.getTableAlias());
+        }
+        if (VerifyTools.isNotBlank(major.getResultField())) {
+            buffer.append(':').append(major.getResultField());
         }
         List<JoinItem> joins = tables.getJoins();
         if (VerifyTools.isNotBlank(joins)) {
             for (JoinItem item : joins) {
-                buffer.append('-').append(parseTableName(item.getTableType()));
+                buffer.append('+').append(item.getTableType().getName());
                 if (VerifyTools.isNotBlank(item.getTableAlias())) {
-                    buffer.append(' ').append(item.getTableAlias().toUpperCase());
+                    buffer.append(':').append(item.getTableAlias());
+                }
+                if (VerifyTools.isNotBlank(item.getResultField())) {
+                    buffer.append(':').append(item.getResultField());
                 }
             }
         }

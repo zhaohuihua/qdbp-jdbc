@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.gitee.qdbp.able.jdbc.condition.DbFieldName;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.NamingTools;
-import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * SQL容器
@@ -283,19 +282,13 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer addVariable(Object value) {
-        this.buffer.add(new VariableItem(index++, value));
-        return this;
-    }
-
-    /**
-     * 增加变量, 同时将变量以占位符追加到SQL语句中
-     * 
-     * @param name 名称
-     * @param value 变量
-     * @return 返回当前SQL容器用于连写
-     */
-    public SqlBuffer addVariable(String name, Object value) {
-        this.buffer.add(new VariableItem(index++, name, value));
+        if (value instanceof SqlBuffer) {
+            append((SqlBuffer) value);
+        } else if (value instanceof DbFieldName) {
+            append(value.toString());
+        } else {
+            this.buffer.add(new VariableItem(index++, value));
+        }
         return this;
     }
 
@@ -370,7 +363,7 @@ public class SqlBuffer implements Serializable {
         for (Item item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
-                target.addVariable(variable.name, variable.value);
+                target.addVariable(variable.value);
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 target.append(stringItem.value.toString());
@@ -513,7 +506,6 @@ public class SqlBuffer implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private int index;
-        private String name;
         private Object value;
 
         public VariableItem(int index, Object value) {
@@ -521,18 +513,8 @@ public class SqlBuffer implements Serializable {
             this.value = value;
         }
 
-        public VariableItem(int index, String name, Object value) {
-            this.index = index;
-            this.name = NamingTools.toCamelString(name, true);
-            this.value = value;
-        }
-
         public String getKey() {
-            if (VerifyTools.isBlank(name)) {
-                return "$" + index;
-            } else {
-                return "$" + index + "$" + name;
-            }
+            return "$" + index;
         }
 
         public Object getValue() {

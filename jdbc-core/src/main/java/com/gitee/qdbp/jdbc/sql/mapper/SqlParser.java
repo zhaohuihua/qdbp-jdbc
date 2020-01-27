@@ -59,7 +59,7 @@ public class SqlParser {
                 if (value instanceof SqlBuffer) {
                     buffer.append((SqlBuffer) value);
                 } else {
-                    buffer.addVariable(placeholder, value);
+                    buffer.addVariable(value);
                 }
             }
             index = matcher.end();
