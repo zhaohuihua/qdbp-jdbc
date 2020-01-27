@@ -10,17 +10,24 @@ import java.util.Set;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
+import com.gitee.qdbp.able.jdbc.condition.DbFieldName;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.SubWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
+import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
+import com.gitee.qdbp.jdbc.operator.DbMultivariateOperator;
+import com.gitee.qdbp.jdbc.operator.DbTernaryOperator;
+import com.gitee.qdbp.jdbc.operator.DbUnaryOperator;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -111,7 +118,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             // 此处必须报错, 否则将可能由于疏忽大意导致严重的问题
             // 由于前面的判断都是基于where.isEmpty(), 逻辑是只要where不是空就必定会生成where语句
             // 如果不报错, 那么有可能因为字段名写错导致where条件为空
-            // -- 例如delete操作where.on("userId", "=", "xxx");的字段名写成userIdd
+            // -- 例如delete操作where.on("userId", "=", "xxx");的字段名userId写成userIdd
             // -- 期望的语句是DELETE FROM tableName WHERE USER_ID='xxx'
             // -- 但根据userIdd找不到对应的column信息, 实际上生成的语句会是DELETE FROM tableName
             // -- 如果不报错, 在这个场景下将会导致表记录被全部删除!
@@ -130,80 +137,21 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         String fieldName = condition.getFieldName();
         Object fieldValue = condition.getFieldValue();
         if (VerifyTools.isBlank(fieldName)) {
-            throw ufe("where sql", "fieldName$" + operateType + "#IsBlank");
+            throw ufe("where sql", "fieldName#IsBlank");
         }
         String columnName = getColumnName(fieldName);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
 
-        SqlBuffer buffer = new SqlBuffer();
-        if ("In".equals(operateType) || "NotIn".equals(operateType) || "Between".equals(operateType)) {
-            if (VerifyTools.isBlank(fieldValue)) {
-                throw ufe("where sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
-            }
-            List<Object> values;
-            if (fieldValue.getClass().isArray()) {
-                values = Arrays.asList((Object[]) fieldValue);
-            } else if (fieldValue instanceof Collection) {
-                values = new ArrayList<Object>((Collection<?>) fieldValue);
-            } else if (fieldValue instanceof Map) {
-                Map<?, ?> map = (Map<?, ?>) fieldValue;
-                values = new ArrayList<Object>(map.values());
-            } else if (fieldValue instanceof Iterable) {
-                values = new ArrayList<Object>();
-                Iterable<?> iterable = (Iterable<?>) fieldValue;
-                for (Object temp : iterable) {
-                    values.add(temp);
-                }
-            } else {
-                values = Arrays.asList(fieldValue);
-            }
-            if ("Between".equals(operateType)) {
-                if (values.size() < 2) {
-                    throw ufe("where sql", fieldName + '$' + operateType + '(' + "#MissVars" + ')');
-                }
-                buffer.append(columnName);
-                buffer.append(' ', "BETWEEN", ' ');
-                buffer.addVariable(fieldName, values.get(0));
-                buffer.append(' ', "AND", ' ');
-                buffer.addVariable(fieldName, values.get(1));
-            } else {
-                if ("NotIn".equals(operateType)) {
-                    buffer.append(buildNotInSql(fieldName, values, false));
-                } else {
-                    buffer.append(buildInSql(fieldName, values, false));
-                }
-            }
-        } else if ("IsNull".equals(operateType)) {
-            buffer.append(columnName).append(' ', "IS NULL");
-        } else if ("IsNotNull".equals(operateType)) {
-            buffer.append(columnName).append(' ', "IS NOT NULL");
-        } else {
-            if ("GreaterThen".equals(operateType)) {
-                buffer.append(columnName).append(">").addVariable(fieldName, fieldValue);
-            } else if ("GreaterEqualsThen".equals(operateType)) {
-                buffer.append(columnName).append(">=").addVariable(fieldName, fieldValue);
-            } else if ("LessThen".equals(operateType)) {
-                buffer.append(columnName).append('<').addVariable(fieldName, fieldValue);
-            } else if ("LessEqualsThen".equals(operateType)) {
-                buffer.append(columnName).append("<=").addVariable(fieldName, fieldValue);
-            } else if ("Starts".equals(operateType)) {
-                buffer.append(columnName, ' ').append(dialect.buildStartsWithSql(fieldName, fieldValue));
-            } else if ("Ends".equals(operateType)) {
-                buffer.append(columnName, ' ').append(dialect.buildEndsWithSql(fieldName, fieldValue));
-            } else if ("Like".equals(operateType)) {
-                buffer.append(columnName, ' ').append(dialect.buildLikeSql(fieldName, fieldValue));
-            } else if ("NotLike".equals(operateType)) {
-                buffer.append(columnName, ' ').append("NOT", ' ').append(dialect.buildLikeSql(fieldName, fieldValue));
-            } else if ("NotEquals".equals(operateType)) {
-                buffer.append(columnName).append("!=").addVariable(fieldName, fieldValue);
-            } else if ("Equals".equals(operateType)) {
-                buffer.append(columnName).append('=').addVariable(fieldName, fieldValue);
-            } else {
-                throw ufe("where sql", fieldName + '$' + operateType + '(' + "#UnsupportedOperate" + ')');
-            }
+        // 查找Where运算符处理类
+        DbBaseOperator operator = DbTools.getWhereOperator(operateType);
+        if (operator == null) {
+            throw ufe("where sql", fieldName + '#' + "UnsupportedOperate" + '(' + operateType + ')');
         }
+        // 由运算符处理类生成子SQL
+        SqlBuffer buffer = buildOperatorSql("where sql", fieldName, columnName, operator, fieldValue);
+
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("WHERE", ' ');
         }
@@ -234,27 +182,107 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildInSql(String fieldName, List<?> fieldValues, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues, boolean whole)
+            throws UnsupportedFieldExeption {
         String columnName = getColumnName(fieldName);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
-        SqlBuffer buffer = SqlTools.buildInSql(fieldName, fieldValues);
+        SqlBuffer buffer = SqlTools.buildInSql(fieldValues);
         prependWhereAndColumn(buffer, columnName, whole);
         return buffer;
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildNotInSql(String fieldName, List<?> fieldValues, boolean whole)
+    public SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption {
         String columnName = getColumnName(fieldName);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
-        SqlBuffer buffer = SqlTools.buildNotInSql(fieldName, fieldValues);
+        SqlBuffer buffer = SqlTools.buildNotInSql(fieldValues);
         prependWhereAndColumn(buffer, columnName, whole);
         return buffer;
+    }
+
+    protected SqlBuffer buildOperatorSql(String subject, String fieldName, String columnName, DbBaseOperator operator,
+            Object fieldValue) {
+        String operatorName = operator.getName();
+
+        if (operator instanceof DbUnaryOperator) {
+            if (VerifyTools.isBlank(fieldValue)) {
+                return ((DbUnaryOperator) operator).buildSql(columnName, dialect);
+            } else { // where.on(fieldName, "is null", fieldValue); // 这里是错的, 不允许有fieldValue
+                throw ufe(subject, fieldName + '$' + operatorName + '#' + "VariableNotSupported");
+            }
+        } else if (operator instanceof DbBinaryOperator) {
+            Object value = convertFieldValue(fieldValue);
+            return ((DbBinaryOperator) operator).buildSql(columnName, value, dialect);
+        } else if (operator instanceof DbTernaryOperator) {
+            List<Object> values = convertFieldValues(parseListFieldValue(fieldValue));
+            if (values.size() == 2) {
+                Object first = convertFieldValue(values.get(0));
+                Object second = convertFieldValue(values.get(1));
+                return ((DbTernaryOperator) operator).buildSql(columnName, first, second, dialect);
+            } else if (values.size() < 2) { // 参数不够
+                throw ufe(subject, fieldName + '$' + operatorName + '#' + "MissVariables");
+            } else { // 参数过多
+                throw ufe(subject, fieldName + '$' + operatorName + '#' + "TooManyVariables");
+            }
+        } else if (operator instanceof DbMultivariateOperator) {
+            List<Object> values = convertFieldValues(parseListFieldValue(fieldValue));
+            if (!values.isEmpty()) {
+                return ((DbMultivariateOperator) operator).buildSql(columnName, values, dialect);
+            } else { // 参数不能为空
+                throw ufe(subject, fieldName + '$' + operatorName + '#' + "MissVariables");
+            }
+        } else {
+            throw ufe(subject, fieldName + '#' + "UnsupportedOperate" + '(' + operatorName + ')');
+        }
+    }
+
+    protected Object convertFieldValue(Object fieldValue) {
+        if (fieldValue instanceof DbFieldName) {
+            DbFieldName temp = (DbFieldName) fieldValue;
+            String fieldName = temp.getFieldName();
+            String columnName = getColumnName(fieldName);
+            return new DbFieldName(columnName);
+        } else {
+            return fieldValue;
+        }
+    }
+
+    protected List<Object> convertFieldValues(List<Object> fieldValues) {
+        List<Object> result = new ArrayList<>();
+        if (fieldValues != null) {
+            for (Object fieldValue : fieldValues) {
+                result.add(convertFieldValue(fieldValue));
+            }
+        }
+        return result;
+    }
+
+    protected List<Object> parseListFieldValue(Object fieldValue) {
+        if (fieldValue == null) {
+            return Arrays.asList(fieldValue);
+        } else if (fieldValue.getClass().isArray()) {
+            return Arrays.asList((Object[]) fieldValue);
+        } else if (fieldValue instanceof Collection) {
+            return new ArrayList<Object>((Collection<?>) fieldValue);
+        } else if (fieldValue instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) fieldValue;
+            return new ArrayList<Object>(map.values());
+        } else if (fieldValue instanceof Iterable) {
+            List<Object> values = new ArrayList<Object>();
+            Iterable<?> iterable = (Iterable<?>) fieldValue;
+            for (Object temp : iterable) {
+                values.add(temp);
+            }
+            return values;
+        } else {
+            return Arrays.asList(fieldValue);
+        }
     }
 
     private static void prependWhereAndColumn(SqlBuffer buffer, String columnName, boolean whole) {

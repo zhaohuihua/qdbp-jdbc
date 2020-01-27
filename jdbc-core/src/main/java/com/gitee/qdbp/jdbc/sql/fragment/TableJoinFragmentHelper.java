@@ -49,7 +49,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
                 }
                 DbWhere where = item.getWhere();
                 if (where != null && !where.isEmpty()) { // 关联条件
-                    buffer.append(' ').append("ON").append(buildWhereSql(where, false));
+                    buffer.append(' ', "ON", ' ').append(buildWhereSql(where, false));
                 }
             }
         }

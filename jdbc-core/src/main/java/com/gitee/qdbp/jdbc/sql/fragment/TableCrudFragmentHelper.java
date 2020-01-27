@@ -11,6 +11,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
@@ -62,7 +63,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            buffer.addVariable(item.getFieldName(), entity.get(item.getFieldName()));
+            buffer.addVariable(entity.get(item.getFieldName()));
         }
         return buffer;
     }
@@ -109,7 +110,6 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         if (field == null) {
             return null;
         }
-        SqlBuffer buffer = new SqlBuffer();
         String operateType = VerifyTools.nvl(field.getOperateType(), "Set");
         String fieldName = field.getFieldName();
         Object fieldValue = field.getFieldValue();
@@ -121,30 +121,14 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
             throw ufe("update sql", fieldName);
         }
 
-        if ("ToNull".equals(operateType)) {
-            buffer.append(columnName).append('=').append("NULL");
-        } else if ("Add".equals(operateType)) {
-            if (VerifyTools.isBlank(fieldValue)) {
-                throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
-            }
-            if (fieldValue instanceof Number && ((Number) fieldValue).doubleValue() < 0) {
-                buffer.append(columnName).append('=');
-                buffer.append(columnName).append('-');
-                buffer.addVariable(fieldName, fieldValue);
-            } else {
-                buffer.append(columnName).append('=');
-                buffer.append(columnName).append('+');
-                buffer.addVariable(fieldName, fieldValue);
-            }
-        } else if ("Set".equals(operateType)) {
-            if (VerifyTools.isBlank(fieldValue)) {
-                throw ufe("update sql", fieldName + '$' + operateType + '(' + fieldValue + "#IsBlank" + ')');
-            }
-            buffer.append(columnName).append('=');
-            buffer.addVariable(fieldName, fieldValue);
-        } else {
-            throw ufe("update sql", fieldName + '$' + operateType + '(' + "#UnsupportedOperate" + ')');
+        // 查找Update运算符处理类
+        DbBaseOperator operator = DbTools.getUpdateOperator(operateType);
+        if (operator == null) {
+            throw ufe("update sql", fieldName + '#' + "UnsupportedOperate" + '(' + operateType + ')');
         }
+        // 由运算符处理类生成子SQL
+        SqlBuffer buffer = buildOperatorSql("update sql", fieldName, columnName, operator, fieldValue);
+
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("SET", ' ');
         }

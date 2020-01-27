@@ -6,10 +6,11 @@ import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHelper;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleModelDataHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHelper;
 
 /**
  * 自定义插件容器
@@ -20,6 +21,16 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHelper;
 public class DbPluginContainer {
 
     public static final DbPluginContainer global = new DbPluginContainer();
+
+    private DbOperatorContainer operatorContainer = new SimpleDbOperatorContainer();
+
+    public void registerOperatorContainer(DbOperatorContainer operatorContainer) {
+        this.operatorContainer = operatorContainer;
+    }
+
+    public DbOperatorContainer getOperatorContainer() {
+        return operatorContainer;
+    }
 
     private SqlFormatter sqlFormatter = new SimpleSqlFormatter();
 
