@@ -12,7 +12,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
+import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
@@ -32,7 +32,7 @@ public abstract class EasyBaseQueryImpl<T> {
 
     protected RowToBeanMapper<T> rowToBeanMapper;
     protected QuerySqlBuilder sqlBuilder;
-    protected ModelDataExecutor modelDataExecutor;
+    protected EntityFillExecutor entityFillExecutor;
     protected SqlBufferJdbcOperations jdbc;
     protected SqlDialect dialect;
 
@@ -40,15 +40,15 @@ public abstract class EasyBaseQueryImpl<T> {
      * 构造函数
      * 
      * @param sqlBuilder SQL生成工具
-     * @param modelDataExecutor 实体业务处理接口
+     * @param entityFillExecutor 实体业务处理接口
      * @param jdbcOperations SqlBuffer数据库操作类
      * @param rowToBeanMapper 结果转换接口
      */
-    public EasyBaseQueryImpl(QuerySqlBuilder sqlBuilder, ModelDataExecutor modelDataExecutor,
+    public EasyBaseQueryImpl(QuerySqlBuilder sqlBuilder, EntityFillExecutor entityFillExecutor,
             SqlBufferJdbcOperations jdbcOperations, RowToBeanMapper<T> rowToBeanMapper) {
         this.rowToBeanMapper = rowToBeanMapper;
         this.sqlBuilder = sqlBuilder;
-        this.modelDataExecutor = modelDataExecutor;
+        this.entityFillExecutor = entityFillExecutor;
         this.jdbc = jdbcOperations;
         this.dialect = jdbcOperations.findSqlDialect();
     }
@@ -66,7 +66,7 @@ public abstract class EasyBaseQueryImpl<T> {
         if (where == null || where.isEmpty()) {
             throw new IllegalArgumentException("where can't be empty");
         }
-        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildFindSql(where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
@@ -77,7 +77,7 @@ public abstract class EasyBaseQueryImpl<T> {
 
     public List<T> listAll(List<Ordering> orderings) {
         DbWhere where = new DbWhere();
-        modelDataExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
@@ -88,7 +88,7 @@ public abstract class EasyBaseQueryImpl<T> {
         if (where == null || where instanceof EmptyDbWhere) {
             readyWhere = new DbWhere();
         }
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
@@ -108,7 +108,7 @@ public abstract class EasyBaseQueryImpl<T> {
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         List<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
@@ -116,7 +116,7 @@ public abstract class EasyBaseQueryImpl<T> {
     public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return doListFieldValues(fieldName, distinct, readyWhere, null, valueClazz);
     }
 
@@ -128,7 +128,7 @@ public abstract class EasyBaseQueryImpl<T> {
 
     public int count(DbWhere where) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return doCount(readyWhere);
     }
 
@@ -140,7 +140,7 @@ public abstract class EasyBaseQueryImpl<T> {
     public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
         VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         return this.doGroupCount(groupBy, readyWhere);
     }
 

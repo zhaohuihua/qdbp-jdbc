@@ -6,9 +6,9 @@ import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHelper;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleModelDataHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 
@@ -20,75 +20,147 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
  */
 public class DbPluginContainer {
 
-    public static final DbPluginContainer global = new DbPluginContainer();
+    /** 全局实例 **/
+    private static DbPluginContainer DEFAULTS;
 
-    private DbOperatorContainer operatorContainer = new SimpleDbOperatorContainer();
-
-    public void registerOperatorContainer(DbOperatorContainer operatorContainer) {
-        this.operatorContainer = operatorContainer;
+    /** 初始化全局实例 **/
+    public static void init(DbPluginContainer container) {
+        DEFAULTS = container;
+        checkAndSetDefaultPorperty(DEFAULTS);
     }
 
-    public DbOperatorContainer getOperatorContainer() {
-        return operatorContainer;
+    /** 获取全局实例 **/
+    public static DbPluginContainer defaults() {
+        if (DEFAULTS == null) {
+            DEFAULTS = InnerInstance.INSTANCE;
+        }
+        return DEFAULTS;
     }
 
-    private SqlFormatter sqlFormatter = new SimpleSqlFormatter();
+    /**
+     * 静态内部类单例模式, 同时解决延迟加载和并发问题(缺点是无法传参)<br>
+     * 加载外部类时, 不会加载内部类, 也就不会创建实例对象;<br>
+     * 只有DEFAULTS==null调用InnerInstance.INSTANCE时才会加载静态内部类;<br>
+     * 加载类是线程安全的, 虚拟机保证只会装载一次内部类, 不会出现并发问题<br>
+     *
+     * @author zhaohuihua
+     * @version 200129
+     */
+    public static class InnerInstance {
 
-    public void registerSqlFormatter(SqlFormatter sqlFormatter) {
-        this.sqlFormatter = sqlFormatter;
+        public static final DbPluginContainer INSTANCE = new DbPluginContainer();
+        static {
+            checkAndSetDefaultPorperty(INSTANCE);
+        }
     }
 
-    public SqlFormatter getSqlFormatter() {
-        return sqlFormatter;
+    private static void checkAndSetDefaultPorperty(DbPluginContainer container) {
+        if (container.getTableInfoScans() == null) {
+            container.setTableInfoScans(new SimpleTableInfoScans());
+        }
+        if (container.getEntityFillHandler() == null) {
+            container.setEntityFillHandler(new SimpleEntityFillHandler<>());
+        }
+        if (container.getDataConvertHandler() == null) {
+            container.setDataConvertHandler(new SimpleDataConvertHandler());
+        }
+        if (container.getOperatorContainer() == null) {
+            container.setOperatorContainer(new SimpleDbOperatorContainer());
+        }
+        if (container.getSqlFormatter() == null) {
+            container.setSqlFormatter(new SimpleSqlFormatter());
+        }
+        if (container.getDbVersionFinder() == null) {
+            container.setDbVersionFinder(new DataSourceDbVersionFinder());
+        }
     }
 
-    private TableInfoScans tableInfoScans = new SimpleTableInfoScans();
+    /** 数据表和列信息扫描类 **/
+    private TableInfoScans tableInfoScans;
 
-    public void registerTableInfoScans(TableInfoScans tableInfoScans) {
+    /** 数据表和列信息扫描类 **/
+    public void setTableInfoScans(TableInfoScans tableInfoScans) {
         this.tableInfoScans = tableInfoScans;
     }
 
+    /** 数据表和列信息扫描类 **/
     public TableInfoScans getTableInfoScans() {
         return tableInfoScans;
     }
 
-    private ModelDataHandler modelDataHandler = new SimpleModelDataHandler<>();
+    /** 实体数据填充处理类 **/
+    private EntityFillHandler entityFillHandler;
 
-    public void registerModelDataHandler(ModelDataHandler modelDataHandler) {
-        this.modelDataHandler = modelDataHandler;
+    /** 实体数据填充处理类 **/
+    public void setEntityFillHandler(EntityFillHandler entityFillHandler) {
+        this.entityFillHandler = entityFillHandler;
     }
 
-    public ModelDataHandler getModelDataHandler() {
-        return modelDataHandler;
+    /** 实体数据填充处理类 **/
+    public EntityFillHandler getEntityFillHandler() {
+        return entityFillHandler;
     }
 
-    private DbVersionFinder dbVersionFinder = new DataSourceDbVersionFinder();
+    /** 数据转换处理类 **/
+    private DataConvertHandler dataConvertHandler;
 
-    public void registerDbVersionFinder(DbVersionFinder dbVersionFinder) {
+    /** 数据转换处理类 **/
+    public void setDataConvertHandler(DataConvertHandler dataConvertHandler) {
+        this.dataConvertHandler = dataConvertHandler;
+    }
+
+    /** 数据转换处理类 **/
+    public DataConvertHandler getDataConvertHandler() {
+        return dataConvertHandler;
+    }
+
+    /** 数据库运算符容器 **/
+    private DbOperatorContainer operatorContainer;
+
+    /** 数据库运算符容器 **/
+    public void setOperatorContainer(DbOperatorContainer operatorContainer) {
+        this.operatorContainer = operatorContainer;
+    }
+
+    /** 数据库运算符容器 **/
+    public DbOperatorContainer getOperatorContainer() {
+        return operatorContainer;
+    }
+
+    /** SQL格式化接口 **/
+    private SqlFormatter sqlFormatter;
+
+    /** SQL格式化接口 **/
+    public void setSqlFormatter(SqlFormatter sqlFormatter) {
+        this.sqlFormatter = sqlFormatter;
+    }
+
+    /** SQL格式化接口 **/
+    public SqlFormatter getSqlFormatter() {
+        return sqlFormatter;
+    }
+
+    /** 数据库版本信息查询接口 **/
+    private DbVersionFinder dbVersionFinder;
+
+    /** 数据库版本信息查询接口 **/
+    public void setDbVersionFinder(DbVersionFinder dbVersionFinder) {
         this.dbVersionFinder = dbVersionFinder;
     }
 
+    /** 数据库版本信息查询接口 **/
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
     }
 
-    private DataConvertHelper dataConvertHelper = new SimpleDataConvertHelper();
-
-    public void registerDataConvertHelper(DataConvertHelper dataConvertHelper) {
-        this.dataConvertHelper = dataConvertHelper;
-    }
-
-    public DataConvertHelper getDataConvertHelper() {
-        return dataConvertHelper;
-    }
-
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();
 
-    public <T extends WhereCondition> void registerWhereSqlBuilder(WhereSqlBuilder<T> builder) {
+    public <T extends WhereCondition> void addWhereSqlBuilder(WhereSqlBuilder<T> builder) {
         whereSqlBuilders.add(builder);
     }
 
-    public <T extends WhereCondition> void registerWhereSqlBuilder(List<WhereSqlBuilder<T>> builders) {
+    public <T extends WhereCondition> void setWhereSqlBuilder(List<WhereSqlBuilder<T>> builders) {
+        whereSqlBuilders.clear();
         whereSqlBuilders.addAll(builders);
     }
 
@@ -111,11 +183,12 @@ public class DbPluginContainer {
 
     private List<UpdateSqlBuilder<? extends UpdateCondition>> UpdateSqlBuilders = new ArrayList<>();
 
-    public <T extends UpdateCondition> void registerUpdateSqlBuilder(UpdateSqlBuilder<T> builder) {
+    public <T extends UpdateCondition> void addUpdateSqlBuilder(UpdateSqlBuilder<T> builder) {
         UpdateSqlBuilders.add(builder);
     }
 
-    public <T extends UpdateCondition> void registerUpdateSqlBuilder(List<UpdateSqlBuilder<T>> builders) {
+    public <T extends UpdateCondition> void setUpdateSqlBuilder(List<UpdateSqlBuilder<T>> builders) {
+        UpdateSqlBuilders.clear();
         UpdateSqlBuilders.addAll(builders);
     }
 
@@ -138,11 +211,12 @@ public class DbPluginContainer {
 
     private List<OrderBySqlBuilder<? extends OrderByCondition>> OrderBySqlBuilders = new ArrayList<>();
 
-    public <T extends OrderByCondition> void registerOrderBySqlBuilder(OrderBySqlBuilder<T> builder) {
+    public <T extends OrderByCondition> void addOrderBySqlBuilder(OrderBySqlBuilder<T> builder) {
         OrderBySqlBuilders.add(builder);
     }
 
-    public <T extends OrderByCondition> void registerOrderBySqlBuilder(List<OrderBySqlBuilder<T>> builders) {
+    public <T extends OrderByCondition> void setOrderBySqlBuilder(List<OrderBySqlBuilder<T>> builders) {
+        OrderBySqlBuilders.clear();
         OrderBySqlBuilders.addAll(builders);
     }
 

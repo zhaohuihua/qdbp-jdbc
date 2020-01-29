@@ -146,7 +146,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         Class<? extends UpdateCondition> type = condition.getClass();
         // JDK8+不用强转
         @SuppressWarnings("unchecked")
-        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.global.getUpdateSqlBuilder(type);
+        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.defaults().getUpdateSqlBuilder(type);
         if (builder == null) {
             throw ufe("update sql", condition.getClass().getSimpleName() + "#SqlBuilderNotFound");
         }

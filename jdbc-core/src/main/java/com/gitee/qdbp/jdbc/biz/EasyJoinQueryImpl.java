@@ -22,11 +22,11 @@ public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements EasyJo
     private String majorTableAlias;
 
     public EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
-        super(newQuerySqlBuilder(t, jdbc), DbTools.getModelDataExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
+        super(newQuerySqlBuilder(t, jdbc), DbTools.getEntityFillExecutor(t), jdbc, new TablesRowToProperyMapper<>(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
         for (JoinItem item : joins) {
-            modelDataExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
+            entityFillExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
         }
     }
 

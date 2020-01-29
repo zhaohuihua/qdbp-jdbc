@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.gitee.qdbp.able.jdbc.condition.DbFieldName;
+import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;

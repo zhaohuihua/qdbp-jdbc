@@ -21,12 +21,12 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
-import com.gitee.qdbp.jdbc.plugins.DataConvertHelper;
+import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
-import com.gitee.qdbp.jdbc.plugins.ModelDataExecutor;
-import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
+import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
+import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
@@ -99,7 +99,7 @@ public abstract class DbTools {
      * @return 转换后的字段值对象
      */
     public static Object variableToDbValue(Object variable) {
-        DataConvertHelper helper = DbPluginContainer.global.getDataConvertHelper();
+        DataConvertHandler helper = DbPluginContainer.defaults().getDataConvertHandler();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
@@ -126,7 +126,7 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        DataConvertHelper helper = DbPluginContainer.global.getDataConvertHelper();
+        DataConvertHandler helper = DbPluginContainer.defaults().getDataConvertHandler();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
@@ -158,13 +158,13 @@ public abstract class DbTools {
      * @param clazz
      * @return 实体业务执行类
      */
-    public static ModelDataExecutor getModelDataExecutor(Class<?> clazz) {
+    public static EntityFillExecutor getEntityFillExecutor(Class<?> clazz) {
         AllFieldColumn<?> allFields = parseToAllFieldColumn(clazz);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
-        ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
-        return new ModelDataExecutor(allFields, handler);
+        EntityFillHandler handler = DbPluginContainer.defaults().getEntityFillHandler();
+        return new EntityFillExecutor(allFields, handler);
     }
 
     /**
@@ -172,13 +172,13 @@ public abstract class DbTools {
      * 
      * @return 实体业务执行类
      */
-    public static ModelDataExecutor getModelDataExecutor(TableJoin tables) {
+    public static EntityFillExecutor getEntityFillExecutor(TableJoin tables) {
         AllFieldColumn<?> allFields = parseToAllFieldColumn(tables);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
-        ModelDataHandler handler = DbPluginContainer.global.getModelDataHandler();
-        return new ModelDataExecutor(allFields, handler);
+        EntityFillHandler handler = DbPluginContainer.defaults().getEntityFillHandler();
+        return new EntityFillExecutor(allFields, handler);
     }
 
     public static SqlDialect buildSqlDialect(DbType dbType) {
@@ -200,7 +200,7 @@ public abstract class DbTools {
      * @return WhereOperator处理类
      */
     public static DbBaseOperator getWhereOperator(String operatorType) {
-        DbOperatorContainer container = DbPluginContainer.global.getOperatorContainer();
+        DbOperatorContainer container = DbPluginContainer.defaults().getOperatorContainer();
         return container == null ? null : container.getWhereOperator(operatorType);
     }
 
@@ -211,7 +211,7 @@ public abstract class DbTools {
      * @return UpdateOperator处理类
      */
     public static DbBaseOperator getUpdateOperator(String operatorType) {
-        DbOperatorContainer container = DbPluginContainer.global.getOperatorContainer();
+        DbOperatorContainer container = DbPluginContainer.defaults().getOperatorContainer();
         return container == null ? null : container.getUpdateOperator(operatorType);
     }
 
@@ -223,7 +223,7 @@ public abstract class DbTools {
      * @return 已格式化的SQL语句
      */
     public static String formatSql(String sql, int indent) {
-        SqlFormatter formatter = DbPluginContainer.global.getSqlFormatter();
+        SqlFormatter formatter = DbPluginContainer.defaults().getSqlFormatter();
         return formatter.format(sql, indent);
     }
 
@@ -234,7 +234,7 @@ public abstract class DbTools {
      * @return 数据库版本信息
      */
     public static DbVersion findDbVersion(DataSource datasource) {
-        DbVersionFinder finder = DbPluginContainer.global.getDbVersionFinder();
+        DbVersionFinder finder = DbPluginContainer.defaults().getDbVersionFinder();
         return finder.findDbVersion(datasource);
     }
 
@@ -255,7 +255,7 @@ public abstract class DbTools {
             return entityTableNameCache.get(clazz);
         }
 
-        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
         String tableName = scans.scanTableName(clazz);
         entityTableNameCache.put(clazz, tableName);
         return tableName;
@@ -278,7 +278,7 @@ public abstract class DbTools {
             return entityPrimaryKeyCache.get(clazz);
         }
 
-        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
         PrimaryKeyFieldColumn pk = scans.scanPrimaryKey(clazz);
         entityPrimaryKeyCache.put(clazz, pk);
         return pk;
@@ -288,7 +288,7 @@ public abstract class DbTools {
     private static Map<String, List<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
 
     private static List<TablesFieldColumn> scanColumnList(TableItem table) {
-        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
         List<SimpleFieldColumn> fields = scans.scanColumnList(table.getTableType());
         String tableAlias = table.getTableAlias();
         String resultField = table.getResultField();
@@ -381,7 +381,7 @@ public abstract class DbTools {
             return entityColumnsCache.get(clazz);
         }
 
-        TableInfoScans scans = DbPluginContainer.global.getTableInfoScans();
+        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
         List<SimpleFieldColumn> all = scans.scanColumnList(clazz);
         entityColumnsCache.put(clazz, all);
         return all;

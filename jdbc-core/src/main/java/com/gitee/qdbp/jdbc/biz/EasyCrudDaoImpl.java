@@ -39,7 +39,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     private Class<T> clazz;
 
     EasyCrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
-        super(newQuerySqlBuilder(c, jdbc), DbTools.getModelDataExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
+        super(newQuerySqlBuilder(c, jdbc), DbTools.getEntityFillExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
         this.clazz = c;
     }
 
@@ -69,7 +69,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -78,7 +78,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
@@ -95,7 +95,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -104,7 +104,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
@@ -144,11 +144,11 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
             id = entity.get(pk.getFieldName()).toString();
         } else {
             // 生成主键
-            entity.put(pk.getFieldName(), id = modelDataExecutor.generatePrimaryKeyCode(tableName));
+            entity.put(pk.getFieldName(), id = entityFillExecutor.generatePrimaryKeyCode(tableName));
         }
-        modelDataExecutor.fillTableCreateDataStatus(entity);
+        entityFillExecutor.fillTableCreateDataStatus(entity);
         if (fillCreateParams) {
-            modelDataExecutor.fillTableCreteParams(entity);
+            entityFillExecutor.fillTableCreteParams(entity);
         }
 
         SqlBuffer buffer = builder().buildInsertSql(entity);
@@ -183,9 +183,9 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
 
         VerifyTools.requireNotBlank(readyEntity, "readyEntity");
 
-        modelDataExecutor.fillTableWhereDataStatus(where);
+        entityFillExecutor.fillTableWhereDataStatus(where);
         if (fillUpdateParams) {
-            modelDataExecutor.fillTableUpdateParams(readyEntity);
+            entityFillExecutor.fillTableUpdateParams(readyEntity);
         }
         return this.doUpdate(readyEntity, where, errorOnUnaffected);
     }
@@ -199,9 +199,9 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
         }
         DbWhere readyWhere = checkWhere(where);
 
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         if (fillUpdateParams) {
-            modelDataExecutor.fillTableUpdateParams(readyEntity);
+            entityFillExecutor.fillTableUpdateParams(readyEntity);
         }
         return this.doUpdate(readyEntity, readyWhere, errorOnUnaffected);
     }
@@ -213,9 +213,9 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
             throw new IllegalArgumentException("entity can't be empty");
         }
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         if (fillUpdateParams) {
-            modelDataExecutor.fillTableUpdateParams(entity);
+            entityFillExecutor.fillTableUpdateParams(entity);
         }
         return this.doUpdate(entity, readyWhere, errorOnUnaffected);
     }
@@ -253,7 +253,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
         String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
-        modelDataExecutor.fillTableWhereDataStatus(where);
+        entityFillExecutor.fillTableWhereDataStatus(where);
         return this.doDelete(where, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -263,7 +263,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
         if (VerifyTools.isBlank(readyWhere)) {
             throw new IllegalArgumentException("where can't be empty, please use logicalDeleteAll()");
         }
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return this.doDelete(readyWhere, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -271,7 +271,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     public int logicalDelete(DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        modelDataExecutor.fillTableWhereDataStatus(readyWhere);
+        entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return this.doDelete(readyWhere, true, fillUpdateParams, errorOnUnaffected);
     }
 
@@ -307,11 +307,11 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
             throws ServiceException {
         SqlBuffer buffer;
         if (logical) {
-            if (modelDataExecutor.supportedTableLogicalDelete()) { // 支持逻辑删除
+            if (entityFillExecutor.supportedTableLogicalDelete()) { // 支持逻辑删除
                 DbUpdate ud = new DbUpdate();
-                modelDataExecutor.fillTableLogicalDeleteDataStatus(ud);
+                entityFillExecutor.fillTableLogicalDeleteDataStatus(ud);
                 if (fillUpdateParams) {
-                    modelDataExecutor.fillTableUpdateParams(ud);
+                    entityFillExecutor.fillTableUpdateParams(ud);
                 }
                 buffer = builder().buildUpdateSql(ud, readyWhere);
             } else { // 不支持逻辑删除

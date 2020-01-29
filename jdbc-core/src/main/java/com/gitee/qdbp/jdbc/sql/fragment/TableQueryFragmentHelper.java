@@ -10,9 +10,9 @@ import java.util.Set;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
-import com.gitee.qdbp.able.jdbc.condition.DbFieldName;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.SubWhere;
+import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
@@ -169,7 +169,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         Class<? extends WhereCondition> type = condition.getClass();
         // JDK8+不用强转
         @SuppressWarnings("unchecked")
-        WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.global.getWhereSqlBuilder(type);
+        WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.defaults().getWhereSqlBuilder(type);
         if (builder == null) {
             throw ufe("where sql", condition.getClass().getSimpleName() + "#SqlBuilderNotFound");
         }
