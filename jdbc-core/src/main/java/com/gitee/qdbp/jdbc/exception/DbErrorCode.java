@@ -11,7 +11,7 @@ public enum DbErrorCode implements IResultMessage {
     /** 受影响记录数为0 **/
     DB_AFFECTED_ROWS_IS_ZERO("受影响记录数为0"),
     /** 该数据不支持逻辑删除 **/
-    UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除"),;
+    UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除");
 
     /** 错误描述 **/
     private final String message;

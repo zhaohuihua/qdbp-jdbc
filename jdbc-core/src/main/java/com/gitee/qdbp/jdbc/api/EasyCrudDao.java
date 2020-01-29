@@ -19,7 +19,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据主键编号获取对象<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE ID={id} AND EFTFLAG='E'
      * 
      * @param id 主键编号
@@ -29,7 +29,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据查询条件获取对象<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -39,7 +39,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 查找所有的实体列表, 不分页<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE EFTFLAG='E'
      * 
      * @return 列表数据
@@ -48,7 +48,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 查找所有的实体列表, 不分页<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE EFTFLAG='E' ORDER BY {orderByConditions}
      * 
      * @param orderings 排序字段
@@ -58,7 +58,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件分页查询实体列表<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'<br>
      * SELECT {columnNames} FROM {tableName}<br>
@@ -72,7 +72,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件查询某个字段的值<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E'
@@ -86,7 +86,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件查询某个字段的值列表<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E' ORDER BY {orderByConditions}
@@ -170,7 +170,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件统计实体数量<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -180,7 +180,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件分组统计实体数量<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {groupByColumnName}, COUNT(*) FROM {tableName} <br>
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E' GROUP BY {groupByColumnName}
      * 
@@ -219,7 +219,7 @@ public interface EasyCrudDao<T> {
     /**
      * 根据主键编号更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entity 实体对象
@@ -232,7 +232,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param entity 实体对象
@@ -246,7 +246,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param entity 实体对象
@@ -261,7 +261,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE ID IN ({ids}) EFTFLAG='E'
      *
      * @param ids 待删除的主键编号
@@ -275,7 +275,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 匹配条件
@@ -288,7 +288,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量删除实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 匹配条件
@@ -301,7 +301,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据主键编号删除实体对象(物理删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE ID IN ({ids}) EFTFLAG='E'
      *
      * @param ids 待删除的主键编号
@@ -313,7 +313,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象(物理删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 匹配条件
@@ -326,7 +326,7 @@ public interface EasyCrudDao<T> {
 
     /**
      * 根据条件批量删除实体对象(物理删除)<br>
-     * 注意: 默认查询条件由modelDataExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
      * 
      * @param where 匹配条件

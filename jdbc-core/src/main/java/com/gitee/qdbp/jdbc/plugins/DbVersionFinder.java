@@ -4,7 +4,7 @@ import javax.sql.DataSource;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 
 /**
- * 数据库信息查询接口
+ * 数据库版本信息查询接口
  *
  * @author zhaohuihua
  * @version 190606
