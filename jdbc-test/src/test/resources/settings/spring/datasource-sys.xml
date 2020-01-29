@@ -73,9 +73,7 @@
 			</bean>
 		</property>
 	</bean>
-	
-	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl">
-		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
-	</bean>
+
+	<import resource="qdbc.xml"/>
 
 </beans>

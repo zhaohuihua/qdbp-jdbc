@@ -30,12 +30,22 @@
 		<property  name="fileEncoding" value="UTF-8" />
 		<property name="locations">
 			<list>
+				<value>classpath:settings/spring/qdbc.properties</value>
 				<value>classpath:setting.properties</value>
 			</list>
 		</property>
 	</bean>
 	<bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
 		<property name="properties" ref="setting" />
+	</bean>
+
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<property name="converters">
+			<list>
+				<bean class="com.gitee.qdbp.base.converter.DataStateToDbValueConverter" />
+				<bean class="com.gitee.qdbp.base.converter.StringToDataStateConverter" />
+			</list>
+		</property>
 	</bean>
 
 	<import resource="datasource-sys.xml" />
