@@ -5,17 +5,18 @@ import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.EntityFillBizResolver;
 import com.gitee.qdbp.tools.utils.RandomTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 默认实体类业务处理类<br>
+ * 默认实体数据填充业务处理类<br>
  * 自动填充逻辑删除/创建人/创建时间/修改人/修改时间字段
  *
  * @author zhaohuihua
  * @version 190602
  */
-public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
+public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** 逻辑删除字段名 **/
     private String logicalDeleteField;
@@ -31,6 +32,8 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
     private String createUserField;
     /** 修改用户字段名 **/
     private String updateUserField;
+    /** 与业务强相关的数据提供者 **/
+    private EntityFillBizResolver entityFillBizResolver;
 
     /** 逻辑删除字段名 **/
     public String getLogicalDeleteField() {
@@ -102,15 +105,34 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
         this.updateUserField = updateUserField;
     }
 
-    /** 获取当前登录账号, 一般是UserId **/
-    protected Object getLoginAccount() {
-        return null;
+    /** 与业务强相关的数据提供者 **/
+    public EntityFillBizResolver getEntityFillBizResolver() {
+        return entityFillBizResolver;
+    }
+
+    /** 与业务强相关的数据提供者 **/
+    public void setEntityFillBizResolver(EntityFillBizResolver entityFillBizResolver) {
+        this.entityFillBizResolver = entityFillBizResolver;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String getLoginAccount() {
+        if (entityFillBizResolver == null) {
+            return null;
+        } else {
+            return entityFillBizResolver.getLoginAccount();
+        }
     }
 
     /** {@inheritDoc} **/
     @Override
     public String generatePrimaryKeyCode(String tableName) {
-        return RandomTools.generateUuid();
+        if (entityFillBizResolver == null) {
+            return RandomTools.generateUuid();
+        } else {
+            return entityFillBizResolver.generatePrimaryKeyCode(tableName);
+        }
     }
 
     /** {@inheritDoc} **/
@@ -161,7 +183,7 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
         fillValueIfAbsent(model, createTimeField, now, allFields);
         fillValueIfAbsent(model, updateTimeField, now, allFields);
 
-        Object account = getLoginAccount();
+        String account = getLoginAccount();
         fillValueIfAbsent(model, createUserField, account, allFields);
         fillValueIfAbsent(model, updateUserField, account, allFields);
     }
@@ -172,7 +194,7 @@ public class SimpleModelDataHandler<DS> extends BaseModelDataHandler {
         Date now = new Date();
         fillValueIfAbsent(model, updateTimeField, now, allFields);
 
-        Object account = getLoginAccount();
+        String account = getLoginAccount();
         fillValueIfAbsent(model, updateUserField, account, allFields);
     }
 

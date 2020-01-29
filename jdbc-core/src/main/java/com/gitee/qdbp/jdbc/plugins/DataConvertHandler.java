@@ -6,7 +6,7 @@ package com.gitee.qdbp.jdbc.plugins;
  * @author zhaohuihua
  * @version 190703
  */
-public interface DataConvertHelper {
+public interface DataConvertHandler {
 
     /**
      * 将变量转换为数据库可以存储的格式
