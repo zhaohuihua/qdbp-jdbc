@@ -5,25 +5,53 @@ import java.util.Arrays;
 import java.util.List;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
+import com.gitee.qdbp.jdbc.plugins.CommonFieldResolver;
+import com.gitee.qdbp.jdbc.utils.InnerTools;
 
 /**
- * 为了将公共字段排在最后<br>
+ * 公共字段判断类(为了将公共字段排在最后)<br>
  * 可以配置父类的包名, 如 实体类都继承com.xxx.core.beans.IdEntity, 那么可以设置com.xxx.core.beans为公共包名<br>
  * 也可以配置公共字段名, 如 createUser, createTime, dataState等<br>
  *
  * @author zhaohuihua
  * @version 190601
  */
-public class CommonFieldResolver {
+public class SimpleCommonFieldResolver implements CommonFieldResolver {
 
+    /** 公共包名匹配方法集合 **/
     private List<StringMatcher> commonPackageMatchers;
+    /** 公共字段名匹配方法集合 **/
     private List<StringMatcher> commonFieldNameMatchers;
 
-    public void setCommonPackagePatterns(List<StringMatcher> matchers) {
+    /**
+     * 设置公共包名匹配模式<br>
+     * regexp:开头的解析为RegexpStringMatcher<br>
+     * ant:开头的解析为AntStringMatcher<br>
+     * 其余的解析为EqualsStringMatcher<br>
+     * 
+     * @param text 文本
+     */
+    public void setCommonPackagePatterns(String text) {
+        setCommonPackageMatchers(InnerTools.parseStringMatcher(text));
+    }
+
+    /**
+     * 设置公共字段名匹配模式<br>
+     * regexp:开头的解析为RegexpStringMatcher<br>
+     * ant:开头的解析为AntStringMatcher<br>
+     * 其余的解析为EqualsStringMatcher<br>
+     * 
+     * @param text 文本
+     */
+    public void setCommonFieldNamePatterns(String text) {
+        setCommonFieldNameMatchers(InnerTools.parseStringMatcher(text));
+    }
+
+    public void setCommonPackageMatchers(List<StringMatcher> matchers) {
         this.commonPackageMatchers = matchers;
     }
 
-    public void addCommonPackagePatterns(StringMatcher... matchers) {
+    public void addCommonPackageMatchers(StringMatcher... matchers) {
         if (matchers == null || matchers.length == 0) {
             return;
         }
@@ -33,7 +61,7 @@ public class CommonFieldResolver {
         commonPackageMatchers.addAll(Arrays.asList(matchers));
     }
 
-    public void addCommonPackagePatterns(String... matchers) {
+    public void addCommonPackageMatchers(String... matchers) {
         if (matchers == null || matchers.length == 0) {
             return;
         }
@@ -45,11 +73,11 @@ public class CommonFieldResolver {
         }
     }
 
-    public void setCommonFieldNamePatterns(List<StringMatcher> matchers) {
+    public void setCommonFieldNameMatchers(List<StringMatcher> matchers) {
         this.commonFieldNameMatchers = matchers;
     }
 
-    public void addCommonFieldNamePatterns(StringMatcher... matchers) {
+    public void addCommonFieldNameMatchers(StringMatcher... matchers) {
         if (matchers == null || matchers.length == 0) {
             return;
         }
@@ -59,7 +87,7 @@ public class CommonFieldResolver {
         commonFieldNameMatchers.addAll(Arrays.asList(matchers));
     }
 
-    public void addCommonFieldNamePatterns(String... matchers) {
+    public void addCommonFieldNameMatchers(String... matchers) {
         if (matchers == null || matchers.length == 0) {
             return;
         }
@@ -71,6 +99,7 @@ public class CommonFieldResolver {
         }
     }
 
+    @Override
     public boolean isCommonPackage(String pkg) {
         if (commonPackageMatchers == null || commonPackageMatchers.isEmpty()) {
             return false;
@@ -84,6 +113,7 @@ public class CommonFieldResolver {
         }
     }
 
+    @Override
     public boolean isCommonFieldName(String fieldName) {
         if (commonFieldNameMatchers == null || commonFieldNameMatchers.isEmpty()) {
             return false;
