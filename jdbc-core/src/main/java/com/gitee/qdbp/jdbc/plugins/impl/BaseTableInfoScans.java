@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.CommonFieldResolver;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.TableNameScans;
 
