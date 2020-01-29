@@ -6,7 +6,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
-import com.gitee.qdbp.jdbc.plugins.ModelDataHandler;
+import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -16,7 +16,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 190602
  */
-public abstract class BaseModelDataHandler implements ModelDataHandler {
+public abstract class BaseEntityFillHandler implements EntityFillHandler {
 
     protected void fillValueIfAbsent(DbWhere where, String fieldName, String tableAlias, Object value,
             AllFieldColumn<?> allFields) {

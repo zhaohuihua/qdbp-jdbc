@@ -6,14 +6,17 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 
 /**
- * 实体业务处理接口(主要作用是自动填充逻辑删除/创建人/创建时间/修改人/修改时间等全局通用字段)<br>
+ * 实体数据填充的业务处理接口(主要作用是自动填充逻辑删除/创建人/创建时间/修改人/修改时间等全局通用字段)<br>
  * 每个项目的处理方式不一样, 抽象成接口由各项目提供实现类<br>
- * 这个类的实现类是提供给ModelDataExecutor调用的
+ * 这个类的实现类是提供给EntityFillExecutor调用的
  *
  * @author zhaohuihua
  * @version 190601
  */
-public interface ModelDataHandler {
+public interface EntityFillHandler {
+
+    /** 获取当前登录账号, 一般是UserId **/
+    String getLoginAccount();
 
     /** 生成主键编号 **/
     String generatePrimaryKeyCode(String tableName);

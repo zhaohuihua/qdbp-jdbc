@@ -6,8 +6,8 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 
 /**
- * 实体业务处理接口<br>
- * 每个项目的处理方式不一样, 抽象成接口由各项目提供实现类<br>
+ * 实体数据填充业务处理接口<br>
+ * 每个项目的处理方式不一样, 调用EntityFillHandler接口由各项目提供实现类<br>
  * 命名说明:<br>
  * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给EasyBaseQueryImpl(EasyJoinQueryImpl/EasyCrudDaoImpl的查询)调用<br>
  * fillTableXxx是单表增删改查用到的, 只支持单表, 主要是给EasyCrudDaoImpl调用<br>
@@ -15,22 +15,22 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
  * @author zhaohuihua
  * @version 190601
  */
-public class ModelDataExecutor {
+public class EntityFillExecutor {
 
     private AllFieldColumn<?> allFields;
-    private ModelDataHandler modelDataHandler;
+    private EntityFillHandler entityFillHandler;
 
-    public ModelDataExecutor(AllFieldColumn<?> allFields, ModelDataHandler modelDataHandler) {
+    public EntityFillExecutor(AllFieldColumn<?> allFields, EntityFillHandler entityFillHandler) {
         this.allFields = allFields;
         if (this.allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
-        this.modelDataHandler = modelDataHandler;
+        this.entityFillHandler = entityFillHandler;
     }
 
     /** 生成主键编号 **/
     public String generatePrimaryKeyCode(String tableName) {
-        return modelDataHandler.generatePrimaryKeyCode(tableName);
+        return entityFillHandler.generatePrimaryKeyCode(tableName);
     }
 
     /**
@@ -39,7 +39,7 @@ public class ModelDataExecutor {
      * @return 是否支持
      */
     public boolean supportedTableLogicalDelete() {
-        return modelDataHandler.supportedTableLogicalDelete(allFields);
+        return entityFillHandler.supportedTableLogicalDelete(allFields);
     }
 
     /**
@@ -49,7 +49,7 @@ public class ModelDataExecutor {
      * @param where 条件
      */
     public void fillQueryWhereDataStatus(DbWhere where, String tableAlias) {
-        modelDataHandler.fillQueryWhereDataStatus(where, tableAlias, allFields);
+        entityFillHandler.fillQueryWhereDataStatus(where, tableAlias, allFields);
     }
 
     /**
@@ -58,7 +58,7 @@ public class ModelDataExecutor {
      * @param where 条件
      */
     public void fillTableWhereDataStatus(DbWhere where) {
-        modelDataHandler.fillTableWhereDataStatus(where, allFields);
+        entityFillHandler.fillTableWhereDataStatus(where, allFields);
     }
 
     /**
@@ -67,7 +67,7 @@ public class ModelDataExecutor {
      * @param condition 条件
      */
     public void fillTableCreateDataStatus(Map<String, Object> condition) {
-        modelDataHandler.fillTableCreateDataStatus(condition, allFields);
+        entityFillHandler.fillTableCreateDataStatus(condition, allFields);
     }
 
     /**
@@ -76,7 +76,7 @@ public class ModelDataExecutor {
      * @param ud 更新对象
      */
     public void fillTableUpdateDataStatus(DbUpdate ud) {
-        modelDataHandler.fillTableUpdateDataStatus(ud, allFields);
+        entityFillHandler.fillTableUpdateDataStatus(ud, allFields);
     }
 
     /**
@@ -85,7 +85,7 @@ public class ModelDataExecutor {
      * @param ud 更新对象
      */
     public void fillTableLogicalDeleteDataStatus(DbUpdate ud) {
-        modelDataHandler.fillTableLogicalDeleteDataStatus(ud, allFields);
+        entityFillHandler.fillTableLogicalDeleteDataStatus(ud, allFields);
     }
 
     /**
@@ -94,7 +94,7 @@ public class ModelDataExecutor {
      * @param model 实体对象
      */
     public void fillTableCreteParams(Map<String, Object> model) {
-        modelDataHandler.fillTableCreteParams(model, allFields);
+        entityFillHandler.fillTableCreteParams(model, allFields);
     }
 
     /**
@@ -103,7 +103,7 @@ public class ModelDataExecutor {
      * @param model 实体对象
      */
     public void fillTableUpdateParams(Map<String, Object> model) {
-        modelDataHandler.fillTableUpdateParams(model, allFields);
+        entityFillHandler.fillTableUpdateParams(model, allFields);
     }
 
     /**
@@ -112,7 +112,7 @@ public class ModelDataExecutor {
      * @param ud 更新对象
      */
     public void fillTableUpdateParams(DbUpdate ud) {
-        modelDataHandler.fillTableUpdateParams(ud, allFields);
+        entityFillHandler.fillTableUpdateParams(ud, allFields);
     }
 
 }
