@@ -8,18 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
-import com.gitee.qdbp.able.jdbc.condition.DbFieldName;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
+import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
-import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
-import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
@@ -35,13 +31,6 @@ public class EasyJoinQueryTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     private CoreJdbcBoot coreJdbcBoot;
-
-    @BeforeTest
-    public void init() {
-        SimpleTableInfoScans tableInfoScans = new SimpleTableInfoScans();
-        tableInfoScans.setTableNameScans(new StaticFieldTableNameScans("TABLE"));
-        DbPluginContainer.global.registerTableInfoScans(tableInfoScans);
-    }
 
     /**
      * 查询多个用户的角色信息<br>
