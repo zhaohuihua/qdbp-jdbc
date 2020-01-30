@@ -15,6 +15,7 @@ import com.gitee.qdbp.jdbc.operator.impl.DbBinaryLikeOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryNotEqualsOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryNotLikeOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryStartsWithOperator;
+import com.gitee.qdbp.jdbc.operator.impl.DbBinarySetOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbMultivariateInOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbMultivariateNotInOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbTernaryBetweenOperator;
@@ -54,7 +55,7 @@ public class SimpleDbOperatorContainer implements DbOperatorContainer {
         registerWhereOperator(new DbMultivariateNotInOperator());
         // 注册Update条件的运算符
         registerUpdateOperator(new DbUnaryToNullOperator());
-        registerUpdateOperator(new DbBinaryEqualsOperator());
+        registerUpdateOperator(new DbBinarySetOperator());
         registerUpdateOperator(new DbBinaryAddOperator());
     }
 
