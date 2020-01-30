@@ -2,6 +2,12 @@ package com.gitee.qdbp.jdbc.exception;
 
 import com.gitee.qdbp.able.result.IResultMessage;
 
+/**
+ * 数据库错误码
+ *
+ * @author zhaohuihua
+ * @version 200130
+ */
 public enum DbErrorCode implements IResultMessage {
 
     /** 主键字段未找到 **/
