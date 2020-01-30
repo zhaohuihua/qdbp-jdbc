@@ -215,6 +215,19 @@ public interface EasyCrudDao<T> {
      * @throws ServiceException 操作失败
      */
     String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException;
+    
+    /**
+     * 批量保存实体对象<br>
+     * 注意: 如果主键编号为空将会自动生成<br>
+     * 注意: 默认设置eftflag='E'<br>
+     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
+     * 
+     * @param entities 实体对象列表
+     * @param fillCreateParams 是否自动填充创建参数
+     * @return 返回主键编号
+     * @throws ServiceException 操作失败
+     */
+    List<String> insert(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
     /**
      * 根据主键编号更新实体对象<br>

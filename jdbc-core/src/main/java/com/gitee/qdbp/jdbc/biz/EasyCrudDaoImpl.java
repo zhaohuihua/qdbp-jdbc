@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.biz;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -155,6 +156,26 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
 
         jdbc.update(buffer);
         return id;
+    }
+
+    @Override
+    public List<String> insert(List<?> entities, boolean fillCreateParams) throws ServiceException {
+        VerifyTools.requireNotBlank(entities, "entities");
+
+        // TODO 目前是循环保存的, 以后改为批量保存
+        List<String> ids = new ArrayList<>();
+        for (Object item : entities) {
+            if (item instanceof Map) {
+                @SuppressWarnings("unchecked")
+                String id = insert((Map<String, Object>) item, fillCreateParams);
+                ids.add(id);
+            } else {
+                @SuppressWarnings("unchecked")
+                String id = insert((T) item, fillCreateParams);
+                ids.add(id);
+            }
+        }
+        return ids;
     }
 
     @Override
