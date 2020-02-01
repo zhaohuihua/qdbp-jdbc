@@ -19,9 +19,9 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
+import com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean;
+import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
-import com.gitee.qdbp.jdbc.utils.CoreJdbcBootFactoryBean;
-import com.gitee.qdbp.jdbc.utils.SqlBuilderScanTools;
 
 /**
  * CoreJdbcBoot工厂类, 手动设置DbPluginContainer

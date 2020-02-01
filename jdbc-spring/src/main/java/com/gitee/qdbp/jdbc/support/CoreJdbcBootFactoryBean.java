@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.utils;
+package com.gitee.qdbp.jdbc.support;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;

@@ -8,7 +8,7 @@
 	http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans.xsd">
 	
-	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.utils.CoreJdbcBootFactoryBean">
+	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean">
 		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
 		<property name="pluginContainer">
 			<bean class="com.gitee.qdbp.jdbc.plugins.DbPluginContainer">

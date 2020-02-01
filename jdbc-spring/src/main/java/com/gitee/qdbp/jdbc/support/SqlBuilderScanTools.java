@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.utils;
+package com.gitee.qdbp.jdbc.support;
 
 import java.util.ArrayList;
 import java.util.List;
