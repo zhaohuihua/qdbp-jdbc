@@ -14,6 +14,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.serializer.JSONSerializable;
 import com.alibaba.fastjson.serializer.JavaBeanSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
@@ -254,18 +255,36 @@ public class ParseTools {
     }
 
     /**
+     * 将Map转换为Java对象<br>
+     * 为了不依赖qdbp-tools.jar, 从JsonTools复制而来
+     * 
+     * @param <T> 目标类型
+     * @param map Map
+     * @param clazz 目标Java类
+     * @return Java对象
+     * @see JsonTools#mapToBean(Map, Class)
+     */
+    public static <T> T mapToBean(Map<String, ?> map, Class<T> clazz) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> json = (Map<String, Object>) map;
+        return TypeUtils.castToJavaBean(json, clazz, ParserConfig.getGlobalInstance());
+    }
+
+    /**
      * 将Java对象转换为Map<br>
+     * 为了不依赖qdbp-tools.jar, 从JsonTools复制而来<br>
      * copy from fastjson JSON.toJSON(), 保留enum和date
      * 
      * @param bean JavaBean对象
      * @return Map
+     * @see JsonTools#beanToMap(Object)
      */
     public static Map<String, Object> beanToMap(Object bean) {
         if (bean == null) {
             return null;
         }
 
-        Object json = beanToJson(bean, SerializeConfig.globalInstance);
+        Object json = beanToJson(bean, SerializeConfig.getGlobalInstance());
         if (json instanceof JSONObject) {
             return (JSONObject) json;
         } else {
