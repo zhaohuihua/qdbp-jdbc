@@ -5,12 +5,12 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
-import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -86,7 +86,7 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             result.putAll(subs);
         }
         // 4. 利用fastjson工具进行Map到JavaBean的转换
-        return TypeUtils.castToJavaBean(result, resultType);
+        return ParseTools.mapToBean(result, resultType);
     }
 
 }

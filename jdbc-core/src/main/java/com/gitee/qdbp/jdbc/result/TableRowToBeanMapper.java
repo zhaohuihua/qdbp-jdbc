@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
-import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.utils.ParseTools;
 
 /**
  * 单表增删改结果集到JavaBean的转换处理类<br>
@@ -28,7 +28,7 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
 
     @Override
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Map<String, Object> result = mapper.mapRow(rs, rowNum);
+        Map<String, Object> map = mapper.mapRow(rs, rowNum);
 
         // 1. 获取列名与字段名的对应关系
         AllFieldColumn<SimpleFieldColumn> all = DbTools.parseToAllFieldColumn(resultType);
@@ -37,16 +37,16 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
         }
 
         // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
-        Map<String, Object> fieldValues = new HashMap<String, Object>();
-        for (Map.Entry<String, Object> entry : result.entrySet()) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             String columnName = entry.getKey();
             SimpleFieldColumn field = all.findByColumnAlias(columnName);
             if (field != null) {
-                fieldValues.put(field.getFieldName(), entry.getValue());
+                result.put(field.getFieldName(), entry.getValue());
             }
         }
         // 3. 利用fastjson工具进行Map到JavaBean的转换
-        return TypeUtils.castToJavaBean(result, resultType);
+        return ParseTools.mapToBean(result, resultType);
     }
 
 }
