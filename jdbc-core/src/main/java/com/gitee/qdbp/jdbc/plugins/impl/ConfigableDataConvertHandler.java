@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.core.convert.ConversionService;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
+import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 import com.gitee.qdbp.jdbc.utils.InnerTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 
@@ -31,7 +32,7 @@ import com.gitee.qdbp.tools.utils.DateTools;
  * @author zhaohuihua
  * @version 190705
  */
-public class ConfigableDataConvertHandler extends SimpleDataConvertHandler {
+public class ConfigableDataConvertHandler extends SimpleDataConvertHandler implements ConversionServiceAware {
 
     /** Spring的类型转换处理类 **/
     private ConversionService conversionService;
