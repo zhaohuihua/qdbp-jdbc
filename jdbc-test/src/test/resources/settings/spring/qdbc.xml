@@ -10,84 +10,89 @@
 	
 	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean">
 		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
-		<property name="pluginContainer">
-			<bean class="com.gitee.qdbp.jdbc.plugins.DbPluginContainer">
-				<property name="dbVersionFinder">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder" />
+		<property name="pluginContainer" ref="dbPluginContainer" />
+	</bean>
+
+	<bean id="dbPluginContainer" class="com.gitee.qdbp.jdbc.plugins.DbPluginContainer">
+		<property name="dbVersionFinder">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder" />
+		</property>
+		<property name="operatorContainer">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer" />
+		</property>
+		<property name="sqlFormatter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter" />
+		</property>
+		<property name="tableInfoScans">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans">
+				<property name="primaryKeyMatcher">
+					<bean class="com.gitee.qdbp.able.matches.EqualsStringMatcher">
+						<constructor-arg value="${qdbc.entityData.primaryKeyField:id}" />
+					</bean>
 				</property>
-				<property name="operatorContainer">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer" />
+				<property name="nameConverter">
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleNameConverter" />
 				</property>
-				<property name="sqlFormatter">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter" />
+				<property name="tableNameScans">
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans">
+						<constructor-arg value="${qdbc.entityData.tableNameField:TABLE}" />
+					</bean>
 				</property>
-				<property name="tableInfoScans">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans">
-						<property name="primaryKeyMatcher">
-							<bean class="com.gitee.qdbp.able.matches.EqualsStringMatcher">
-								<constructor-arg value="${qdbc.entityData.primaryKeyField:id}" />
-							</bean>
+				<property name="commonFieldResolver">
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver">
+						<property name="commonPackagePatterns">
+							<value>${qdbc.entityData.commonPackages:}</value>
 						</property>
-						<property name="nameConverter">
-							<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleNameConverter" />
-						</property>
-						<property name="tableNameScans">
-							<bean class="com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans">
-								<constructor-arg value="${qdbc.entityData.tableNameField:TABLE}" />
-							</bean>
-						</property>
-						<property name="commonFieldResolver">
-							<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver">
-								<property name="commonPackagePatterns">
-									<value>${qdbc.entityData.commonPackages:}</value>
-								</property>
-								<property name="commonFieldNamePatterns">
-									<value>
-										${qdbc.entityData.createUserField:creatorId}
-										${qdbc.entityData.createTimeField:createTime}
-										${qdbc.entityData.updateUserField:updatorId}
-										${qdbc.entityData.updateTimeField:updateTime}
-										${qdbc.entityData.logicalDeleteField:dataState}
-										${qdbc.entityData.commonFields:}
-									</value>
-								</property>
-							</bean>
+						<property name="commonFieldNamePatterns">
+							<value>
+								${qdbc.entityData.createUserField:creatorId}
+								${qdbc.entityData.createTimeField:createTime}
+								${qdbc.entityData.updateUserField:updatorId}
+								${qdbc.entityData.updateTimeField:updateTime}
+								${qdbc.entityData.logicalDeleteField:dataState}
+								${qdbc.entityData.commonFields:}
+							</value>
 						</property>
 					</bean>
 				</property>
-				<property name="entityFillHandler">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler">
-						<property name="createUserField" value="${qdbc.entityData.createUserField:creatorId}" />
-						<property name="createTimeField" value="${qdbc.entityData.createTimeField:createTime}" />
-						<property name="updateUserField" value="${qdbc.entityData.updateUserField:updatorId}" />
-						<property name="updateTimeField" value="${qdbc.entityData.updateTimeField:updateTime}" />
-						<property name="logicalDeleteField" value="${qdbc.entityData.logicalDeleteField:dataState}" />
-						<property name="dataEffectiveFlag">
-							<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
-								<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataEffectiveFlag}" />
-							</bean>
-						</property>
-						<property name="dataIneffectiveFlag">
-							<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
-								<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataIneffectiveFlag}" />
-							</bean>
-						</property>
-						<property name="entityFillBizResolver">
-							<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillBizResolver" />
-						</property>
+			</bean>
+		</property>
+		<property name="entityFillHandler">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler">
+				<property name="createUserField" value="${qdbc.entityData.createUserField:creatorId}" />
+				<property name="createTimeField" value="${qdbc.entityData.createTimeField:createTime}" />
+				<property name="updateUserField" value="${qdbc.entityData.updateUserField:updatorId}" />
+				<property name="updateTimeField" value="${qdbc.entityData.updateTimeField:updateTime}" />
+				<property name="logicalDeleteField" value="${qdbc.entityData.logicalDeleteField:dataState}" />
+				<property name="dataEffectiveFlag">
+					<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+						<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataEffectiveFlag}" />
 					</bean>
 				</property>
-				<property name="dataConvertHandler">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.ConfigableDataConvertHandler">
-						<property name="conversionService" ref="conversionService" />
-						<property name="enumConvertUseOrdinal" value="${qdbc.converter.enumConvertUseOrdinal:true}" />
-						<property name="enumConvertEspecialText" value="${qdbc.converter.enumConvertEspecialList:}" />
-						<property name="untypedObjectConvertEnabled" value="${qdbc.converter.untypedObjectConvertEnabled:true}" />
-						<property name="untypedObjectConvertEspecialText" value="${qdbc.converter.untypedObjectConvertEspecialList:}" />
-						<property name="objectToStringUseJson" value="${qdbc.converter.objectToStringUseJson:true}" />
-						<property name="objectToStringEspecialText" value="${qdbc.converter.objectToStringEspecialList:}" />
+				<property name="dataIneffectiveFlag">
+					<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+						<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataIneffectiveFlag}" />
 					</bean>
 				</property>
+				<property name="entityFillBizResolver">
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillBizResolver" />
+				</property>
+			</bean>
+		</property>
+		<property name="dataConvertHandler">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.ConfigableDataConvertHandler">
+				<property name="conversionService" ref="conversionService" />
+				<property name="enumConvertUseOrdinal" value="${qdbc.converter.enumConvertUseOrdinal:true}" />
+				<property name="enumConvertEspecialText" value="${qdbc.converter.enumConvertEspecialList:}" />
+				<property name="untypedObjectConvertEnabled" value="${qdbc.converter.untypedObjectConvertEnabled:true}" />
+				<property name="untypedObjectConvertEspecialText" value="${qdbc.converter.untypedObjectConvertEspecialList:}" />
+				<property name="objectToStringUseJson" value="${qdbc.converter.objectToStringUseJson:true}" />
+				<property name="objectToStringEspecialText" value="${qdbc.converter.objectToStringEspecialList:}" />
+			</bean>
+		</property>
+		<property name="mapToBeanConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter">
+				<property name="conversionService" ref="conversionService" />
 			</bean>
 		</property>
 	</bean>
