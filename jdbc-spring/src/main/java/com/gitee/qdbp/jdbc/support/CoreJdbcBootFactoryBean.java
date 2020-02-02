@@ -4,10 +4,17 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.converter.GenericConverter;
 import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl;
+import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
+import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 
 /**
  * CoreJdbcBootFactoryBean<br>
@@ -23,19 +30,56 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
     private CoreJdbcBootImpl singletonInstance;
 
     private ApplicationContext context;
+    /** Spring的类型转换处理类 **/
+    private ConversionService conversionService;
+    /** SqlBuffer数据库操作类 **/
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
+    /** 数据库插件容器类 **/
     private DbPluginContainer pluginContainer;
 
     @Override
     public void afterPropertiesSet() {
+        if (singletonInstance != null) {
+            singletonInstance.setSqlBufferJdbcOperations(sqlBufferJdbcOperations);
+        }
         if (pluginContainer != null) {
             SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(pluginContainer, context);
             SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(pluginContainer, context);
             SqlBuilderScanTools.scanAndRegisterOrderBySqlBuilder(pluginContainer, context);
             DbPluginContainer.init(pluginContainer);
+            if (conversionService == null) {
+                // 设置插件的ConversionService
+                fillConversionService(pluginContainer, conversionService);
+                // 如果插件是Converter, 将其注册到ConverterRegistry
+                registerConverter(pluginContainer, conversionService);
+            }
         }
-        if (singletonInstance != null) {
-            singletonInstance.setSqlBufferJdbcOperations(sqlBufferJdbcOperations);
+    }
+
+    /** 设置插件的ConversionService **/
+    protected void fillConversionService(DbPluginContainer plugins, ConversionService conversionService) {
+        MapToBeanConverter mapToBeanConverter = plugins.getMapToBeanConverter();
+        if (mapToBeanConverter instanceof ConversionServiceAware) {
+            ((ConversionServiceAware) mapToBeanConverter).setConversionService(conversionService);
+        }
+        DataConvertHandler dataConvertHandler = plugins.getDataConvertHandler();
+        if (dataConvertHandler instanceof ConversionServiceAware) {
+            ((ConversionServiceAware) dataConvertHandler).setConversionService(conversionService);
+        }
+    }
+
+    /** 如果插件是Converter, 将其注册到ConverterRegistry **/
+    protected void registerConverter(DbPluginContainer plugins, ConversionService conversionService) {
+        if (conversionService instanceof ConverterRegistry) {
+            MapToBeanConverter mapToBeanConverter = plugins.getMapToBeanConverter();
+            ConverterRegistry registry = (ConverterRegistry) conversionService;
+            if (mapToBeanConverter instanceof GenericConverter) {
+                registry.addConverter((GenericConverter) mapToBeanConverter);
+            } else if (mapToBeanConverter instanceof Converter<?, ?>) {
+                registry.addConverter((Converter<?, ?>) mapToBeanConverter);
+            } else if (mapToBeanConverter instanceof ConverterFactory<?, ?>) {
+                registry.addConverterFactory((ConverterFactory<?, ?>) mapToBeanConverter);
+            }
         }
     }
 
@@ -81,18 +125,32 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
         return context;
     }
 
+    /** Spring的类型转换处理类 **/
+    public ConversionService getConversionService() {
+        return conversionService;
+    }
+
+    /** Spring的类型转换处理类 **/
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    /** SqlBuffer数据库操作类 **/
     public SqlBufferJdbcOperations getSqlBufferJdbcOperations() {
         return sqlBufferJdbcOperations;
     }
 
+    /** SqlBuffer数据库操作类 **/
     public void setSqlBufferJdbcOperations(SqlBufferJdbcOperations sqlBufferJdbcOperations) {
         this.sqlBufferJdbcOperations = sqlBufferJdbcOperations;
     }
 
+    /** 数据库插件容器类 **/
     public DbPluginContainer getPluginContainer() {
         return pluginContainer;
     }
 
+    /** 数据库插件容器类 **/
     public void setPluginContainer(DbPluginContainer pluginContainer) {
         this.pluginContainer = pluginContainer;
     }
