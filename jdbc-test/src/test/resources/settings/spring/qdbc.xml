@@ -75,7 +75,7 @@
 			</bean>
 		</property>
 		<property name="toDbValueConverter">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SpringToDbValueConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SpringVarToDbValueConverter">
 				<property name="conversionService" ref="conversionService" />
 				<property name="enumConvertUseOrdinal" value="${qdbc.converter.enumConvertUseOrdinal:true}" />
 				<property name="enumConvertEspecialText" value="${qdbc.converter.enumConvertEspecialList:}" />

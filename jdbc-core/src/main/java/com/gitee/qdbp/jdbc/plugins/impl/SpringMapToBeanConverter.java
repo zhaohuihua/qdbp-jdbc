@@ -14,10 +14,14 @@ import org.springframework.beans.NotWritablePropertyException;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.ClassUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 
@@ -55,6 +59,10 @@ public class SpringMapToBeanConverter
             if (pd == null) {
                 continue;
             }
+            // NullValue设置给基本类型会报错: boolean, byte, char, short, int, long, float, double
+            if (value == null && pd.getPropertyType().isPrimitive()) {
+                value = TypeUtils.cast(null, pd.getPropertyType(), ParserConfig.getGlobalInstance());
+            }
             try {
                 bw.setPropertyValue(pd.getName(), value);
             } catch (NotWritablePropertyException e) {
@@ -65,9 +73,6 @@ public class SpringMapToBeanConverter
                 if (value != null) {
                     throw e;
                 }
-                // 值为空导致无法判断调用哪个方法的, 只记录日志, 不抛出异常
-                // 如 setValue(String), setValue(Integer);
-                // 此时如果调用setValue(null)就会报TypeMismatchException
                 if (!typeMismatchForNullValueLogged) {
                     typeMismatchForNullValueLogged = true; // 只记一次日志
                     String m = "Intercepted TypeMismatchException "
@@ -141,11 +146,10 @@ public class SpringMapToBeanConverter
     }
 
     private static final Set<ConvertiblePair> CONVERTIBLE_PAIRS;
-    private static final TypeDescriptor MAP_TYPE = TypeDescriptor.valueOf(Map.class);
-
     static {
-        Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>(1);
+        Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>(2);
         convertiblePairs.add(new ConvertiblePair(Map.class, Object.class));
+        convertiblePairs.add(new ConvertiblePair(String.class, Object.class));
         CONVERTIBLE_PAIRS = Collections.unmodifiableSet(convertiblePairs);
     }
 
@@ -156,13 +160,38 @@ public class SpringMapToBeanConverter
 
     @Override
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-        return sourceType.isAssignableTo(MAP_TYPE);
+        return sourceType.isMap() || sourceType.getObjectType() == String.class;
     }
 
     @Override
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
-        @SuppressWarnings("unchecked")
-        Map<String, ?> map = (Map<String, ?>) source;
-        return convert(map, targetType.getType());
+        if (source == null) {
+            return null;
+        }
+        if (sourceType.isMap()) {
+            @SuppressWarnings("unchecked")
+            Map<String, ?> map = (Map<String, ?>) source;
+            return convert(map, targetType.getType());
+        } else if (sourceType.getObjectType() == String.class) {
+            if (targetType.getObjectType() == String.class) {
+                return (String) source;
+            }
+            Object object = JSON.parse((String) source);
+            if (object instanceof String) {
+                return TypeUtils.cast(object, targetType.getObjectType(), ParserConfig.getGlobalInstance());
+            } else if (object instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, ?> map = (Map<String, ?>) source;
+                return convert(map, targetType.getType());
+            } else {
+                return conversionService.convert(object, sourceType, targetType);
+            }
+        } else { // matches()方法做了限制, 不可能走到这里
+            if (sourceType.isAssignableTo(targetType) && targetType.getObjectType().isInstance(source)) {
+                return source;
+            } else {
+                throw new ConverterNotFoundException(sourceType, targetType);
+            }
+        }
     }
 }

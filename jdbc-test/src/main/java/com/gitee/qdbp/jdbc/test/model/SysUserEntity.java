@@ -59,6 +59,8 @@ public class SysUserEntity implements Serializable {
     private Date createTime;
     /** 是否为超级用户 **/
     private Boolean superman;
+    /** 选项 **/
+    private UserCoreOptions options;
     /** 状态(0.正常|1.锁定|2.待激活|3.注销) **/
     private UserState userState;
     /** 注册来源 **/
@@ -244,6 +246,24 @@ public class SysUserEntity implements Serializable {
     /** 设置状态(0.正常|1.锁定|2.待激活|3.注销) **/
     public void setUserState(UserState userState) {
         this.userState = userState;
+    }
+
+    /** 获取选项 **/
+    public UserCoreOptions getOptions() {
+        return options;
+    }
+
+    /** 获取选项, force=是否强制返回非空选项 **/
+    public UserCoreOptions getOptions(boolean force) {
+        if (options == null && force) {
+            options = new UserCoreOptions();
+        }
+        return options;
+    }
+
+    /** 设置选项 **/
+    public void setOptions(UserCoreOptions options) {
+        this.options = options;
     }
 
     /** 获取注册来源 **/
