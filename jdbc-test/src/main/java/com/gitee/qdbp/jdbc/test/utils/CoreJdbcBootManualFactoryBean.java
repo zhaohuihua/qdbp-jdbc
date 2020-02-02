@@ -18,6 +18,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleNameConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans;
+import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean;
 import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
@@ -39,6 +40,7 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
         DbPluginContainer plugins = new DbPluginContainer();
         registerTableInfoScans(plugins, context, false);
         registerDataConvertHandler(plugins, context);
+        registerMapToBeanConverter(plugins, context);
         registerEntityFillHandler(plugins, context);
         SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
         SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
@@ -98,6 +100,12 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
         // converter.addObjectToStringEspecialList(Xxx.class);
         // converter.addObjectToStringEspecialList(Yyy.class);
         plugins.setDataConvertHandler(converter);
+    }
+    
+    private void registerMapToBeanConverter(DbPluginContainer plugins, ApplicationContext context) {
+        SpringMapToBeanConverter converter = new SpringMapToBeanConverter();
+        converter.setConversionService(conversionService);
+        plugins.setMapToBeanConverter(converter);
     }
 
     private void registerTableInfoScans(DbPluginContainer plugins, ApplicationContext context, boolean scanAnnotation) {
