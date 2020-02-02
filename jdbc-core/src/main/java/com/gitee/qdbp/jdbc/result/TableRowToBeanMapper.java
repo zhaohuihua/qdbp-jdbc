@@ -7,8 +7,8 @@ import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.jdbc.utils.ParseTools;
 
 /**
  * 单表查询结果集行数据到JavaBean的转换处理类<br>
@@ -20,10 +20,12 @@ import com.gitee.qdbp.jdbc.utils.ParseTools;
 public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
 
     private Class<T> resultType;
+    private MapToBeanConverter converter;
     private ColumnMapRowMapper mapper = new ColumnMapRowMapper();
 
-    public TableRowToBeanMapper(Class<T> resultType) {
+    public TableRowToBeanMapper(Class<T> resultType, MapToBeanConverter converter) {
         this.resultType = resultType;
+        this.converter = converter;
     }
 
     @Override
@@ -45,8 +47,8 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
                 result.put(field.getFieldName(), entry.getValue());
             }
         }
-        // 3. 利用fastjson工具进行Map到JavaBean的转换
-        return ParseTools.mapToBean(result, resultType);
+        // 3. 利用工具类进行Map到JavaBean的转换
+        return converter.mapToBean(result, resultType);
     }
 
 }

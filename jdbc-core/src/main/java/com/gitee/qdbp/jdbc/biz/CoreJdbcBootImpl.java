@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.biz;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.core.convert.ConversionService;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
@@ -16,6 +17,9 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
  */
 public class CoreJdbcBootImpl implements CoreJdbcBoot {
 
+    /** Spring的类型转换处理类 **/
+    private ConversionService conversionService;
+    /** SqlBuffer数据库操作类 **/
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private Map<Class<?>, EasyCrudDao<?>> crudDaoCache = new HashMap<>();
@@ -50,6 +54,16 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
 
     private String buildCacheKey(TableJoin tables, Class<?> resultType) {
         return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
+    }
+
+    /** Spring的类型转换处理类 **/
+    public ConversionService getConversionService() {
+        return conversionService;
+    }
+
+    /** Spring的类型转换处理类 **/
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
     }
 
     /** {@inheritDoc} **/

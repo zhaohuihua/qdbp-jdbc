@@ -23,7 +23,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -90,6 +92,11 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             return;
         }
         throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
+    }
+
+    private <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
+        MapToBeanConverter converter = DbTools.getMapToBeanConverter();
+        return new TableRowToBeanMapper<>(clazz, converter);
     }
     
     private String getFormattedSqlString(SqlBuffer sb, int indent) {
@@ -180,7 +187,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 Map<String, Object> params = sb.getPreparedVariables();
                 result = namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             } else {
-                result = queryForObject(sb, new TableRowToBeanMapper<T>(resultType));
+                result = queryForObject(sb, newRowToBeanMapper(resultType));
             }
             if (log.isDebugEnabled()) {
                 log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
@@ -228,7 +235,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (isSimpleClass(elementType)) {
             list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
         } else {
-            list = namedParameterJdbcOperations.query(sql, params, new TableRowToBeanMapper<T>(elementType));
+            list = namedParameterJdbcOperations.query(sql, params, newRowToBeanMapper(elementType));
         }
         if (log.isDebugEnabled()) {
             log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());

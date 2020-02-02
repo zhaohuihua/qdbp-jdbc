@@ -14,8 +14,13 @@ import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.jdbc.api.EasyCrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
+import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
+import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
@@ -40,13 +45,27 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrud
     private Class<T> clazz;
 
     EasyCrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
-        super(newQuerySqlBuilder(c, jdbc), DbTools.getEntityFillExecutor(c), jdbc, new TableRowToBeanMapper<>(c));
+        super(newQuerySqlBuilder(c, jdbc), newEntityFillExecutor(c), jdbc, newRowToBeanMapper(c));
         this.clazz = c;
     }
 
     private static QuerySqlBuilder newQuerySqlBuilder(Class<?> clazz, SqlBufferJdbcOperations jdbc) {
         CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, jdbc.findSqlDialect());
         return new CrudSqlBuilder(sqlHelper);
+    }
+
+    private static EntityFillExecutor newEntityFillExecutor(Class<?> clazz) {
+        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
+        if (allFields.isEmpty()) {
+            throw new IllegalArgumentException("fields is empty");
+        }
+        EntityFillHandler handler = DbTools.getEntityFillHandler();
+        return new EntityFillExecutor(allFields, handler);
+    }
+
+    private static <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
+        MapToBeanConverter converter = DbTools.getMapToBeanConverter();
+        return new TableRowToBeanMapper<>(clazz, converter);
     }
 
     private CrudSqlBuilder builder() {
