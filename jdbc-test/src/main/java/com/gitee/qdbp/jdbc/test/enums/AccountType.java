@@ -1,21 +1,14 @@
 package com.gitee.qdbp.jdbc.test.enums;
 
 /**
- * AccountType枚举类<br>
- * 账号类型(0.系统|1.管理员|2.用户)
+ * 用户类型
  *
  * @author zhh
- * @version 160525
+ * @version 160427
  */
-public enum AccountType {
+public interface AccountType {
 
-    /** 0.系统 **/
-    SYSTEM,
+    int ordinal();
 
-    /** 1.管理员 **/
-    ADMIN,
-
-    /** 2.用户 **/
-    USER;
-
+    String name();
 }

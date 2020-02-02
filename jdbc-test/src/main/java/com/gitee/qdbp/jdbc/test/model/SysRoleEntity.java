@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
-import com.gitee.qdbp.jdbc.test.enums.AccountType;
+import com.gitee.qdbp.jdbc.test.enums.UserType;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
 public class SysRoleEntity implements Serializable {
@@ -21,7 +21,7 @@ public class SysRoleEntity implements Serializable {
     /** 租户编号 **/
     private String tenantCode;
     /** 用户类型 **/
-    private AccountType userType;
+    private UserType userType;
     /** 角色名称 **/
     private String roleName;
     /** 描述 **/
@@ -62,12 +62,12 @@ public class SysRoleEntity implements Serializable {
     }
 
     /** 获取用户类型 **/
-    public AccountType getUserType() {
+    public UserType getUserType() {
         return userType;
     }
 
     /** 设置用户类型 **/
-    public void setUserType(AccountType userType) {
+    public void setUserType(UserType userType) {
         this.userType = userType;
     }
 
