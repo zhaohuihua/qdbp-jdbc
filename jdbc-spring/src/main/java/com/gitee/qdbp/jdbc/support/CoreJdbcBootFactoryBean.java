@@ -47,7 +47,7 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
             SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(pluginContainer, context);
             SqlBuilderScanTools.scanAndRegisterOrderBySqlBuilder(pluginContainer, context);
             DbPluginContainer.init(pluginContainer);
-            if (conversionService == null) {
+            if (conversionService != null) {
                 // 设置插件的ConversionService
                 fillConversionService(pluginContainer, conversionService);
                 // 如果插件是Converter, 将其注册到ConverterRegistry

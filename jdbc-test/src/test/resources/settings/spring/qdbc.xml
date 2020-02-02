@@ -7,12 +7,6 @@
 	http://www.springframework.org/schema/context/spring-context.xsd
 	http://www.springframework.org/schema/beans
 	http://www.springframework.org/schema/beans/spring-beans.xsd">
-	
-	<bean id="sysCoreJdbcBoot" class="com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean">
-		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
-		<property name="pluginContainer" ref="dbPluginContainer" />
-		<property name="conversionService" ref="conversionService" />
-	</bean>
 
 	<bean id="dbPluginContainer" class="com.gitee.qdbp.jdbc.plugins.DbPluginContainer">
 		<property name="dbVersionFinder">
