@@ -74,8 +74,8 @@
 				</property>
 			</bean>
 		</property>
-		<property name="dataConvertHandler">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.ConfigableDataConvertHandler">
+		<property name="toDbValueConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.ConfigableToDbValueConverter">
 				<property name="conversionService" ref="conversionService" />
 				<property name="enumConvertUseOrdinal" value="${qdbc.converter.enumConvertUseOrdinal:true}" />
 				<property name="enumConvertEspecialText" value="${qdbc.converter.enumConvertEspecialList:}" />

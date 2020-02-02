@@ -4,16 +4,16 @@ import java.sql.Types;
 import java.util.Date;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
-import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
+import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.tools.utils.DateTools;
 
 /**
- * 数据转换简单实现类
+ * 数据转换简单实现类, 转换为数据库可以存储的格式
  *
  * @author zhaohuihua
  * @version 190705
  */
-public class SimpleDataConvertHandler implements DataConvertHandler {
+public class SimpleToDbValueConverter implements VariableToDbValueConverter {
 
     @Override
     public Object variableToDbValue(Object variable) {

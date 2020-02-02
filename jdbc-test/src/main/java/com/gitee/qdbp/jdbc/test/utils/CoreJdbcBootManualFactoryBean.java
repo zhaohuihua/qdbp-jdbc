@@ -8,7 +8,7 @@ import org.springframework.core.convert.ConversionService;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.EntityFillBizResolver;
-import com.gitee.qdbp.jdbc.plugins.impl.ConfigableDataConvertHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.ConfigableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver;
@@ -39,7 +39,7 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
         ApplicationContext context = getApplicationContext();
         DbPluginContainer plugins = new DbPluginContainer();
         registerTableInfoScans(plugins, context, false);
-        registerDataConvertHandler(plugins, context);
+        registerToDbValueConverter(plugins, context);
         registerMapToBeanConverter(plugins, context);
         registerEntityFillHandler(plugins, context);
         SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
@@ -80,9 +80,9 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
         plugins.setEntityFillHandler(handler);
     }
 
-    private void registerDataConvertHandler(DbPluginContainer plugins, ApplicationContext context) {
+    private void registerToDbValueConverter(DbPluginContainer plugins, ApplicationContext context) {
         // 数据转换处理类
-        ConfigableDataConvertHandler converter = new ConfigableDataConvertHandler();
+        ConfigableToDbValueConverter converter = new ConfigableToDbValueConverter();
         // 设置Spring的类型转换处理类
         converter.setConversionService(conversionService);
         // 设置枚举是否默认使用ordinal: true=ordinal, false=name 
@@ -99,7 +99,7 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
         // 设置对象转字符串例外列表: 以下列表不使用JSON格式(即使用toString方法)
         // converter.addObjectToStringEspecialList(Xxx.class);
         // converter.addObjectToStringEspecialList(Yyy.class);
-        plugins.setDataConvertHandler(converter);
+        plugins.setToDbValueConverter(converter);
     }
     
     private void registerMapToBeanConverter(DbPluginContainer plugins, ApplicationContext context) {

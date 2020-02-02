@@ -7,7 +7,7 @@ import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
@@ -62,8 +62,8 @@ public class DbPluginContainer {
         if (container.getEntityFillHandler() == null) {
             container.setEntityFillHandler(new SimpleEntityFillHandler<>());
         }
-        if (container.getDataConvertHandler() == null) {
-            container.setDataConvertHandler(new SimpleDataConvertHandler());
+        if (container.getToDbValueConverter() == null) {
+            container.setToDbValueConverter(new SimpleToDbValueConverter());
         }
         if (container.getMapToBeanConverter() == null) {
             container.setMapToBeanConverter(new FastJsonMapToBeanConverter());
@@ -106,16 +106,16 @@ public class DbPluginContainer {
     }
 
     /** 数据转换处理类 **/
-    private DataConvertHandler dataConvertHandler;
+    private VariableToDbValueConverter toDbValueConverter;
 
     /** 数据转换处理类 **/
-    public void setDataConvertHandler(DataConvertHandler dataConvertHandler) {
-        this.dataConvertHandler = dataConvertHandler;
+    public void setToDbValueConverter(VariableToDbValueConverter toDbValueConverter) {
+        this.toDbValueConverter = toDbValueConverter;
     }
 
     /** 数据转换处理类 **/
-    public DataConvertHandler getDataConvertHandler() {
-        return dataConvertHandler;
+    public VariableToDbValueConverter getToDbValueConverter() {
+        return toDbValueConverter;
     }
 
     /** Map到JavaBean的转换处理类 **/

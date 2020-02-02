@@ -21,7 +21,7 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
-import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
+import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
@@ -99,7 +99,7 @@ public abstract class DbTools {
      * @return 转换后的字段值对象
      */
     public static Object variableToDbValue(Object variable) {
-        DataConvertHandler helper = DbPluginContainer.defaults().getDataConvertHandler();
+        VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
@@ -126,7 +126,7 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        DataConvertHandler helper = DbPluginContainer.defaults().getDataConvertHandler();
+        VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
         Object result = helper.variableToDbValue(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;

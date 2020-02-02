@@ -12,7 +12,7 @@ import org.springframework.core.convert.converter.GenericConverter;
 import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl;
-import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
+import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 
@@ -62,9 +62,9 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
         if (mapToBeanConverter instanceof ConversionServiceAware) {
             ((ConversionServiceAware) mapToBeanConverter).setConversionService(conversionService);
         }
-        DataConvertHandler dataConvertHandler = plugins.getDataConvertHandler();
-        if (dataConvertHandler instanceof ConversionServiceAware) {
-            ((ConversionServiceAware) dataConvertHandler).setConversionService(conversionService);
+        VariableToDbValueConverter toDbValueConverter = plugins.getToDbValueConverter();
+        if (toDbValueConverter instanceof ConversionServiceAware) {
+            ((ConversionServiceAware) toDbValueConverter).setConversionService(conversionService);
         }
     }
 

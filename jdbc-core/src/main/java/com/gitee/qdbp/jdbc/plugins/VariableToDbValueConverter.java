@@ -1,12 +1,12 @@
 package com.gitee.qdbp.jdbc.plugins;
 
 /**
- * 数据转换处理类
+ * 数据转换处理类, 转换为数据库可以存储的格式
  *
  * @author zhaohuihua
  * @version 190703
  */
-public interface DataConvertHandler {
+public interface VariableToDbValueConverter {
 
     /**
      * 将变量转换为数据库可以存储的格式
