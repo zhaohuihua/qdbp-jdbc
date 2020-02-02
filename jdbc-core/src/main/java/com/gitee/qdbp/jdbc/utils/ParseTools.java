@@ -262,7 +262,7 @@ public class ParseTools {
      * @param map Map
      * @param clazz 目标Java类
      * @return Java对象
-     * @see JsonTools#mapToBean(Map, Class)
+     * @see JsonTools#convert(Map, Class)
      */
     public static <T> T mapToBean(Map<String, ?> map, Class<T> clazz) {
         @SuppressWarnings("unchecked")

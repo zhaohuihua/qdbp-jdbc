@@ -18,5 +18,5 @@ public interface MapToBeanConverter {
      * @param clazz 目标Java类
      * @return Java对象
      */
-    <T> T mapToBean(Map<String, ?> map, Class<T> clazz);
+    <T> T convert(Map<String, ?> map, Class<T> clazz);
 }

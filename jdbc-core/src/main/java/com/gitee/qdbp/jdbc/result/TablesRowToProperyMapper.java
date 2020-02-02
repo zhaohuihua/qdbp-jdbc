@@ -88,7 +88,7 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             result.putAll(subs);
         }
         // 4. 利用工具类进行Map到JavaBean的转换
-        return converter.mapToBean(result, resultType);
+        return converter.convert(result, resultType);
     }
 
 }

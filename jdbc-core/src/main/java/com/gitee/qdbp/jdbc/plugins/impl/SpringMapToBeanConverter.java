@@ -38,7 +38,7 @@ public class SpringMapToBeanConverter
     private ConversionService conversionService; // = DefaultConversionService.getSharedInstance();
 
     @Override
-    public <T> T mapToBean(Map<String, ?> map, Class<T> mappedClass) {
+    public <T> T convert(Map<String, ?> map, Class<T> mappedClass) {
         Map<String, PropertyDescriptor> mappedFields = getPropertyDescriptorMaps(mappedClass);
         T mappedObject = BeanUtils.instantiateClass(mappedClass);
         BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(mappedObject);
@@ -163,6 +163,6 @@ public class SpringMapToBeanConverter
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
         @SuppressWarnings("unchecked")
         Map<String, ?> map = (Map<String, ?>) source;
-        return mapToBean(map, targetType.getType());
+        return convert(map, targetType.getType());
     }
 }

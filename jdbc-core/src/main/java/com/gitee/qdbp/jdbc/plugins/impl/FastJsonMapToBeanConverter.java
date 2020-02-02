@@ -13,7 +13,7 @@ import com.gitee.qdbp.jdbc.utils.ParseTools;
 public class FastJsonMapToBeanConverter implements MapToBeanConverter {
 
     @Override
-    public <T> T mapToBean(Map<String, ?> map, Class<T> clazz) {
+    public <T> T convert(Map<String, ?> map, Class<T> clazz) {
         return ParseTools.mapToBean(map, clazz);
     }
 }

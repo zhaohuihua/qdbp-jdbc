@@ -48,7 +48,7 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
             }
         }
         // 3. 利用工具类进行Map到JavaBean的转换
-        return converter.mapToBean(result, resultType);
+        return converter.convert(result, resultType);
     }
 
 }
