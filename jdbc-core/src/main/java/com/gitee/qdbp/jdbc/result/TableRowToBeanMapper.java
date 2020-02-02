@@ -11,7 +11,7 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.jdbc.utils.ParseTools;
 
 /**
- * 单表增删改结果集到JavaBean的转换处理类<br>
+ * 单表查询结果集行数据到JavaBean的转换处理类<br>
  * ResultSet是列名与字段值的对应关系, 需要转换为字段名与字段值的对应关系
  *
  * @author zhaohuihua

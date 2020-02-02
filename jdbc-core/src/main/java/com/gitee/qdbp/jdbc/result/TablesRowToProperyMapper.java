@@ -14,7 +14,7 @@ import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 多个表关联的结果集保存到JavaBean对应子对象的转换类<br>
+ * 多个表关联的结果集行数据保存到JavaBean对应子对象的转换类<br>
  * 对于SYS_USER,SYS_USER_ROLE,SYS_ROLE这样的关联查询<br>
  * 新建一个结果类, 有SysUser user, SysUserRole userRole, SysRole role三个字段(子对象), 分别保存来自三个表的查询结果!<br>
  * 如果查询结果不需要关注SYS_USER_ROLE这个关联表, 也可以建SysUser user, SysRole role两个字段(子对象)的类来保存查询结果<br>
