@@ -14,5 +14,5 @@ public interface VariableToDbValueConverter {
      * @param variable 变量
      * @return 转换后的字段值, 一般是Boolean/Character/Date/Number/String之一
      */
-    Object variableToDbValue(Object variable);
+    Object convert(Object variable);
 }

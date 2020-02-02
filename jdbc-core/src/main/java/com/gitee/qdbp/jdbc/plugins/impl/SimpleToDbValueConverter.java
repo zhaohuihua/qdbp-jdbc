@@ -16,7 +16,7 @@ import com.gitee.qdbp.tools.utils.DateTools;
 public class SimpleToDbValueConverter implements VariableToDbValueConverter {
 
     @Override
-    public Object variableToDbValue(Object variable) {
+    public Object convert(Object variable) {
         if (variable == null) {
             return null;
         } else if (variable instanceof String) {
@@ -78,7 +78,7 @@ public class SimpleToDbValueConverter implements VariableToDbValueConverter {
         }
         Integer sqlType = variable.getSqlType();
         if (sqlType == null) {
-            return variableToDbValue(value);
+            return convert(value);
         }
 
         switch (sqlType) {
@@ -130,7 +130,7 @@ public class SimpleToDbValueConverter implements VariableToDbValueConverter {
         case Types.ROWID:
         case Types.SQLXML:
         default:
-            return variableToDbValue(value);
+            return convert(value);
         }
     }
 

@@ -100,7 +100,7 @@ public abstract class DbTools {
      */
     public static Object variableToDbValue(Object variable) {
         VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
-        Object result = helper.variableToDbValue(variable);
+        Object result = helper.convert(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
             return new SqlParameterValue(temp.getSqlType(), temp.getValue());
@@ -127,7 +127,7 @@ public abstract class DbTools {
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
         VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
-        Object result = helper.variableToDbValue(variable);
+        Object result = helper.convert(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
             result = temp.getValue();
