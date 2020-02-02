@@ -7,12 +7,13 @@ import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 import com.gitee.qdbp.tools.utils.DateTools;
 
 /**
- * ToDbValueConverter配置实现类<br>
+ * 使用spring的ConversionService实现类型转换<br>
  * 基础类型是指Boolean/Character/Date/Number/String<br>
- * 这个类主要作用是将非基础类型转换为基础类型, 分为枚举类和其他对象两种:<br>
- * 枚举类, 哪些使用ordinal, 哪些使用name;<br>
- * 对象作为字段时(对应数据库表的列), 哪些使用json, 哪些使用toString(), 哪些不转换(由JDBC处理)<br>
- * 另外, 如果某个类单独配置了DbFieldValue转换类, 将会优先调用<br>
+ * 继承自ConfigableVarToDbValueConverter:<br>
+ * -- 原有功能主要是将非基础类型转换为基础类型, 分为枚举类和其他对象两种:<br>
+ * -- 枚举类, 哪些使用ordinal, 哪些使用name;<br>
+ * -- 对象作为字段时(对应数据库表的列), 哪些使用json, 哪些使用toString(), 哪些不转换(由JDBC处理)<br>
+ * 新增功能, 如果某个类单独配置了DbFieldValue转换类, 将会优先调用<br>
  * 先定义一个转换类: DataStateToDbValueConverter implements Converter&lt;DataState, DbFieldValue&gt;<br>
  * 或: DataStateToDbValueConverter implements ConditionalGenericConverter<br>
  * 再注入到ConversionService之中: <pre>
