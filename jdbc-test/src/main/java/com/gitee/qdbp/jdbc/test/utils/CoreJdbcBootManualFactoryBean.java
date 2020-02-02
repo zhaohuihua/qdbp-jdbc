@@ -8,7 +8,6 @@ import org.springframework.core.convert.ConversionService;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.EntityFillBizResolver;
-import com.gitee.qdbp.jdbc.plugins.impl.ConfigableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver;
@@ -19,6 +18,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.SpringToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean;
 import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
@@ -82,7 +82,7 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
 
     private void registerToDbValueConverter(DbPluginContainer plugins, ApplicationContext context) {
         // 数据转换处理类
-        ConfigableToDbValueConverter converter = new ConfigableToDbValueConverter();
+        SpringToDbValueConverter converter = new SpringToDbValueConverter();
         // 设置Spring的类型转换处理类
         converter.setConversionService(conversionService);
         // 设置枚举是否默认使用ordinal: true=ordinal, false=name 
