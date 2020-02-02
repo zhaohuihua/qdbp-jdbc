@@ -44,6 +44,9 @@
 			<list>
 				<bean class="com.gitee.qdbp.base.converter.DataStateToDbValueConverter" />
 				<bean class="com.gitee.qdbp.base.converter.StringToDataStateConverter" />
+				<bean class="com.gitee.qdbp.base.converter.AccountTypeConverter">
+					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.UserType" />
+				</bean>
 			</list>
 		</property>
 	</bean>
