@@ -7,7 +7,7 @@ import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleToDbValueConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
@@ -63,7 +63,7 @@ public class DbPluginContainer {
             container.setEntityFillHandler(new SimpleEntityFillHandler<>());
         }
         if (container.getToDbValueConverter() == null) {
-            container.setToDbValueConverter(new SimpleToDbValueConverter());
+            container.setToDbValueConverter(new SimpleVarToDbValueConverter());
         }
         if (container.getMapToBeanConverter() == null) {
             container.setMapToBeanConverter(new FastJsonMapToBeanConverter());

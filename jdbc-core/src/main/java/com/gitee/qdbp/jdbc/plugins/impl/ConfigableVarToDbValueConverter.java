@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.utils.InnerTools;
  * @author zhaohuihua
  * @version 190705
  */
-public class ConfigableToDbValueConverter extends SimpleToDbValueConverter {
+public class ConfigableVarToDbValueConverter extends SimpleVarToDbValueConverter {
 
     /** 枚举转换是否默认使用ordinal: true=ordinal, false=name **/
     private boolean enumConvertUseOrdinal = true;

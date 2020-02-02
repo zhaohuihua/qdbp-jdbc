@@ -13,7 +13,7 @@ import com.gitee.qdbp.tools.utils.DateTools;
  * @author zhaohuihua
  * @version 190705
  */
-public class SimpleToDbValueConverter implements VariableToDbValueConverter {
+public class SimpleVarToDbValueConverter implements VariableToDbValueConverter {
 
     @Override
     public Object convert(Object variable) {

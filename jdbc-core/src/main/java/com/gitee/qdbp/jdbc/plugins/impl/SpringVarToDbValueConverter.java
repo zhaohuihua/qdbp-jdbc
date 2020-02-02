@@ -28,7 +28,7 @@ import com.gitee.qdbp.tools.utils.DateTools;
  * @author zhaohuihua
  * @version 190705
  */
-public class SpringToDbValueConverter extends ConfigableToDbValueConverter implements ConversionServiceAware {
+public class SpringVarToDbValueConverter extends ConfigableVarToDbValueConverter implements ConversionServiceAware {
 
     /** Spring的类型转换处理类 **/
     private ConversionService conversionService;

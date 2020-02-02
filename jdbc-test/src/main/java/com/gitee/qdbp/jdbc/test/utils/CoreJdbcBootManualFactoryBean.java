@@ -18,7 +18,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
-import com.gitee.qdbp.jdbc.plugins.impl.SpringToDbValueConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.SpringVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean;
 import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
@@ -82,7 +82,7 @@ public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
 
     private void registerToDbValueConverter(DbPluginContainer plugins, ApplicationContext context) {
         // 数据转换处理类
-        SpringToDbValueConverter converter = new SpringToDbValueConverter();
+        SpringVarToDbValueConverter converter = new SpringVarToDbValueConverter();
         // 设置Spring的类型转换处理类
         converter.setConversionService(conversionService);
         // 设置枚举是否默认使用ordinal: true=ordinal, false=name 
