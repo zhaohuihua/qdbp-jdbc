@@ -25,8 +25,8 @@ import com.gitee.qdbp.jdbc.plugins.DataConvertHandler;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
-import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
@@ -151,34 +151,15 @@ public abstract class DbTools {
             return dialect.variableToString(result.toString());
         }
     }
-
-    /**
-     * 获取实体业务执行接口
-     * 
-     * @param clazz
-     * @return 实体业务执行类
-     */
-    public static EntityFillExecutor getEntityFillExecutor(Class<?> clazz) {
-        AllFieldColumn<?> allFields = parseToAllFieldColumn(clazz);
-        if (allFields.isEmpty()) {
-            throw new IllegalArgumentException("fields is empty");
-        }
-        EntityFillHandler handler = DbPluginContainer.defaults().getEntityFillHandler();
-        return new EntityFillExecutor(allFields, handler);
+    
+    /** 获取Map到JavaBean的转换处理类 **/
+    public static MapToBeanConverter getMapToBeanConverter() {
+        return DbPluginContainer.defaults().getMapToBeanConverter();
     }
-
-    /**
-     * 获取实体业务执行接口
-     * 
-     * @return 实体业务执行类
-     */
-    public static EntityFillExecutor getEntityFillExecutor(TableJoin tables) {
-        AllFieldColumn<?> allFields = parseToAllFieldColumn(tables);
-        if (allFields.isEmpty()) {
-            throw new IllegalArgumentException("fields is empty");
-        }
-        EntityFillHandler handler = DbPluginContainer.defaults().getEntityFillHandler();
-        return new EntityFillExecutor(allFields, handler);
+    
+    /** 实体数据填充的业务处理接口 **/
+    public static EntityFillHandler getEntityFillHandler() {
+        return DbPluginContainer.defaults().getEntityFillHandler();
     }
 
     public static SqlDialect buildSqlDialect(DbType dbType) {
@@ -242,7 +223,7 @@ public abstract class DbTools {
     private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
 
     /**
-     * 扫描表名信息
+     * 扫描表名信息(有缓存)
      * 
      * @param clazz 类名
      * @return 表名
@@ -265,7 +246,7 @@ public abstract class DbTools {
     private static Map<Class<?>, PrimaryKeyFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
 
     /**
-     * 扫描获取主键
+     * 扫描获取主键(有缓存)
      * 
      * @param clazz 类名
      * @return 主键
@@ -303,7 +284,7 @@ public abstract class DbTools {
     }
 
     /**
-     * 扫描获取字段名和数据库列名的映射表
+     * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param tables 表关联对象
      * @return AllFields: fieldName - columnName
@@ -354,7 +335,7 @@ public abstract class DbTools {
     }
 
     /**
-     * 扫描获取字段名和数据库列名的映射表
+     * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param tables 表关联对象
      * @return AllFieldColumn: fieldName - columnName
@@ -368,7 +349,7 @@ public abstract class DbTools {
     private static Map<Class<?>, List<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
 
     /**
-     * 扫描获取字段名和数据库列名的映射表
+     * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param clazz 类型
      * @return AllFields: fieldName - columnName
@@ -388,9 +369,9 @@ public abstract class DbTools {
     }
 
     /**
-     * 扫描获取字段名和数据库列名的映射表
+     * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
-     * @param tables 表关联对象
+     * @param clazz 表关联对象
      * @return AllFieldColumn: fieldName - columnName
      */
     public static AllFieldColumn<SimpleFieldColumn> parseToAllFieldColumn(Class<?> clazz) {

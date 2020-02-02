@@ -6,6 +6,7 @@ import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDataConvertHandler;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
@@ -64,6 +65,9 @@ public class DbPluginContainer {
         if (container.getDataConvertHandler() == null) {
             container.setDataConvertHandler(new SimpleDataConvertHandler());
         }
+        if (container.getMapToBeanConverter() == null) {
+            container.setMapToBeanConverter(new FastJsonMapToBeanConverter());
+        }
         if (container.getOperatorContainer() == null) {
             container.setOperatorContainer(new SimpleDbOperatorContainer());
         }
@@ -112,6 +116,19 @@ public class DbPluginContainer {
     /** 数据转换处理类 **/
     public DataConvertHandler getDataConvertHandler() {
         return dataConvertHandler;
+    }
+
+    /** Map到JavaBean的转换处理类 **/
+    private MapToBeanConverter mapToBeanConverter;
+
+    /** Map到JavaBean的转换处理类 **/
+    public void setMapToBeanConverter(MapToBeanConverter mapToBeanConverter) {
+        this.mapToBeanConverter = mapToBeanConverter;
+    }
+
+    /** Map到JavaBean的转换处理类 **/
+    public MapToBeanConverter getMapToBeanConverter() {
+        return mapToBeanConverter;
     }
 
     /** 数据库运算符容器 **/
