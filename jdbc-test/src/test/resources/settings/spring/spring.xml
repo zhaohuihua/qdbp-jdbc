@@ -39,16 +39,13 @@
 		<property name="properties" ref="setting" />
 	</bean>
 
-
 	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
-				<bean class="com.gitee.qdbp.base.converter.AccountTypeConverter">
-					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.UserType" />
-				</bean>
 				<bean class="com.gitee.qdbp.base.converter.DataStateToDbValueConverter" />
 				<bean class="com.gitee.qdbp.base.converter.StringToDataStateConverter" />
-				<bean class="com.gitee.qdbp.base.converter.AccountTypeConverter">
+				<bean class="com.gitee.qdbp.jdbc.support.EnumInterfaceConverter">
+					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.AccountType" />
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.UserType" />
 				</bean>
 			</list>
