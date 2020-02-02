@@ -1,8 +1,11 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.beans.PropertyDescriptor;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -11,9 +14,12 @@ import org.springframework.beans.NotWritablePropertyException;
 import org.springframework.beans.PropertyAccessorFactory;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.ClassUtils;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
+import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 
 /**
  * 利用spring的ConvertionService进行Map到JavaBean的转换<br>
@@ -22,7 +28,8 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
  * @author zhaohuihua
  * @version 200201
  */
-public class SpringMapToBeanConverter implements MapToBeanConverter {
+public class SpringMapToBeanConverter
+        implements MapToBeanConverter, ConditionalGenericConverter, ConversionServiceAware {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     /** 空值时是否调用调用方法 **/
@@ -131,5 +138,31 @@ public class SpringMapToBeanConverter implements MapToBeanConverter {
      */
     public ConversionService getConversionService() {
         return this.conversionService;
+    }
+
+    private static final Set<ConvertiblePair> CONVERTIBLE_PAIRS;
+    private static final TypeDescriptor MAP_TYPE = TypeDescriptor.valueOf(Map.class);
+
+    static {
+        Set<ConvertiblePair> convertiblePairs = new HashSet<ConvertiblePair>(1);
+        convertiblePairs.add(new ConvertiblePair(Map.class, Object.class));
+        CONVERTIBLE_PAIRS = Collections.unmodifiableSet(convertiblePairs);
+    }
+
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes() {
+        return CONVERTIBLE_PAIRS;
+    }
+
+    @Override
+    public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+        return sourceType.isAssignableTo(MAP_TYPE);
+    }
+
+    @Override
+    public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+        @SuppressWarnings("unchecked")
+        Map<String, ?> map = (Map<String, ?>) source;
+        return mapToBean(map, targetType.getType());
     }
 }
