@@ -181,7 +181,7 @@ public class SpringMapToBeanConverter
                 return TypeUtils.cast(object, targetType.getObjectType(), ParserConfig.getGlobalInstance());
             } else if (object instanceof Map) {
                 @SuppressWarnings("unchecked")
-                Map<String, ?> map = (Map<String, ?>) source;
+                Map<String, ?> map = (Map<String, ?>) object;
                 return convert(map, targetType.getType());
             } else {
                 return conversionService.convert(object, sourceType, targetType);
