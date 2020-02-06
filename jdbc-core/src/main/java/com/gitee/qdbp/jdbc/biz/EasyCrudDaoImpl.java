@@ -11,7 +11,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
-import com.gitee.qdbp.jdbc.api.EasyCrudDao;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
@@ -38,7 +38,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements EasyCrudDao<T> {
+public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<T> {
 
     private static Logger log = LoggerFactory.getLogger(EasyCrudDaoImpl.class);
 

@@ -14,8 +14,8 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
-import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
-import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
+import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
@@ -30,7 +30,7 @@ public class EasyJoinQueryTest extends AbstractTestNGSpringContextTests {
     private Logger log = LoggerFactory.getLogger(EasyJoinQueryTest.class);
 
     @Autowired
-    private CoreJdbcBoot coreJdbcBoot;
+    private QdbcBoot qdbcBoot;
 
     /**
      * 查询多个用户的角色信息<br>
@@ -53,7 +53,7 @@ public class EasyJoinQueryTest extends AbstractTestNGSpringContextTests {
         // @formatter:on
         DbWhere where = new DbWhere();
         where.on("u.userCode", "in", userCodes);
-        EasyJoinQuery<UserRole> query = coreJdbcBoot.buildJoinQuery(tables, UserRole.class);
+        JoinQueryer<UserRole> query = qdbcBoot.buildJoinQuery(tables, UserRole.class);
         // UserRole = { SysUser user; SysRole role; }
         PageList<UserRole> userRoles = query.list(where, OrderPaging.NONE);
         log.debug("UserRolesQueryResult: {}", JsonTools.toLogString(userRoles));
@@ -81,7 +81,7 @@ public class EasyJoinQueryTest extends AbstractTestNGSpringContextTests {
         // @formatter:on
         DbWhere where = new DbWhere();
         where.on("u.userCode", "=", userCode);
-        EasyJoinQuery<SysRoleEntity> query = coreJdbcBoot.buildJoinQuery(tables, SysRoleEntity.class);
+        JoinQueryer<SysRoleEntity> query = qdbcBoot.buildJoinQuery(tables, SysRoleEntity.class);
         PageList<SysRoleEntity> roles = query.list(where, OrderPaging.NONE);
         log.debug("RolesQueryByUserResult: {}", JsonTools.toLogString(roles));
         Assert.assertNotNull(roles);

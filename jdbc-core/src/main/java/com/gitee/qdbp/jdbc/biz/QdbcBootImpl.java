@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.convert.ConversionService;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
-import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
-import com.gitee.qdbp.jdbc.api.EasyCrudDao;
-import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
+import com.gitee.qdbp.jdbc.api.CrudDao;
+import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 
 /**
@@ -15,24 +15,24 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
  * @author 赵卉华
  * @version 190601
  */
-public class CoreJdbcBootImpl implements CoreJdbcBoot {
+public class QdbcBootImpl implements QdbcBoot {
 
     /** Spring的类型转换处理类 **/
     private ConversionService conversionService;
     /** SqlBuffer数据库操作类 **/
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
-    private Map<Class<?>, EasyCrudDao<?>> crudDaoCache = new HashMap<>();
-    private Map<String, EasyJoinQuery<?>> joinQueryCache = new HashMap<>();
+    private Map<Class<?>, CrudDao<?>> crudDaoCache = new HashMap<>();
+    private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
 
     /** {@inheritDoc} **/
     @Override
     @SuppressWarnings("unchecked")
-    public <T> EasyCrudDao<T> buildCrudDao(Class<T> clazz) {
+    public <T> CrudDao<T> buildCrudDao(Class<T> clazz) {
         if (crudDaoCache.containsKey(clazz)) {
-            return (EasyCrudDao<T>) crudDaoCache.get(clazz);
+            return (CrudDao<T>) crudDaoCache.get(clazz);
         } else {
-            EasyCrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
+            CrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
             crudDaoCache.put(clazz, instance);
             return instance;
         }
@@ -41,12 +41,12 @@ public class CoreJdbcBootImpl implements CoreJdbcBoot {
     /** {@inheritDoc} **/
     @Override
     @SuppressWarnings("unchecked")
-    public <T> EasyJoinQuery<T> buildJoinQuery(TableJoin tables, Class<T> resultType) {
+    public <T> JoinQueryer<T> buildJoinQuery(TableJoin tables, Class<T> resultType) {
         String cacheKey = buildCacheKey(tables, resultType);
         if (joinQueryCache.containsKey(cacheKey)) {
-            return (EasyJoinQuery<T>) joinQueryCache.get(cacheKey);
+            return (JoinQueryer<T>) joinQueryCache.get(cacheKey);
         } else {
-            EasyJoinQuery<T> instance = new EasyJoinQueryImpl<>(tables, resultType, sqlBufferJdbcOperations);
+            JoinQueryer<T> instance = new EasyJoinQueryImpl<>(tables, resultType, sqlBufferJdbcOperations);
             joinQueryCache.put(cacheKey, instance);
             return instance;
         }

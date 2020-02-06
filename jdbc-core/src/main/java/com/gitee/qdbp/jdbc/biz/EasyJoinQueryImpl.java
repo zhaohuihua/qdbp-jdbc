@@ -4,7 +4,7 @@ package com.gitee.qdbp.jdbc.biz;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
-import com.gitee.qdbp.jdbc.api.EasyJoinQuery;
+import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
@@ -22,7 +22,7 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190606
  */
-public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements EasyJoinQuery<T> {
+public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements JoinQueryer<T> {
 
     private String majorTableAlias;
 

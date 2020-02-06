@@ -8,8 +8,8 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
-import com.gitee.qdbp.jdbc.api.EasyCrudDao;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
@@ -25,11 +25,11 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
     private Logger log = LoggerFactory.getLogger(EasyCrudDaoTest.class);
 
     @Autowired
-    private CoreJdbcBoot coreJdbcBoot;
+    private QdbcBoot qdbcBoot;
 
     @Test(priority = 2)
     public void testVersionQuery() {
-        DbVersion version = coreJdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
+        DbVersion version = qdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
         log.debug("DbVersion: {}", version);
         Assert.assertNotNull(version);
     }
@@ -42,7 +42,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         bean.setUserType(UserType.ADMIN);
         bean.setUserState(UserState.NORMAL);
         DbWhere where = ParseTools.parseWhereFromEntity(bean);
-        EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
         SysUserEntity user = dao.find(where);
         log.debug("UserBeanQueryResult: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
@@ -56,7 +56,7 @@ public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
         where.on("userType", "=", UserType.ADMIN);
         where.on("userState", "in", UserState.NORMAL, UserState.LOCKED);
         where.on("createTime", ">=", DateTools.parse("2017-01-01"));
-        EasyCrudDao<SysUserEntity> dao = coreJdbcBoot.buildCrudDao(SysUserEntity.class);
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
         SysUserEntity user = dao.find(where);
         log.debug("UserWhereQueryResult: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);

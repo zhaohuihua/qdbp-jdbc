@@ -9,25 +9,25 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.converter.GenericConverter;
-import com.gitee.qdbp.jdbc.api.CoreJdbcBoot;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.biz.CoreJdbcBootImpl;
+import com.gitee.qdbp.jdbc.biz.QdbcBootImpl;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 
 /**
- * CoreJdbcBootFactoryBean<br>
+ * QdbcBootFactoryBean<br>
  * 同时负责数据库插件初始化处理
  *
  * @author zhaohuihua
  * @version 200128
  */
-public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, InitializingBean, ApplicationContextAware {
+public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingBean, ApplicationContextAware {
 
     private boolean singleton = true;
     private boolean initialized = false;
-    private CoreJdbcBootImpl singletonInstance;
+    private QdbcBootImpl singletonInstance;
 
     private ApplicationContext context;
     /** Spring的类型转换处理类 **/
@@ -84,7 +84,7 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
     }
 
     @Override
-    public CoreJdbcBoot getObject() throws Exception {
+    public QdbcBoot getObject() throws Exception {
         if (isSingleton()) {
             if (!this.initialized) {
                 this.singletonInstance = createInstance();
@@ -96,15 +96,15 @@ public class CoreJdbcBootFactoryBean implements FactoryBean<CoreJdbcBoot>, Initi
         }
     }
 
-    private CoreJdbcBootImpl createInstance() {
-        CoreJdbcBootImpl boot = new CoreJdbcBootImpl();
+    private QdbcBootImpl createInstance() {
+        QdbcBootImpl boot = new QdbcBootImpl();
         boot.setSqlBufferJdbcOperations(sqlBufferJdbcOperations);
         return boot;
     }
 
     @Override
     public Class<?> getObjectType() {
-        return CoreJdbcBoot.class;
+        return QdbcBoot.class;
     }
 
     public void setSingleton(boolean singleton) {

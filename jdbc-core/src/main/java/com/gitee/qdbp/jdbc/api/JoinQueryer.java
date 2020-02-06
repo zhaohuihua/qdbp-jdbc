@@ -16,7 +16,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
  * @author zhaohuihua
  * @version 190608
  */
-public interface EasyJoinQuery<T> {
+public interface JoinQueryer<T> {
 
     /**
      * 根据查询条件获取对象<br>

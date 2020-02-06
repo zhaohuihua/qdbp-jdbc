@@ -20,17 +20,17 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
-import com.gitee.qdbp.jdbc.support.CoreJdbcBootFactoryBean;
+import com.gitee.qdbp.jdbc.support.QdbcBootFactoryBean;
 import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
 /**
- * CoreJdbcBoot工厂类, 手动设置DbPluginContainer
+ * QdbcBoot工厂类, 手动设置DbPluginContainer
  *
  * @author zhaohuihua
  * @version 200129
  */
-public class CoreJdbcBootManualFactoryBean extends CoreJdbcBootFactoryBean {
+public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
 
     private ConversionService conversionService;
 

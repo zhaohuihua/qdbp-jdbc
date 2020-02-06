@@ -15,7 +15,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
  * @author 赵卉华
  * @version 190601
  */
-public interface EasyCrudDao<T> {
+public interface CrudDao<T> {
 
     /**
      * 根据主键编号获取对象<br>
@@ -325,7 +325,7 @@ public interface EasyCrudDao<T> {
     int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException;
 
     /**
-     * 根据条件批量更新实体对象(物理删除)<br>
+     * 根据条件批量删除实体对象(物理删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
      * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
      * 
