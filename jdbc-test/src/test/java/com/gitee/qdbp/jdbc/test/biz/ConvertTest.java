@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserType;
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class ConvertTest extends AbstractTestNGSpringContextTests {
 
-    private Logger log = LoggerFactory.getLogger(EasyCrudDaoTest.class);
+    private Logger log = LoggerFactory.getLogger(SimpleCrudDaoTest.class);
 
     @Autowired
     private ConversionService conversionService;

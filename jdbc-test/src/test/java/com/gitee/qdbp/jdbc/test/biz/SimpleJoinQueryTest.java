@@ -25,9 +25,9 @@ import com.gitee.qdbp.tools.utils.JsonTools;
 
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
-public class EasyJoinQueryTest extends AbstractTestNGSpringContextTests {
+public class SimpleJoinQueryTest extends AbstractTestNGSpringContextTests {
 
-    private Logger log = LoggerFactory.getLogger(EasyJoinQueryTest.class);
+    private Logger log = LoggerFactory.getLogger(SimpleJoinQueryTest.class);
 
     @Autowired
     private QdbcBoot qdbcBoot;

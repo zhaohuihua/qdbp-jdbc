@@ -20,9 +20,9 @@ import com.gitee.qdbp.tools.utils.JsonTools;
 
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
-public class EasyCrudDaoTest extends AbstractTestNGSpringContextTests {
+public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
 
-    private Logger log = LoggerFactory.getLogger(EasyCrudDaoTest.class);
+    private Logger log = LoggerFactory.getLogger(SimpleCrudDaoTest.class);
 
     @Autowired
     private QdbcBoot qdbcBoot;
