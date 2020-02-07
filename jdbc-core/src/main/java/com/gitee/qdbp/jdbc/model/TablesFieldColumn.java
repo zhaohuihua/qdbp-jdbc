@@ -59,7 +59,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
             this.tableAlias = fieldName.substring(0, dotIndex);
             super.setFieldName(fieldName.substring(dotIndex + 1));
         } else {
-            throw new IllegalArgumentException("FieldName can't be start with '.': " + fieldName);
+            throw new IllegalArgumentException("FieldName must no be start with '.': " + fieldName);
         }
     }
 
@@ -73,7 +73,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
             this.tableAlias = columnName.substring(0, dotIndex);
             super.setColumnName(columnName.substring(dotIndex + 1));
         } else {
-            throw new IllegalArgumentException("ColumnName can't be start with '.': " + columnName);
+            throw new IllegalArgumentException("ColumnName must no be start with '.': " + columnName);
         }
     }
 

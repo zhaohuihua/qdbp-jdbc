@@ -6,7 +6,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptyDbWhere;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableDbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
@@ -63,9 +63,7 @@ public abstract class EasyBaseQueryImpl<T> {
     }
 
     public T find(DbWhere where) {
-        if (where == null || where.isEmpty()) {
-            throw new IllegalArgumentException("where can't be empty");
-        }
+        VerifyTools.requireNotBlank(where, "where");
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildFindSql(where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
@@ -85,7 +83,7 @@ public abstract class EasyBaseQueryImpl<T> {
     public PageList<T> list(DbWhere where, OrderPaging odpg) {
         // DbWhere readyWhere = checkWhere(where); // 带分页查询列表, 允许条件为空, 因此不检查
         DbWhere readyWhere = where;
-        if (where == null || where instanceof EmptyDbWhere) {
+        if (where == null || where == DbWhere.NONE) {
             readyWhere = new DbWhere();
         }
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
@@ -153,9 +151,10 @@ public abstract class EasyBaseQueryImpl<T> {
     private static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
 
     protected DbWhere checkWhere(DbWhere where) {
-        if (where == null || (where.isEmpty() && !(where instanceof EmptyDbWhere))) {
-            throw new IllegalArgumentException("where can't be empty, please use DbWhere.NONE");
-        } else if (where instanceof EmptyDbWhere) {
+        if (where == null || (where.isEmpty() && !(where instanceof EmptiableDbWhere))) {
+            String m = "where must no be " + (where == null ? "null" : "empty") + ", please use DbWhere.NONE";
+            throw new IllegalArgumentException(m);
+        } else if (where == DbWhere.NONE) {
             return new DbWhere();
         } else {
             return where;

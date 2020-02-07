@@ -30,9 +30,7 @@ public class SimpleSqlDialect implements SqlDialect {
     private DbVersion dbVersion;
 
     public SimpleSqlDialect(DbVersion dbVersion) {
-        if (dbVersion == null) {
-            throw new IllegalArgumentException("DbVersion can't be empty");
-        }
+        VerifyTools.requireNonNull(dbVersion, "DbVersion");
         this.dbVersion = dbVersion;
     }
 
