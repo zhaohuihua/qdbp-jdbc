@@ -6,7 +6,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableDbWhere;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
@@ -151,8 +151,8 @@ public abstract class EasyBaseQueryImpl<T> {
     private static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
 
     protected DbWhere checkWhere(DbWhere where) {
-        if (where == null || (where.isEmpty() && !(where instanceof EmptiableDbWhere))) {
-            String m = "where must no be " + (where == null ? "null" : "empty") + ", please use DbWhere.NONE";
+        if (where == null || (where.isEmpty() && !(where instanceof EmptiableWhere))) {
+            String m = "where must not be " + (where == null ? "null" : "empty") + ", please use DbWhere.NONE";
             throw new IllegalArgumentException(m);
         } else if (where == DbWhere.NONE) {
             return new DbWhere();

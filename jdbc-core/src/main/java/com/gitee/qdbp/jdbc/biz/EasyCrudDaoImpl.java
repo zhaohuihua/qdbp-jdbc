@@ -16,6 +16,7 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
@@ -28,7 +29,6 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.jdbc.utils.ParseTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -142,8 +142,9 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
 
     @Override
     public String insert(T entity, boolean fillCreateParams) throws ServiceException {
-        VerifyTools.requireNotBlank(entity, "entity");
-        Map<String, Object> readyEntity = DbTools.beanToMap(entity);
+        VerifyTools.requireNonNull(entity, "entity");
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        Map<String, Object> readyEntity = converter.convertBeanToInsertMap(entity);
         return insert(readyEntity, fillCreateParams);
     }
 
@@ -202,7 +203,8 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedUpdateById, class=" + clazz);
         }
-        DbUpdate readyEntity = ParseTools.parseUpdateFromEntity(entity, false);
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbUpdate readyEntity = converter.convertBeanToDbUpdate(entity);
         DbWhere where = new DbWhere();
         List<DbField> temp = readyEntity.fields(pk.getFieldName());
         String id = null;
@@ -219,7 +221,7 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
         where.on(pk.getFieldName(), "=", id);
         readyEntity.remove(pk.getFieldName());
         if (readyEntity.isEmpty()) {
-            throw new IllegalArgumentException("entity must no be empty");
+            throw new IllegalArgumentException("entity must not be empty");
         }
 
         entityFillExecutor.fillTableWhereDataStatus(where);
@@ -233,9 +235,10 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
     public int update(T entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
-        DbUpdate readyEntity = ParseTools.parseUpdateFromEntity(entity, false);
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbUpdate readyEntity = converter.convertBeanToDbUpdate(entity);
         if (readyEntity.isEmpty()) {
-            throw new IllegalArgumentException("entity must no be empty");
+            throw new IllegalArgumentException("entity must not be empty");
         }
 
         DbWhere readyWhere = checkWhere(where);
@@ -297,10 +300,13 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
 
     @Override
     public int logicalDelete(T where, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
-        // emptible=true, 因为后面的检查会给出具体提示
-        DbWhere readyWhere = ParseTools.parseWhereFromEntity(where, true);
+        if (where == null) {
+            throw new IllegalArgumentException("where must not be null, please use logicalDeleteAll()");
+        }
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbWhere readyWhere = converter.convertBeanToDbWhere(where);
         if (VerifyTools.isBlank(readyWhere)) {
-            throw new IllegalArgumentException("where must no be empty, please use logicalDeleteAll()");
+            throw new IllegalArgumentException("where must not be empty, please use logicalDeleteAll()");
         }
         entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return this.doDelete(readyWhere, true, fillUpdateParams, errorOnUnaffected);
@@ -330,10 +336,13 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
 
     @Override
     public int physicalDelete(T where, boolean errorOnUnaffected) throws ServiceException {
-        // emptible=true, 因为后面的检查会给出具体提示
-        DbWhere readyWhere = ParseTools.parseWhereFromEntity(where, true);
+        if (where == null) {
+            throw new IllegalArgumentException("where must not be null, please use physicalDeleteAll()");
+        }
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbWhere readyWhere = converter.convertBeanToDbWhere(where);
         if (VerifyTools.isBlank(readyWhere)) {
-            throw new IllegalArgumentException("where must no be empty, please use physicalDeleteAll()");
+            throw new IllegalArgumentException("where must not be empty, please use physicalDeleteAll()");
         }
         return this.doDelete(readyWhere, true, false, errorOnUnaffected);
     }

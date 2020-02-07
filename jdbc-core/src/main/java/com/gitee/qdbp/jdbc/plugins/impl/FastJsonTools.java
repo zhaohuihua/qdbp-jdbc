@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.utils;
+package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -21,12 +21,12 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
  * Json工具类<br>
- * 为去除对qdbp-tools.jar的依赖, 复制自qdbp-tools.jar的JsonTools
+ * 为去除对qdbp-tools.jar的依赖, 复制自JsonTools
  *
  * @author zhaohuihua
  * @version 180621
  */
-abstract class JsonTools {
+abstract class FastJsonTools {
 
     /**
      * 将Map转换为Java对象

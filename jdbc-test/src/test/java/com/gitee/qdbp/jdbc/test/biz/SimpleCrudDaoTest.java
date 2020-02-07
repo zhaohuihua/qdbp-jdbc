@@ -41,7 +41,7 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
         bean.setSuperman(true);
         bean.setUserType(UserType.ADMIN);
         bean.setUserState(UserState.NORMAL);
-        DbWhere where = ParseTools.parseWhereFromEntity(bean, false);
+        DbWhere where = ParseTools.parseBeanToDbWhere(bean);
         CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
         SysUserEntity user = dao.find(where);
         log.debug("UserBeanQueryResult: {}", JsonTools.toLogString(user));

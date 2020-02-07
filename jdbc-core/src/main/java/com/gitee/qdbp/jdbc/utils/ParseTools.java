@@ -1,14 +1,9 @@
 package com.gitee.qdbp.jdbc.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.utils.FieldTools;
-import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -19,75 +14,68 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public class ParseTools {
 
-    /** 分页/排序对象的通用字段 **/
-    private static List<String> COMMON_FIELDS = Arrays.asList("_", "extra", "offset", "pageSize", "skip", "rows",
-        "page", "needCount", "paging", "ordering");
-    /** 允许数组的字段名后缀 **/
-    private static List<String> WHERE_ARRAY_FIELDS = Arrays.asList("In", "NotIn", "Between", "NotBetween");
-
     /**
-     * 将Java对象转换为Where对象
+     * 将JavaBean解析为DbWhere对象
      * 
-     * @param entity Java对象
-     * @param emptiable 是否允许条件为空
-     * @return Where对象
+     * @param bean Java对象
+     * @return DbWhere
      */
-    public static DbWhere parseWhereFromEntity(Object entity, boolean emptiable) {
-        Map<String, Object> map = entityToMap(entity, emptiable, false);
-        return DbWhere.from(map, emptiable);
+    public static DbWhere parseBeanToDbWhere(Object bean) {
+        return parseBeanToDbWhere(bean, true);
     }
 
     /**
-     * 将Java对象转换为Update对象
+     * 将JavaBean解析为DbWhere对象
      * 
-     * @param entity Java对象
-     * @param emptiable 是否允许条件为空
-     * @return Update对象
+     * @param bean Java对象
+     * @param emptiable 是否允许DbWhere对象为空
+     * @return DbWhere
      */
-    public static DbUpdate parseUpdateFromEntity(Object entity, boolean emptiable) {
-        Map<String, Object> map = entityToMap(entity, emptiable, false);
-        return DbUpdate.from(map, emptiable);
-    }
-
-    private static Map<String, Object> entityToMap(Object entity, boolean emptiable, boolean deep) {
-        if (entity == null) {
-            if (emptiable) {
-                return null;
-            } else {
-                throw new NullPointerException("entity is null");
-            }
-        }
-        // 不能直接用fastjson的JSON.toJSON转换, 会导致日期/枚举被转换为基本类型, 子对象转换为map
-        // Map<String, Object> map = (JSONObject) JSON.toJSON(entity);
-        Map<String, Object> map = JsonTools.beanToMap(entity, deep, false);
-        if (!emptiable && map.isEmpty()) {
-            throw new IllegalArgumentException("entity must no be empty.");
-        }
-        return map;
-    }
-
-    /**
-     * 从请求参数中构建Where对象<br>
-     * 只会包含clazz注解中通过@JoyInColumn指定的字段名
-     * 
-     * @param params 请求参数
-     * @param emptiable 是否允许条件为空
-     * @param clazz 实体类
-     * @return Where对象
-     */
-    public static <T> DbWhere parseWhereFromParams(Map<String, String[]> params, boolean emptiable, Class<T> clazz) {
+    public static DbWhere parseBeanToDbWhere(Object bean, boolean emptiable) {
         if (!emptiable) {
-            VerifyTools.requireNotBlank(params, "params");
+            VerifyTools.requireNonNull(bean, "bean");
         }
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
-        List<String> fieldNames = allFields.getFieldNames();
-        Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, WHERE_ARRAY_FIELDS);
-        return DbWhere.from(map, emptiable);
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbWhere where = converter.convertBeanToDbWhere(bean);
+        if (!emptiable && where.isEmpty()) {
+            throw new IllegalArgumentException("bean must not be empty.");
+        }
+        return where;
     }
 
     /**
-     * 从请求参数中构建Where对象<br>
-     * <pre>
+     * 将JavaBean解析为DbUpdate对象
+     * 
+     * @param bean Java对象
+     * @return DbUpdate
+     */
+    public static DbUpdate parseBeanToDbUpdate(Object bean) {
+        return parseBeanToDbUpdate(bean, true);
+    }
+
+    /**
+     * 将JavaBean解析为DbUpdate对象
+     * 
+     * @param bean Java对象
+     * @param emptiable 是否允许DbUpdate对象为空
+     * @return DbUpdate
+     */
+    public static DbUpdate parseBeanToDbUpdate(Object bean, boolean emptiable) {
+        if (!emptiable) {
+            VerifyTools.requireNonNull(bean, "bean");
+        }
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbUpdate ud = converter.convertBeanToDbUpdate(bean);
+        if (!emptiable && ud.isEmpty()) {
+            throw new IllegalArgumentException("bean must not be empty.");
+        }
+        return ud;
+    }
+
+    /**
+     * 从请求参数request.getParameterMap()中构建Where对象<br>
+     * 只会包含clazz注解中通过@JoyInColumn指定的字段名<br>
+     * 应注意, 此时参数由前端传入, 条件不可控, 也有可能条件为空, 需要仔细检查条件内容, 防止越权操作 <pre>
      * 转换规则:
         fieldName$Equals(=), fieldName$NotEquals(!=), 
         fieldName$LessThen(<), fieldName$LessEqualsThen(<=), 
@@ -98,33 +86,26 @@ public class ParseTools {
      * </pre>
      * 
      * @param params 请求参数
+     * @param clazz 实体类
      * @param emptiable 是否允许条件为空
-     * @param excludeDefault 是否排除默认的公共字段<br>
-     *            extra, offset, pageSize, skip, rows, page, needCount, paging, orderings
-     * @param excludeFields 排除的字段名, optional
      * @return Where对象
      */
-    public static DbWhere parseWhereFromParams(Map<String, String[]> params, boolean emptiable, boolean excludeDefault,
-            String... excludeFields) {
+    public static <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> clazz, boolean emptiable) {
         if (!emptiable) {
             VerifyTools.requireNotBlank(params, "params");
         }
-        List<String> realExcludeFields = new ArrayList<String>();
-        if (excludeDefault) {
-            realExcludeFields.addAll(COMMON_FIELDS);
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbWhere where = converter.parseParamsToDbWhere(params, clazz);
+        if (!emptiable && where.isEmpty()) {
+            throw new IllegalArgumentException("params must not be empty.");
         }
-        if (VerifyTools.isNotBlank(excludeFields)) {
-            for (String string : excludeFields) {
-                realExcludeFields.add(string);
-            }
-        }
-        Map<String, Object> map = parseMapWithBlacklist(params, realExcludeFields, WHERE_ARRAY_FIELDS);
-        return DbWhere.from(map, emptiable);
+        return where;
     }
 
     /**
-     * 从请求参数中构建Update对象<br>
-     * 只会包含clazz注解中通过@JoyInColumn指定的字段名 <pre>
+     * 从请求参数request.getParameterMap()中构建Update对象<br>
+     * 只会包含clazz注解中通过@JoyInColumn指定的字段名<br>
+     * 应注意, 此时参数由前端传入, 条件不可控, 也有可能条件为空, 需要仔细检查条件内容, 防止越权操作 <pre>
      * 转换规则:
         fieldName 或 fieldName$Equals(=)
         fieldName$Add(增加值)
@@ -136,157 +117,16 @@ public class ParseTools {
      * @param clazz 实体类
      * @return Update对象
      */
-    public static <T> DbUpdate parseUpdateFromParams(Map<String, String[]> params, boolean emptiable, Class<T> clazz) {
+    public static <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> clazz, boolean emptiable) {
         if (!emptiable) {
             VerifyTools.requireNotBlank(params, "params");
         }
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
-        List<String> fieldNames = allFields.getFieldNames();
-        Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, null);
-        return DbUpdate.from(map, emptiable);
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
+        DbUpdate ud = converter.parseParamsToDbUpdate(params, clazz);
+        if (!emptiable && ud.isEmpty()) {
+            throw new IllegalArgumentException("bean must not be empty.");
+        }
+        return ud;
     }
 
-    /**
-     * 从请求参数中构建Update对象
-     * 
-     * @param params 请求参数
-     * @param emptiable 是否允许条件为空
-     * @param excludeDefault 是否排除默认的公共字段<br>
-     *            extra, offset, pageSize, skip, rows, page, needCount, paging, orderings
-     * @param excludeFields 排除的字段名, optional
-     * @return Update对象
-     */
-    public static DbUpdate parseUpdateFromParams(Map<String, String[]> params, boolean emptiable,
-            boolean excludeDefault, String... excludeFields) {
-        if (!emptiable) {
-            VerifyTools.requireNotBlank(params, "params");
-        }
-        List<String> realExcludeFields = new ArrayList<String>();
-        if (excludeDefault) {
-            realExcludeFields.addAll(COMMON_FIELDS);
-        }
-        if (VerifyTools.isNotBlank(excludeFields)) {
-            for (String string : excludeFields) {
-                realExcludeFields.add(string);
-            }
-        }
-        Map<String, Object> map = parseMapWithBlacklist(params, realExcludeFields, null);
-        return DbUpdate.from(map, emptiable);
-    }
-
-    /**
-     * 将请求参数转换为Map对象
-     * 
-     * @param params 请求参数, required
-     * @param excludeFields 排除的字段名, optional
-     * @param allowArraySuffixes 允许数组的字段名后缀, optional
-     * @return Map对象
-     */
-    public static Map<String, Object> parseMapWithBlacklist(Map<String, String[]> params, List<String> excludeFields,
-            List<String> allowArraySuffixes) {
-        if (params == null) {
-            return null;
-        }
-
-        Map<String, Object> resultMap = new HashMap<String, Object>();
-        for (Map.Entry<String, String[]> entry : params.entrySet()) {
-            if (VerifyTools.isAnyBlank(entry.getKey(), entry.getValue())) {
-                continue;
-            }
-            String fieldName = entry.getKey();
-            if (fieldName.endsWith("[]")) {
-                fieldName = fieldName.substring(0, fieldName.length() - 2);
-            }
-            String realFieldName = fieldName;
-            int dollarLastIndex = fieldName.lastIndexOf('$');
-            if (dollarLastIndex > 0) {
-                realFieldName = fieldName.substring(0, dollarLastIndex);
-            }
-            if (FieldTools.contains(excludeFields, realFieldName)) {
-                continue;
-            }
-            if (allowArraySuffixes != null && isEndsWith(fieldName, allowArraySuffixes)) {
-                resultMap.put(fieldName, entry.getValue());
-            } else {
-                resultMap.put(fieldName, entry.getValue()[0]);
-            }
-        }
-        return resultMap;
-    }
-
-    /**
-     * 将请求参数转换为Map对象
-     * 
-     * @param params 请求参数, required
-     * @param includeFields 有效的字段名, required
-     * @param allowArraySuffixes 允许数组的字段名后缀, optional
-     * @return Map对象
-     */
-    public static Map<String, Object> parseMapWithWhitelist(Map<String, String[]> params, List<String> includeFields,
-            List<String> allowArraySuffixes) {
-        if (params == null) {
-            return null;
-        }
-
-        Map<String, Object> resultMap = new HashMap<String, Object>();
-        for (Map.Entry<String, String[]> entry : params.entrySet()) {
-            if (VerifyTools.isAnyBlank(entry.getKey(), entry.getValue())) {
-                continue;
-            }
-            String fieldName = entry.getKey();
-            if (fieldName.endsWith("[]")) {
-                fieldName = fieldName.substring(0, fieldName.length() - 2);
-            }
-            String realFieldName = fieldName;
-            int dollarLastIndex = fieldName.lastIndexOf('$');
-            if (dollarLastIndex > 0) {
-                realFieldName = fieldName.substring(0, dollarLastIndex);
-            }
-            if (!FieldTools.contains(includeFields, realFieldName)) {
-                continue;
-            }
-            if (allowArraySuffixes != null && isEndsWith(fieldName, allowArraySuffixes)) {
-                resultMap.put(fieldName, entry.getValue());
-            } else {
-                resultMap.put(fieldName, entry.getValue()[0]);
-            }
-        }
-        return resultMap;
-    }
-
-    private static boolean isEndsWith(String fieldName, List<String> suffixes) {
-        if (VerifyTools.isBlank(suffixes)) {
-            return false;
-        }
-        for (String suffix : suffixes) {
-            if (fieldName.endsWith('$' + suffix)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 将Map转换为Java对象
-     * 
-     * @param <T> 目标类型
-     * @param map Map
-     * @param clazz 目标Java类
-     * @return Java对象
-     */
-    public static <T> T mapToBean(Map<String, ?> map, Class<T> clazz) {
-        return JsonTools.mapToBean(map, clazz);
-    }
-
-    /**
-     * 将Java对象转换为Map
-     * 
-     * @param object Java对象
-     * @param deep 是否递归转换子对象
-     * @param clearBlankValue 是否清除空值
-     * @return Map
-     */
-    public static Map<String, Object> beanToMap(Object object, boolean deep, boolean clearBlankValue) {
-        return JsonTools.beanToMap(object, deep, clearBlankValue);
-    }
 }

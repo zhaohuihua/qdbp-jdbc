@@ -12,7 +12,6 @@ import org.springframework.jdbc.core.SqlParameterValue;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
-import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -21,6 +20,7 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
+import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
@@ -42,39 +42,6 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @version 190601
  */
 public abstract class DbTools {
-
-    /**
-     * 将Java对象转换为Map, 只保留有列信息的字段<br>
-     * 先调用ParseTools.beanToMap()转换为map, 再解析列名, 只保留有列信息的字段
-     * 
-     * @param object Java对象
-     * @return Map对象
-     */
-    public static Map<String, Object> beanToMap(Object object) {
-        if (object == null) {
-            return null;
-        }
-        Map<String, Object> map = ParseTools.beanToMap(object, false, false);
-        if (VerifyTools.isBlank(map)) {
-            return map;
-        }
-
-        // 从bean.getClass()扫描获取列名与字段名的对应关系
-        AllFieldColumn<?> allFields = parseToAllFieldColumn(object.getClass());
-        if (allFields == null || allFields.isEmpty()) {
-            return null;
-        }
-        List<String> fieldNames = allFields.getFieldNames();
-
-        // 只保留有列信息的字段
-        Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (FieldTools.contains(fieldNames, entry.getKey())) {
-                result.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return result;
-    }
 
     /**
      * 将变量转换为数据库字段值<br>
@@ -112,8 +79,8 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
-        Object result = helper.convert(variable);
+        VariableToDbValueConverter converter = DbPluginContainer.defaults().getToDbValueConverter();
+        Object result = converter.convert(variable);
         if (result instanceof TypedDbVariable) {
             TypedDbVariable temp = (TypedDbVariable) result;
             result = temp.getValue();
@@ -141,6 +108,11 @@ public abstract class DbTools {
     /** 获取Map到JavaBean的转换处理类 **/
     public static MapToBeanConverter getMapToBeanConverter() {
         return DbPluginContainer.defaults().getMapToBeanConverter();
+    }
+
+    /** 获取JavaBean到数据库条件的转换处理类 **/
+    public static DbConditionConverter getDbConditionConverter() {
+        return DbPluginContainer.defaults().getDbConditionConverter();
     }
 
     /** 实体数据填充的业务处理接口 **/
