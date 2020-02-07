@@ -83,7 +83,7 @@ public abstract class DbTools {
         if (object == null) {
             return null;
         }
-        Map<String, Object> map = ParseTools.beanToMap(object);
+        Map<String, Object> map = ParseTools.beanToMap(object, false);
         if (clearBlankValue) {
             ConvertTools.clearBlankValue(map);
         }
@@ -151,12 +151,12 @@ public abstract class DbTools {
             return dialect.variableToString(result.toString());
         }
     }
-    
+
     /** 获取Map到JavaBean的转换处理类 **/
     public static MapToBeanConverter getMapToBeanConverter() {
         return DbPluginContainer.defaults().getMapToBeanConverter();
     }
-    
+
     /** 实体数据填充的业务处理接口 **/
     public static EntityFillHandler getEntityFillHandler() {
         return DbPluginContainer.defaults().getEntityFillHandler();
@@ -229,9 +229,7 @@ public abstract class DbTools {
      * @return 表名
      */
     public static String parseTableName(Class<?> clazz) {
-        if (clazz == null) {
-            throw new IllegalArgumentException("clazz is null");
-        }
+        VerifyTools.requireNonNull(clazz, "class");
         if (entityTableNameCache.containsKey(clazz)) {
             return entityTableNameCache.get(clazz);
         }
@@ -252,9 +250,7 @@ public abstract class DbTools {
      * @return 主键
      */
     public static PrimaryKeyFieldColumn parsePrimaryKey(Class<?> clazz) {
-        if (clazz == null) {
-            throw new IllegalArgumentException("clazz is null");
-        }
+        VerifyTools.requireNonNull(clazz, "class");
         if (entityPrimaryKeyCache.containsKey(clazz)) {
             return entityPrimaryKeyCache.get(clazz);
         }
@@ -290,9 +286,7 @@ public abstract class DbTools {
      * @return AllFields: fieldName - columnName
      */
     public static List<TablesFieldColumn> parseFieldColumns(TableJoin tables) {
-        if (tables == null) {
-            throw new IllegalArgumentException("tables is null");
-        }
+        VerifyTools.requireNonNull(tables, "tables");
         String cacheKey = TableJoin.buildCacheKey(tables, false);
         if (joinColumnsCache.containsKey(cacheKey)) {
             return joinColumnsCache.get(cacheKey);
@@ -355,16 +349,19 @@ public abstract class DbTools {
      * @return AllFields: fieldName - columnName
      */
     public static List<SimpleFieldColumn> parseFieldColumns(Class<?> clazz) {
-        if (clazz == null) {
-            throw new IllegalArgumentException("clazz is null");
-        }
+        VerifyTools.requireNonNull(clazz, "class");
+        List<SimpleFieldColumn> all;
         if (entityColumnsCache.containsKey(clazz)) {
-            return entityColumnsCache.get(clazz);
+            all = entityColumnsCache.get(clazz);
+        } else {
+            TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
+            all = scans.scanColumnList(clazz);
+            entityColumnsCache.put(clazz, all);
         }
-
-        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
-        List<SimpleFieldColumn> all = scans.scanColumnList(clazz);
-        entityColumnsCache.put(clazz, all);
+        if (all.isEmpty()) {
+            String m = "fields not found, please check config of TableInfoScans, class=" + clazz.getName();
+            throw new IllegalArgumentException(m);
+        }
         return all;
     }
 

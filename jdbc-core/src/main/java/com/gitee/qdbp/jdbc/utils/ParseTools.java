@@ -44,30 +44,41 @@ public class ParseTools {
      * 将Java对象转换为Where对象
      * 
      * @param entity Java对象
+     * @param emptiable 是否允许条件为空
      * @return Where对象
      */
-    public static DbWhere parseWhereFromEntity(Object entity) {
-        if (entity == null) {
-            return null;
-        }
-        // 不能直接用fastjson的JSON.toJSON转换, 会导致日期/枚举被转换为基本类型
-        // Map<String, Object> map = (JSONObject) JSON.toJSON(entity);
-        Map<String, Object> map = beanToMap(entity);
-        return DbWhere.from(map);
+    public static DbWhere parseWhereFromEntity(Object entity, boolean emptiable) {
+        Map<String, Object> map = entityToMap(entity, emptiable, false);
+        return DbWhere.from(map, emptiable);
     }
 
     /**
      * 将Java对象转换为Update对象
      * 
      * @param entity Java对象
+     * @param emptiable 是否允许条件为空
      * @return Update对象
      */
-    public static DbUpdate parseUpdateFromEntity(Object entity) {
+    public static DbUpdate parseUpdateFromEntity(Object entity, boolean emptiable) {
+        Map<String, Object> map = entityToMap(entity, emptiable, false);
+        return DbUpdate.from(map, emptiable);
+    }
+
+    private static Map<String, Object> entityToMap(Object entity, boolean emptiable, boolean deep) {
         if (entity == null) {
-            return null;
+            if (emptiable) {
+                return null;
+            } else {
+                throw new NullPointerException("entity is null");
+            }
         }
-        Map<String, Object> map = (JSONObject) JSON.toJSON(entity);
-        return DbUpdate.from(map);
+        // 不能直接用fastjson的JSON.toJSON转换, 会导致日期/枚举被转换为基本类型, 子对象转换为map
+        // Map<String, Object> map = (JSONObject) JSON.toJSON(entity);
+        Map<String, Object> map = beanToMap(entity, deep);
+        if (!emptiable && map.isEmpty()) {
+            throw new IllegalArgumentException("entity must no be empty.");
+        }
+        return map;
     }
 
     /**
@@ -75,14 +86,18 @@ public class ParseTools {
      * 只会包含clazz注解中通过@JoyInColumn指定的字段名
      * 
      * @param params 请求参数
+     * @param emptiable 是否允许条件为空
      * @param clazz 实体类
      * @return Where对象
      */
-    public static <T> DbWhere parseWhereFromParams(Map<String, String[]> params, Class<T> clazz) {
+    public static <T> DbWhere parseWhereFromParams(Map<String, String[]> params, boolean emptiable, Class<T> clazz) {
+        if (!emptiable) {
+            VerifyTools.requireNotBlank(params, "params");
+        }
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
         List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, WHERE_ARRAY_FIELDS);
-        return DbWhere.from(map);
+        return DbWhere.from(map, emptiable);
     }
 
     /**
@@ -98,13 +113,17 @@ public class ParseTools {
      * </pre>
      * 
      * @param params 请求参数
+     * @param emptiable 是否允许条件为空
      * @param excludeDefault 是否排除默认的公共字段<br>
      *            extra, offset, pageSize, skip, rows, page, needCount, paging, orderings
      * @param excludeFields 排除的字段名, optional
      * @return Where对象
      */
-    public static DbWhere parseWhereFromParams(Map<String, String[]> params, boolean excludeDefault,
+    public static DbWhere parseWhereFromParams(Map<String, String[]> params, boolean emptiable, boolean excludeDefault,
             String... excludeFields) {
+        if (!emptiable) {
+            VerifyTools.requireNotBlank(params, "params");
+        }
         List<String> realExcludeFields = new ArrayList<String>();
         if (excludeDefault) {
             realExcludeFields.addAll(COMMON_FIELDS);
@@ -115,7 +134,7 @@ public class ParseTools {
             }
         }
         Map<String, Object> map = parseMapWithBlacklist(params, realExcludeFields, WHERE_ARRAY_FIELDS);
-        return DbWhere.from(map);
+        return DbWhere.from(map, emptiable);
     }
 
     /**
@@ -128,27 +147,35 @@ public class ParseTools {
      * </pre>
      * 
      * @param params 请求参数
+     * @param emptiable 是否允许条件为空
      * @param clazz 实体类
      * @return Update对象
      */
-    public static <T> DbUpdate parseUpdateFromParams(Map<String, String[]> params, Class<T> clazz) {
+    public static <T> DbUpdate parseUpdateFromParams(Map<String, String[]> params, boolean emptiable, Class<T> clazz) {
+        if (!emptiable) {
+            VerifyTools.requireNotBlank(params, "params");
+        }
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
         List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, null);
-        return DbUpdate.from(map);
+        return DbUpdate.from(map, emptiable);
     }
 
     /**
      * 从请求参数中构建Update对象
      * 
      * @param params 请求参数
+     * @param emptiable 是否允许条件为空
      * @param excludeDefault 是否排除默认的公共字段<br>
      *            extra, offset, pageSize, skip, rows, page, needCount, paging, orderings
      * @param excludeFields 排除的字段名, optional
      * @return Update对象
      */
-    public static DbUpdate parseUpdateFromParams(Map<String, String[]> params, boolean excludeDefault,
-            String... excludeFields) {
+    public static DbUpdate parseUpdateFromParams(Map<String, String[]> params, boolean emptiable,
+            boolean excludeDefault, String... excludeFields) {
+        if (!emptiable) {
+            VerifyTools.requireNotBlank(params, "params");
+        }
         List<String> realExcludeFields = new ArrayList<String>();
         if (excludeDefault) {
             realExcludeFields.addAll(COMMON_FIELDS);
@@ -159,7 +186,7 @@ public class ParseTools {
             }
         }
         Map<String, Object> map = parseMapWithBlacklist(params, realExcludeFields, null);
-        return DbUpdate.from(map);
+        return DbUpdate.from(map, emptiable);
     }
 
     /**
@@ -279,20 +306,98 @@ public class ParseTools {
      * @return Map
      * @see JsonTools#beanToMap(Object)
      */
-    public static Map<String, Object> beanToMap(Object bean) {
+    public static Map<String, Object> beanToMap(Object bean, boolean deep) {
+        if (bean == null) {
+            return null;
+        }
+        return getBeanFieldValuesMap(bean, deep, SerializeConfig.getGlobalInstance());
+    }
+
+    protected static JSONObject getBeanFieldValuesMap(Object bean, boolean deep, SerializeConfig config) {
         if (bean == null) {
             return null;
         }
 
-        Object json = beanToJson(bean, SerializeConfig.getGlobalInstance());
-        if (json instanceof JSONObject) {
-            return (JSONObject) json;
-        } else {
+        if (bean instanceof JSONObject) {
+            return (JSONObject) bean;
+        }
+
+        if (bean instanceof JSONArray) {
             throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
         }
+
+        if (bean instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) bean;
+
+            Map<String, Object> innerMap;
+            if (map instanceof LinkedHashMap) {
+                innerMap = new LinkedHashMap<>(map.size());
+            } else if (map instanceof TreeMap) {
+                innerMap = new TreeMap<>();
+            } else {
+                innerMap = new HashMap<>(map.size());
+            }
+
+            JSONObject json = new JSONObject(innerMap);
+
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                String jsonKey = TypeUtils.castToString(entry.getKey());
+                Object jsonValue = !deep ? entry.getValue() : beanToJson(entry.getValue(), config);
+                json.put(jsonKey, jsonValue);
+            }
+
+            return json;
+        }
+
+        if (bean instanceof Collection) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+
+        if (bean instanceof JSONSerializable) {
+            String string = JSON.toJSONString(bean);
+            Object json = JSON.parse(string);
+            return getBeanFieldValuesMap(json, deep, config);
+        }
+
+        Class<?> clazz = bean.getClass();
+
+        if (clazz.isEnum()) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+        if (clazz == String.class) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+        if (CharSequence.class.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+        if (isPrimitive(clazz)) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+        if (clazz.isArray()) {
+            throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
+        }
+
+        ObjectSerializer serializer = config.getObjectWriter(clazz);
+        if (serializer instanceof JavaBeanSerializer) {
+            JavaBeanSerializer javaBeanSerializer = (JavaBeanSerializer) serializer;
+
+            JSONObject json = new JSONObject();
+            try {
+                Map<String, Object> values = javaBeanSerializer.getFieldValuesMap(bean);
+                for (Map.Entry<String, Object> entry : values.entrySet()) {
+                    Object jsonValue = !deep ? entry.getValue() : beanToJson(entry.getValue(), config);
+                    json.put(entry.getKey(), jsonValue);
+                }
+            } catch (Exception e) {
+                throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.", e);
+            }
+            return json;
+        }
+
+        throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
     }
 
-    protected static Object beanToJson(Object bean, SerializeConfig config) {
+    private static Object beanToJson(Object bean, SerializeConfig config) {
         if (bean == null) {
             return null;
         }
@@ -317,7 +422,7 @@ public class ParseTools {
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 String jsonKey = TypeUtils.castToString(entry.getKey());
-                Object jsonValue = beanToMap(entry.getValue());
+                Object jsonValue = beanToJson(entry.getValue(), config);
                 json.put(jsonKey, jsonValue);
             }
 
