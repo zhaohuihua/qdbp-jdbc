@@ -21,7 +21,6 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
-import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
@@ -30,9 +29,9 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
+import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
-import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -55,9 +54,7 @@ public abstract class DbTools {
         if (object == null) {
             return null;
         }
-        // 删除qdbp-tools依赖
-        // Map<String, Object> map = JsonTools.beanToMap(object, true);
-        Map<String, Object> map = doBeanToMap(object, true);
+        Map<String, Object> map = ParseTools.beanToMap(object, false, false);
         if (VerifyTools.isBlank(map)) {
             return map;
         }
@@ -77,17 +74,6 @@ public abstract class DbTools {
             }
         }
         return result;
-    }
-
-    private static Map<String, Object> doBeanToMap(Object object, boolean clearBlankValue) {
-        if (object == null) {
-            return null;
-        }
-        Map<String, Object> map = ParseTools.beanToMap(object, false);
-        if (clearBlankValue) {
-            ConvertTools.clearBlankValue(map);
-        }
-        return map;
     }
 
     /**
