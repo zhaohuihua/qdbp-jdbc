@@ -7,6 +7,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ServiceException;
+import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
@@ -205,21 +206,16 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
         }
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         DbUpdate readyEntity = converter.convertBeanToDbUpdate(entity);
+        // 将主键从更新数据中移到查询条件中
         DbWhere where = new DbWhere();
-        List<DbField> temp = readyEntity.fields(pk.getFieldName());
-        String id = null;
-        if (temp != null && !temp.isEmpty()) {
-            Object fieldValue = temp.get(0).getFieldValue();
-            id = fieldValue == null ? null : fieldValue.toString();
-        }
+        // 从更新条件中查找主键值并删除主键
+        String pkValue = getValueAndRemoveField(readyEntity, pk.getFieldName());
         // 主键不能为空
-        if (VerifyTools.isBlank(id)) {
+        if (VerifyTools.isBlank(pkValue)) {
             log.warn("PrimaryKeyValueIsBlank, CanNotExecuteUpdateById, class={}", clazz);
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED);
         }
-        // 将主键从更新数据中移到查询条件中
-        where.on(pk.getFieldName(), "=", id);
-        readyEntity.remove(pk.getFieldName());
+        where.on(pk.getFieldName(), "=", pkValue);
         if (readyEntity.isEmpty()) {
             throw new IllegalArgumentException("entity must not be empty");
         }
@@ -229,6 +225,27 @@ public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<
             entityFillExecutor.fillTableUpdateParams(readyEntity);
         }
         return this.doUpdate(readyEntity, where, errorOnUnaffected);
+    }
+
+    private String getValueAndRemoveField(DbUpdate ud, String fieldName) {
+        // 从更新条件中删除主键
+        List<DbCondition> removed = ud.remove(fieldName);
+        // 从已删除的条件中查找最后一个主键的值
+        // 更新的字段名一般不会重复, 但非要重复也不会报错: 
+        // update TABLE set FIELD=1,FIELD=2 where ... (以最后一个生效)
+        String pkValue = null;
+        if (removed != null && !removed.isEmpty()) {
+            for (DbCondition item : removed) {
+                if (item instanceof DbField) {
+                    Object fieldValue = ((DbField) item).getFieldValue();
+                    String stringValue = fieldValue == null ? null : fieldValue.toString();
+                    if (VerifyTools.isNotBlank(stringValue)) {
+                        pkValue = stringValue;
+                    }
+                }
+            }
+        }
+        return pkValue;
     }
 
     @Override
