@@ -8,8 +8,10 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.jdbc.api.QdbcBoot;
+import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.api.CrudDao;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
@@ -60,5 +62,22 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
         SysUserEntity user = dao.find(where);
         log.debug("UserWhereQueryResult: {}", JsonTools.toLogString(user));
         Assert.assertNotNull(user);
+    }
+
+    @Test(priority = 5)
+    public void testUserOrQuery() {
+        // @formatter:off
+        DbWhere where = new DbWhere();
+        where.on("userType", "=", UserType.ADMIN);
+        where.on("userState", "in", UserState.NORMAL, UserState.LOCKED);
+        where.on("createTime", ">=", DateTools.parse("2017-01-01"));
+        where.sub("or")
+            .on("userCode", "=", "kelly")
+            .on("superman", "=", true);
+        // @formatter:on
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        PageList<SysUserEntity> users = dao.list(where, OrderPaging.NONE);
+        log.debug("UserOrQueryResult: {}", JsonTools.toLogString(users));
+        Assert.assertTrue(users.size() > 0);
     }
 }
