@@ -60,7 +60,7 @@ public abstract class DbAbstractOperator {
             }
         }
         // 未找到无空格英文名称
-        throw new IllegalArgumentException("No space english name not found.");
+        throw new IllegalArgumentException("EnglishNameWithoutSpace not found.");
     }
 
     private boolean isAscii(String string) {
