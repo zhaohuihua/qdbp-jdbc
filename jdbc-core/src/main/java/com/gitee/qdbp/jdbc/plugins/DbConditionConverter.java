@@ -40,15 +40,17 @@ public interface DbConditionConverter {
      * 将请求参数转换为DbWhere对象
      * 
      * @param params 请求参数
+     * @param beanType JavaBean类型
      * @return DbWhere
      */
-    <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> clazz);
+    <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> beanType);
 
     /**
      * 将请求参数转换为DbUpdate对象
      * 
      * @param params 请求参数
+     * @param beanType JavaBean类型
      * @return DbUpdate
      */
-    <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> clazz);
+    <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> beanType);
 }

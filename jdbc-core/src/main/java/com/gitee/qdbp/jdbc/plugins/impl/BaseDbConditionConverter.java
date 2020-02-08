@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
@@ -39,13 +40,13 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
     @Override
     public DbWhere convertBeanToDbWhere(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
-        return DbWhere.parse(map, EmptiableWhere.class);
+        return parseMapToDbWhere(map, EmptiableWhere.class);
     }
 
     @Override
     public DbUpdate convertBeanToDbUpdate(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
-        return DbUpdate.parse(map, DbUpdate.class);
+        return parseMapToDbUpdate(map, DbUpdate.class);
     }
 
     /**
@@ -63,15 +64,69 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * 
      * @param params 请求参数
      * @param emptiable 是否允许条件为空
-     * @param clazz 实体类
+     * @param beanType JavaBean类型
      * @return Where对象
      */
     @Override
-    public <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> clazz) {
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
+    public <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> beanType) {
+        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
         List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, whereArrayFields);
-        return DbWhere.parse(map, EmptiableWhere.class);
+        return parseMapToDbWhere(map, EmptiableWhere.class);
+    }
+
+    /**
+     * 从map中获取参数构建DbWhere对象
+     * 
+     * @param <T> DbWhere泛型
+     * @param map Map参数
+     * @param instanceType DbWhere对象类型
+     * @return DbWhere对象实例
+     */
+    protected <T extends DbWhere> T parseMapToDbWhere(Map<String, Object> map, Class<T> instanceType) {
+        List<DbField> fields = parseMapToDbFields(map);
+        return DbWhere.ofFields(fields, instanceType);
+    }
+
+    /**
+     * 从map中获取参数构建DbUpdate对象
+     * 
+     * @param <T> DbUpdate泛型
+     * @param map Map参数
+     * @param instanceType DbUpdate对象类型
+     * @return DbUpdate对象实例
+     */
+    protected <T extends DbUpdate> T parseMapToDbUpdate(Map<String, Object> map, Class<T> instanceType) {
+        List<DbField> fields = parseMapToDbFields(map);
+        return DbUpdate.ofFields(fields, instanceType);
+    }
+
+    /**
+     * 将Map转换为DbField列表
+     * 
+     * @param map Map
+     * @return DbField列表
+     */
+    protected List<DbField> parseMapToDbFields(Map<String, Object> map) {
+        List<DbField> fields = new ArrayList<>();
+        if (map != null) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (VerifyTools.isBlank(key)) {
+                    continue;
+                }
+                int index = key.lastIndexOf('$');
+                if (index < 0) {
+                    fields.add(new DbField(null, key, value));
+                } else {
+                    String field = key.substring(0, index);
+                    String operate = key.substring(index + 1);
+                    fields.add(new DbField(operate, field, value));
+                }
+            }
+        }
+        return fields;
     }
 
     /**
@@ -85,16 +140,16 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * </pre>
      * 
      * @param params 请求参数
-     * @param clazz 实体类
+     * @param beanType JavaBean类型
      * @return Update对象
      */
     @Override
-    public <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> clazz) {
+    public <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> beanType) {
         VerifyTools.requireNonNull(params, "params");
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
+        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
         List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, null);
-        return DbUpdate.parse(map, DbUpdate.class);
+        return parseMapToDbUpdate(map, DbUpdate.class);
     }
 
     /**
