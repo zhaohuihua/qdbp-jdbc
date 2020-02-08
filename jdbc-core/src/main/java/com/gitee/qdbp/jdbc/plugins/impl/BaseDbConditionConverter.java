@@ -38,6 +38,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
     public Map<String, Object> convertBeanToInsertMap(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
         // clearEmptyString=true: 值为空字符串的字段, 表示用户未填写, 应予清除
+        // 因为这里的bean对象极有可能来自于controller的参数
         // 如果不清除, 将会生成NULL的VALUES语句, 数据库设置的默认值就不会生效
         clearBlankValue(map, true, true);
         return map;
