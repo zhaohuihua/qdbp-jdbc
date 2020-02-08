@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
@@ -75,7 +76,9 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
         List<String> unsupported = new ArrayList<String>();
         SqlBuffer buffer = new SqlBuffer();
-        for (DbCondition condition : entity.items()) {
+        Iterator<DbCondition> iterator = entity.iterator();
+        while (iterator.hasNext()) {
+            DbCondition condition = iterator.next();
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }

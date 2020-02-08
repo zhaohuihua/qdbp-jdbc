@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,9 +64,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
         SqlBuffer buffer = new SqlBuffer();
         List<String> unsupported = new ArrayList<String>();
-        List<DbCondition> items = where.items();
         boolean first = true;
-        for (DbCondition condition : items) {
+        Iterator<DbCondition> iterator = where.iterator();
+        while (iterator.hasNext()) {
+            DbCondition condition = iterator.next();
             if (condition.isEmpty()) {
                 continue;
             }
