@@ -17,9 +17,6 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
 
-    /** 是否清除空值 **/
-    private boolean clearBlankValue = false;
-
     /**
      * 将Java对象转换为Map, 只保留有列信息的字段<br>
      * 先调用ParseTools.beanToMap()转换为map, 再解析列名, 只保留有列信息的字段
@@ -32,7 +29,9 @@ public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
         if (bean == null) {
             return null;
         }
-        Map<String, Object> map = FastJsonTools.beanToMap(bean, false, clearBlankValue);
+        // deep=false: 不需要递归转换; 字段是实体类的不需要转换
+        // clearBlankValue=false: 不需要清理空值; 因为在Update时, Null值和空字符串代表不同的含义
+        Map<String, Object> map = FastJsonTools.beanToMap(bean, false, false);
         if (VerifyTools.isBlank(map)) {
             return map;
         }
@@ -52,16 +51,6 @@ public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
             }
         }
         return result;
-    }
-
-    /** 是否清除空值 **/
-    public boolean isClearBlankValue() {
-        return clearBlankValue;
-    }
-
-    /** 是否清除空值 **/
-    public void setClearBlankValue(boolean clearBlankValue) {
-        this.clearBlankValue = clearBlankValue;
     }
 
 }

@@ -1,7 +1,9 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
@@ -34,18 +36,29 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     @Override
     public Map<String, Object> convertBeanToInsertMap(Object bean) {
-        return convertBeanToMap(bean);
+        Map<String, Object> map = convertBeanToMap(bean);
+        // clearEmptyString=true: 值为空字符串的字段, 表示用户未填写, 应予清除
+        // 如果不清除, 将会生成NULL的VALUES语句, 数据库设置的默认值就不会生效
+        clearBlankValue(map, true, true);
+        return map;
     }
 
     @Override
     public DbWhere convertBeanToDbWhere(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
+        // clearEmptyString=true: 值为空字符串的Wherre字段, 表示用户未填写, 应予清除
+        // 因为这里的bean对象极有可能来自于controller的参数
+        // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
+        clearBlankValue(map, true, true);
         return parseMapToDbWhere(map, EmptiableWhere.class);
     }
 
     @Override
     public DbUpdate convertBeanToDbUpdate(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
+        // clearEmptyString=false: 值为空字符串的Update字段, 表示设置为NULL, 应予保留
+        // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
+        clearBlankValue(map, true, false);
         return parseMapToDbUpdate(map, DbUpdate.class);
     }
 
@@ -84,7 +97,9 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * @return DbWhere对象实例
      */
     protected <T extends DbWhere> T parseMapToDbWhere(Map<String, Object> map, Class<T> instanceType) {
-        List<DbField> fields = parseMapToDbFields(map);
+        // clearEmptyString=true: 值为空字符串的Wherre字段, 表示用户未填写, 应予清除
+        // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
+        List<DbField> fields = parseMapToDbFields(map, true);
         return DbWhere.ofFields(fields, instanceType);
     }
 
@@ -97,7 +112,9 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * @return DbUpdate对象实例
      */
     protected <T extends DbUpdate> T parseMapToDbUpdate(Map<String, Object> map, Class<T> instanceType) {
-        List<DbField> fields = parseMapToDbFields(map);
+        // clearEmptyString=false: 值为空字符串的Update字段, 表示设置为NULL, 应予保留
+        // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
+        List<DbField> fields = parseMapToDbFields(map, false);
         return DbUpdate.ofFields(fields, instanceType);
     }
 
@@ -105,15 +122,19 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * 将Map转换为DbField列表
      * 
      * @param map Map
+     * @param clearEmptyString 是否清除值为空字符串的字段
      * @return DbField列表
      */
-    protected List<DbField> parseMapToDbFields(Map<String, Object> map) {
+    protected List<DbField> parseMapToDbFields(Map<String, Object> map, boolean clearEmptyString) {
         List<DbField> fields = new ArrayList<>();
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                if (VerifyTools.isBlank(key)) {
+                if (VerifyTools.isBlank(key) || value == null) {
+                    continue;
+                }
+                if (clearEmptyString && "".equals(value)) {
                     continue;
                 }
                 int index = key.lastIndexOf('$');
@@ -127,6 +148,37 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
             }
         }
         return fields;
+    }
+
+    /**
+     * 清除Map中的空值
+     * 
+     * @param map Map对象
+     * @param clearNullValue 是否清除null值
+     * @param clearEmptyString 是否清除空字符串
+     */
+    @SuppressWarnings("unchecked")
+    protected void clearBlankValue(Map<String, Object> map, boolean clearNullValue, boolean clearEmptyString) {
+        if (map == null) {
+            return;
+        }
+        Iterator<Map.Entry<String, Object>> iterator = map.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Object> entry = iterator.next();
+            Object value = entry.getValue();
+            if (VerifyTools.isBlank(value)) {
+                iterator.remove();
+            } else if (value instanceof Map) {
+                clearBlankValue((Map<String, Object>) value, clearNullValue, clearEmptyString);
+            } else if (value instanceof Collection) {
+                Collection<?> collection = (Collection<?>) value;
+                for (Object item : collection) {
+                    if (value instanceof Map) {
+                        clearBlankValue((Map<String, Object>) item, clearNullValue, clearEmptyString);
+                    }
+                }
+            }
+        }
     }
 
     /**
