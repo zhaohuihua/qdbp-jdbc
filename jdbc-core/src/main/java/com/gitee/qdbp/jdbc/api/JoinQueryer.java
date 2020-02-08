@@ -23,8 +23,8 @@ public interface JoinQueryer<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param resultType 查询结果类型
@@ -37,8 +37,8 @@ public interface JoinQueryer<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE A.DATA_STATE=1
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE A.DATA_STATE=0
      * 
      * @param resultType 查询结果类型
      * @return 列表数据
@@ -50,8 +50,8 @@ public interface JoinQueryer<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE A.DATA_STATE=1<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE A.DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param orderings 排序字段
@@ -65,12 +65,12 @@ public interface JoinQueryer<T> {
      * <br>
      * SELECT COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -84,8 +84,8 @@ public interface JoinQueryer<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @return 数据数量
@@ -97,8 +97,8 @@ public interface JoinQueryer<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {groupByColumnName}, COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;GROUP BY {groupByColumnName}
      * 
      * @param groupBy 分组条件
@@ -113,8 +113,8 @@ public interface JoinQueryer<T> {
      * <br>
      * SELECT {columnName} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0
      * 
      * @param fieldName 指定字段名
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -129,8 +129,8 @@ public interface JoinQueryer<T> {
      * <br>
      * SELECT {columnName} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=1<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=1<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND A.DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param fieldName 指定字段名

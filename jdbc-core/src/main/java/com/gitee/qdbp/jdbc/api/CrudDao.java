@@ -20,7 +20,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号获取对象<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
-     * SELECT {columnNames} FROM {tableName} WHERE ID={id} AND EFTFLAG='E'
+     * SELECT {columnNames} FROM {tableName} WHERE ID={id} AND DATA_STATE=0
      * 
      * @param id 主键编号
      * @return 实体对象
@@ -30,7 +30,7 @@ public interface CrudDao<T> {
     /**
      * 根据查询条件获取对象<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
-     * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'
+     * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @return 实体对象
@@ -40,7 +40,7 @@ public interface CrudDao<T> {
     /**
      * 查找所有的实体列表, 不分页<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
-     * SELECT {columnNames} FROM {tableName} WHERE EFTFLAG='E'
+     * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0
      * 
      * @return 列表数据
      */
@@ -49,7 +49,7 @@ public interface CrudDao<T> {
     /**
      * 查找所有的实体列表, 不分页<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
-     * SELECT {columnNames} FROM {tableName} WHERE EFTFLAG='E' ORDER BY {orderByConditions}
+     * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0 ORDER BY {orderByConditions}
      * 
      * @param orderings 排序字段
      * @return 列表数据
@@ -60,9 +60,9 @@ public interface CrudDao<T> {
      * 根据条件分页查询实体列表<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
-     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'<br>
+     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0<br>
      * SELECT {columnNames} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E' ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
@@ -75,7 +75,7 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E'
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param fieldName 指定字段名
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -89,7 +89,7 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E' ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
      * 
      * @param fieldName 指定字段名
      * @param distinct 是否去重
@@ -171,7 +171,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件统计实体数量<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
-     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND EFTFLAG='E'
+     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @return 数据数量
@@ -182,7 +182,7 @@ public interface CrudDao<T> {
      * 根据条件分组统计实体数量<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {groupByColumnName}, COUNT(*) FROM {tableName} <br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND EFTFLAG='E' GROUP BY {groupByColumnName}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 GROUP BY {groupByColumnName}
      * 
      * @param groupBy 分组条件
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
@@ -193,7 +193,7 @@ public interface CrudDao<T> {
     /**
      * 保存实体对象<br>
      * 注意: 如果主键编号为空将会自动生成<br>
-     * 注意: 默认设置eftflag='E'<br>
+     * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entity 实体对象
@@ -206,7 +206,7 @@ public interface CrudDao<T> {
     /**
      * 保存实体对象<br>
      * 注意: 如果主键编号为空将会自动生成<br>
-     * 注意: 默认设置eftflag='E'<br>
+     * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entity 实体对象
@@ -215,11 +215,11 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      */
     String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException;
-    
+
     /**
      * 批量保存实体对象<br>
      * 注意: 如果主键编号为空将会自动生成<br>
-     * 注意: 默认设置eftflag='E'<br>
+     * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entities 实体对象列表
@@ -246,7 +246,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量更新实体对象<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param entity 实体对象
      * @param where 匹配条件
@@ -260,7 +260,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量更新实体对象<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param entity 实体对象
      * @param where 匹配条件
@@ -275,7 +275,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE ID IN ({ids}) EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE ID IN ({ids}) DATA_STATE=0
      *
      * @param ids 待删除的主键编号
      * @param fillUpdateParams 是否自动填充更新参数
@@ -289,7 +289,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量更新实体对象(逻辑删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件
      * @param fillUpdateParams 是否自动填充更新参数
@@ -302,7 +302,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量删除实体对象(逻辑删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件
      * @param fillUpdateParams 是否自动填充更新参数
@@ -315,7 +315,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号删除实体对象(物理删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE ID IN ({ids}) EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE ID IN ({ids}) DATA_STATE=0
      *
      * @param ids 待删除的主键编号
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
@@ -327,7 +327,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量删除实体对象(物理删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件
      * @param fillUpdateParams 是否自动填充更新参数
@@ -340,7 +340,7 @@ public interface CrudDao<T> {
     /**
      * 根据条件批量删除实体对象(物理删除)<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * UPDATE {tableName} SET EFTFLAG='D' WHERE {whereConditions} AND EFTFLAG='E'
+     * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
