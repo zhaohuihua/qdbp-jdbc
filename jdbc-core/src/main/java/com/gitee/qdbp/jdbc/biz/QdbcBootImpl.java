@@ -32,7 +32,7 @@ public class QdbcBootImpl implements QdbcBoot {
         if (crudDaoCache.containsKey(clazz)) {
             return (CrudDao<T>) crudDaoCache.get(clazz);
         } else {
-            CrudDao<T> instance = new EasyCrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
+            CrudDao<T> instance = new CrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
             crudDaoCache.put(clazz, instance);
             return instance;
         }
@@ -46,7 +46,7 @@ public class QdbcBootImpl implements QdbcBoot {
         if (joinQueryCache.containsKey(cacheKey)) {
             return (JoinQueryer<T>) joinQueryCache.get(cacheKey);
         } else {
-            JoinQueryer<T> instance = new EasyJoinQueryImpl<>(tables, resultType, sqlBufferJdbcOperations);
+            JoinQueryer<T> instance = new JoinQueryerImpl<>(tables, resultType, sqlBufferJdbcOperations);
             joinQueryCache.put(cacheKey, instance);
             return instance;
         }

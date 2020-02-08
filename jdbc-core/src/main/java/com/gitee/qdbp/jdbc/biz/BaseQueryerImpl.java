@@ -28,7 +28,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190608
  */
-public abstract class EasyBaseQueryImpl<T> {
+public abstract class BaseQueryerImpl<T> {
 
     protected RowToBeanMapper<T> rowToBeanMapper;
     protected QuerySqlBuilder sqlBuilder;
@@ -44,7 +44,7 @@ public abstract class EasyBaseQueryImpl<T> {
      * @param jdbcOperations SqlBuffer数据库操作类
      * @param rowToBeanMapper 结果转换接口
      */
-    public EasyBaseQueryImpl(QuerySqlBuilder sqlBuilder, EntityFillExecutor entityFillExecutor,
+    public BaseQueryerImpl(QuerySqlBuilder sqlBuilder, EntityFillExecutor entityFillExecutor,
             SqlBufferJdbcOperations jdbcOperations, RowToBeanMapper<T> rowToBeanMapper) {
         this.rowToBeanMapper = rowToBeanMapper;
         this.sqlBuilder = sqlBuilder;

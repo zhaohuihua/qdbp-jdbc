@@ -39,13 +39,13 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class EasyCrudDaoImpl<T> extends EasyBaseQueryImpl<T> implements CrudDao<T> {
+public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
-    private static Logger log = LoggerFactory.getLogger(EasyCrudDaoImpl.class);
+    private static Logger log = LoggerFactory.getLogger(CrudDaoImpl.class);
 
     private Class<T> clazz;
 
-    EasyCrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
+    CrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
         super(newQuerySqlBuilder(c, jdbc), newEntityFillExecutor(c), jdbc, newRowToBeanMapper(c));
         this.clazz = c;
     }

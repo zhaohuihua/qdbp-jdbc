@@ -22,11 +22,11 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author 赵卉华
  * @version 190606
  */
-public class EasyJoinQueryImpl<T> extends EasyBaseQueryImpl<T> implements JoinQueryer<T> {
+public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQueryer<T> {
 
     private String majorTableAlias;
 
-    public EasyJoinQueryImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
+    public JoinQueryerImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
         super(newQuerySqlBuilder(t, jdbc), newEntityFillExecutor(t), jdbc, newRowToBeanMapper(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
