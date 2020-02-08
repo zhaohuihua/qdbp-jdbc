@@ -14,11 +14,12 @@ import com.gitee.qdbp.jdbc.operator.impl.DbBinaryLessThenOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryLikeOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryNotEqualsOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinaryNotLikeOperator;
-import com.gitee.qdbp.jdbc.operator.impl.DbBinaryStartsWithOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbBinarySetOperator;
+import com.gitee.qdbp.jdbc.operator.impl.DbBinaryStartsWithOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbMultivariateInOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbMultivariateNotInOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbTernaryBetweenOperator;
+import com.gitee.qdbp.jdbc.operator.impl.DbTernaryNotBetweenOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbUnaryIsNotNullOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbUnaryIsNullOperator;
 import com.gitee.qdbp.jdbc.operator.impl.DbUnaryToNullOperator;
@@ -51,6 +52,7 @@ public class SimpleDbOperatorContainer implements DbOperatorContainer {
         registerWhereOperator(new DbBinaryStartsWithOperator());
         registerWhereOperator(new DbBinaryEndsWithOperator());
         registerWhereOperator(new DbTernaryBetweenOperator());
+        registerWhereOperator(new DbTernaryNotBetweenOperator());
         registerWhereOperator(new DbMultivariateInOperator());
         registerWhereOperator(new DbMultivariateNotInOperator());
         // 注册Update条件的运算符
