@@ -14,6 +14,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.SubWhere;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
+import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
@@ -141,7 +142,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (VerifyTools.isBlank(fieldName)) {
             throw ufe("where sql", "fieldName#IsBlank");
         }
-        String columnName = getColumnName(fieldName);
+        String columnName = getColumnName(fieldName, false);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
@@ -186,7 +187,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption {
-        String columnName = getColumnName(fieldName);
+        String columnName = getColumnName(fieldName, false);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
@@ -199,7 +200,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption {
-        String columnName = getColumnName(fieldName);
+        String columnName = getColumnName(fieldName, false);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("where sql", fieldName);
         }
@@ -245,6 +246,17 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     }
 
     protected Object convertFieldValue(Object fieldValue) {
+        if (fieldValue instanceof DbFieldName) {
+            // 已指定是字段名, 按字段名处理
+            DbFieldName temp = (DbFieldName) fieldValue;
+            String fieldName = temp.getFieldName();
+            String columnName = getColumnName(fieldName, true);
+            return new DbFieldName(columnName);
+        }
+        if (fieldValue instanceof DbFieldValue) {
+            // 已指定是DbFieldValue, 按字段值处理
+            return ((DbFieldValue) fieldValue).getFieldValue();
+        }
         if (fieldValue instanceof String && ((String) fieldValue).indexOf('.') > 0) {
             // 字符值是字符串并且是表别名.字段名格式, 如t.updateTime, 尝试作为字段名处理
             String columnName = getColumnName((String) fieldValue, false);
@@ -252,14 +264,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 return new DbFieldName(columnName);
             }
         }
-        if (fieldValue instanceof DbFieldName) {
-            DbFieldName temp = (DbFieldName) fieldValue;
-            String fieldName = temp.getFieldName();
-            String columnName = getColumnName(fieldName);
-            return new DbFieldName(columnName);
-        } else {
-            return fieldValue;
-        }
+        return fieldValue;
     }
 
     protected List<Object> convertFieldValues(List<Object> fieldValues) {
@@ -322,7 +327,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 usePinyin = true;
                 fieldName = fieldName.substring(0, fieldName.length() - PINYIN_SUFFIX.length()).trim();
             }
-            String columnName = getColumnName(fieldName);
+            String columnName = getColumnName(fieldName, false);
             if (VerifyTools.isBlank(columnName)) {
                 unsupported.add(fieldName);
                 continue;
@@ -468,7 +473,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public String getColumnName(String fieldName) {
-        return getColumnName(fieldName, false);
+        return getColumnName(fieldName, true);
     }
 
     /** {@inheritDoc} **/
