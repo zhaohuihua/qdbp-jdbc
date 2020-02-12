@@ -245,6 +245,13 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     }
 
     protected Object convertFieldValue(Object fieldValue) {
+        if (fieldValue instanceof String && ((String) fieldValue).indexOf('.') > 0) {
+            // 字符值是字符串并且是表别名.字段名格式, 如t.updateTime, 尝试作为字段名处理
+            String columnName = getColumnName((String) fieldValue, false);
+            if (columnName != null) {
+                return new DbFieldName(columnName);
+            }
+        }
         if (fieldValue instanceof DbFieldName) {
             DbFieldName temp = (DbFieldName) fieldValue;
             String fieldName = temp.getFieldName();
