@@ -23,6 +23,7 @@
 	<!-- 自动扫描包 ,将带有注解的类 纳入spring容器管理 -->
 	<context:component-scan base-package="com.gitee.qdbp.**.biz.**.service" />
 	<context:component-scan base-package="com.gitee.qdbp.**.biz.**.basic" />
+	<context:component-scan base-package="com.gitee.qdbp.**.test.**.service" />
 
 	<!-- 引入配置文件 -->
 	<!-- 可以在Controller中通过@Value注入配置文本, 如@Value("#{setting['wechat.appid']}") -->
