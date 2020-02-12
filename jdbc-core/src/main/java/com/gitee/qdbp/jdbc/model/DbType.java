@@ -20,5 +20,13 @@ public enum DbType {
     /** PostgreSQL **/
     PostgreSQL,
     /** SqlServer **/
-    SqlServer
+    SqlServer,
+    /** Derby **/
+    Derby,
+    /** HyperSQL **/
+    HyperSQL,
+    /** Informix **/
+    Informix,
+    /** Sybase **/
+    Sybase
 }
