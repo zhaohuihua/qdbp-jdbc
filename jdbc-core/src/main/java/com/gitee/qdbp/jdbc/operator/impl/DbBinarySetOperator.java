@@ -13,7 +13,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 public class DbBinarySetOperator extends DbAbstractOperator implements DbBinaryOperator {
 
     public DbBinarySetOperator() {
-        super("=", "Equals");
+        super("Set", "=", "Equals");
     }
 
     @Override
