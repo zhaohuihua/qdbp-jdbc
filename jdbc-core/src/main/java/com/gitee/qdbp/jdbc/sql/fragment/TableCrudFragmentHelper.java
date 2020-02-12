@@ -119,7 +119,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         if (VerifyTools.isBlank(fieldName)) {
             throw ufe("update sql", "fieldName$" + operateType + "#IsBlank");
         }
-        String columnName = getColumnName(fieldName);
+        String columnName = getColumnName(fieldName, false);
         if (VerifyTools.isBlank(columnName)) {
             throw ufe("update sql", fieldName);
         }

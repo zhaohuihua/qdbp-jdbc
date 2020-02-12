@@ -120,7 +120,7 @@ public interface QueryFragmentHelper {
      * 获取列名
      * 
      * @param fieldName 字段名
-     * @return 列名, 如果字段名不存在返回null
+     * @return 列名, 如果字段名不存在将抛出异常
      */
     String getColumnName(String fieldName);
 
