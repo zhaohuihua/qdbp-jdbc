@@ -117,20 +117,18 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         String fieldName = field.getFieldName();
         Object fieldValue = field.getFieldValue();
         if (VerifyTools.isBlank(fieldName)) {
-            throw ufe("update sql", "fieldName$" + operateType + "#IsBlank");
+            throw ufe("build update sql", "fieldName:MustNotBe" + (fieldName == null ? "Null" : "Empty"));
         }
-        String columnName = getColumnName(fieldName, false);
-        if (VerifyTools.isBlank(columnName)) {
-            throw ufe("update sql", fieldName);
-        }
+        String columnName = getColumnName(fieldName);
 
         // 查找Update运算符处理类
         DbBaseOperator operator = DbTools.getUpdateOperator(operateType);
         if (operator == null) {
-            throw ufe("update sql", fieldName + '#' + "UnsupportedOperate" + '(' + operateType + ')');
+            throw ufe("build where sql", "UnsupportedOperator:(" + fieldName + ' ' + operateType + " ...)");
         }
         // 由运算符处理类生成子SQL
-        SqlBuffer buffer = buildOperatorSql("update sql", fieldName, columnName, operator, fieldValue);
+        String desc = "build update sql unsupported field";
+        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("SET", ' ');
@@ -181,13 +179,13 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         return primaryKey;
     }
 
-    protected UnsupportedFieldExeption ufe(String subject, String field) {
-        String message = subject + " unsupported fields";
+    @Override
+    protected UnsupportedFieldExeption ufe(String message, String field) {
         return new UnsupportedFieldExeption(clazz.getSimpleName(), message, Arrays.asList(field));
     }
 
-    protected UnsupportedFieldExeption ufe(String subject, List<String> fields) {
-        String message = subject + " unsupported fields";
+    @Override
+    protected UnsupportedFieldExeption ufe(String message, List<String> fields) {
         return new UnsupportedFieldExeption(clazz.getSimpleName(), message, fields);
     }
 }

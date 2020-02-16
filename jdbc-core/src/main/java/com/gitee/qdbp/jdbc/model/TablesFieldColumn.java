@@ -21,6 +21,8 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     private String columnAlias;
     /** 数据保存至结果类的哪个字段(子对象) **/
     private String resultField;
+    /** 是不是存在重名字段 **/
+    private boolean isAmbiguous;
 
     /** 默认构造函数 **/
     public TablesFieldColumn() {
@@ -95,6 +97,16 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     /** 数据保存至结果类的哪个字段(子对象) **/
     public void setResultField(String resultField) {
         this.resultField = resultField;
+    }
+
+    /** 是不是存在重名字段 **/
+    public boolean isAmbiguous() {
+        return isAmbiguous;
+    }
+
+    /** 是不是存在重名字段 **/
+    public void setAmbiguous(boolean isAmbiguous) {
+        this.isAmbiguous = isAmbiguous;
     }
 
     /**
@@ -184,6 +196,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
             TablesFieldColumn real = (TablesFieldColumn) instance;
             real.setTableAlias(this.getTableAlias());
             real.setColumnAlias(this.getColumnAlias());
+            real.setAmbiguous(this.isAmbiguous());
         }
         return instance;
     }

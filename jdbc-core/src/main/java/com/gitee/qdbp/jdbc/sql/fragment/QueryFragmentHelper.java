@@ -120,19 +120,20 @@ public interface QueryFragmentHelper {
      * 获取列名
      * 
      * @param fieldName 字段名
-     * @return 列名, 如果字段名不存在将抛出异常
+     * @return 列名, 如果不支持该字段将抛出异常
+     * @throws UnsupportedFieldExeption 不支持的字段名
      */
-    String getColumnName(String fieldName);
+    String getColumnName(String fieldName) throws UnsupportedFieldExeption;
 
     /**
      * 获取列名
      * 
      * @param fieldName 字段名
-     * @param throwOnNotFound 如果字段名不存在, 是否抛出异常
+     * @param throwOnUnsupportedField 如果不支持该字段是否抛出异常
      * @return 列名
-     * @throws UnsupportedFieldExeption 字段名不存在且throwOnNotFound=true时抛出异常
+     * @throws UnsupportedFieldExeption 不支持的字段名
      */
-    String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption;
+    String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption;
 
     /**
      * 获取字段名列表

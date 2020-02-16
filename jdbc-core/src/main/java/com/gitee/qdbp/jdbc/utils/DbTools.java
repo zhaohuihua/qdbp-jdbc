@@ -280,6 +280,7 @@ public abstract class DbTools {
             if (countMaps.get(fieldName) > 1) {
                 String columnAlias = StringTools.concat('_', field.getTableAlias(), field.getColumnName());
                 field.setColumnAlias(columnAlias);
+                field.setAmbiguous(true);
             }
         }
         joinColumnsCache.put(cacheKey, all);

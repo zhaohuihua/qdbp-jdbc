@@ -97,7 +97,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                     SqlBuffer fieldSql = buildWhereSql(item, false);
                     buffer.append(fieldSql);
                 } else {
-                    unsupported.add(condition.getClass().getSimpleName() + "#UnsupportedCondition");
+                    unsupported.add("UnsupportedCondition:" + condition.getClass().getSimpleName());
                 }
             } catch (UnsupportedFieldExeption e) {
                 unsupported.addAll(e.getFields());
@@ -125,7 +125,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             // -- 期望的语句是DELETE FROM tableName WHERE USER_ID='xxx'
             // -- 但根据userIdd找不到对应的column信息, 实际上生成的语句会是DELETE FROM tableName
             // -- 如果不报错, 在这个场景下将会导致表记录被全部删除!
-            throw ufe("where sql", unsupported);
+            throw ufe("build where sql unsupported fields", unsupported);
         }
     }
 
@@ -140,20 +140,23 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         String fieldName = condition.getFieldName();
         Object fieldValue = condition.getFieldValue();
         if (VerifyTools.isBlank(fieldName)) {
-            throw ufe("where sql", "fieldName#IsBlank");
+            throw ufe("build where sql", "fieldName:MustNotBe" + (fieldName == null ? "Null" : "Empty"));
         }
-        String columnName = getColumnName(fieldName, false);
-        if (VerifyTools.isBlank(columnName)) {
-            throw ufe("where sql", fieldName);
+        String columnName;
+        try {
+            columnName = getColumnName(fieldName);
+        } catch (UnsupportedFieldExeption e) {
+            e.setMessage("build where sql unsupported field");
+            throw e;
         }
-
         // 查找Where运算符处理类
         DbBaseOperator operator = DbTools.getWhereOperator(operateType);
         if (operator == null) {
-            throw ufe("where sql", fieldName + '#' + "UnsupportedOperate" + '(' + operateType + ')');
+            throw ufe("build where sql", "UnsupportedOperator:(" + fieldName + ' ' + operateType + " ...)");
         }
         // 由运算符处理类生成子SQL
-        SqlBuffer buffer = buildOperatorSql("where sql", fieldName, columnName, operator, fieldValue);
+        String desc = "build where sql unsupported fields";
+        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("WHERE", ' ');
@@ -174,7 +177,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         @SuppressWarnings("unchecked")
         WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.defaults().getWhereSqlBuilder(type);
         if (builder == null) {
-            throw ufe("where sql", condition.getClass().getSimpleName() + "#SqlBuilderNotFound");
+            throw ufe("build where sql", "SqlBuilderNotFound:" + condition.getClass().getSimpleName());
         }
         SqlBuffer buffer = builder.buildSql(condition, this);
         if (whole && !buffer.isEmpty()) {
@@ -187,9 +190,12 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption {
-        String columnName = getColumnName(fieldName, false);
-        if (VerifyTools.isBlank(columnName)) {
-            throw ufe("where sql", fieldName);
+        String columnName;
+        try {
+            columnName = getColumnName(fieldName);
+        } catch (UnsupportedFieldExeption e) {
+            e.setMessage("build where in sql unsupported field");
+            throw e;
         }
         SqlBuffer buffer = SqlTools.buildInSql(fieldValues);
         prependWhereAndColumn(buffer, columnName, whole);
@@ -200,24 +206,27 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole)
             throws UnsupportedFieldExeption {
-        String columnName = getColumnName(fieldName, false);
-        if (VerifyTools.isBlank(columnName)) {
-            throw ufe("where sql", fieldName);
+        String columnName;
+        try {
+            columnName = getColumnName(fieldName);
+        } catch (UnsupportedFieldExeption e) {
+            e.setMessage("build where not in sql unsupported field");
+            throw e;
         }
         SqlBuffer buffer = SqlTools.buildNotInSql(fieldValues);
         prependWhereAndColumn(buffer, columnName, whole);
         return buffer;
     }
 
-    protected SqlBuffer buildOperatorSql(String subject, String fieldName, String columnName, DbBaseOperator operator,
-            Object fieldValue) {
+    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, DbBaseOperator operator,
+            Object fieldValue, String desc) {
         String operatorName = operator.getName();
 
         if (operator instanceof DbUnaryOperator) {
             if (VerifyTools.isBlank(fieldValue)) {
                 return ((DbUnaryOperator) operator).buildSql(columnName, dialect);
-            } else { // where.on(fieldName, "is null", fieldValue); // 这里是错的, 不允许有fieldValue
-                throw ufe(subject, fieldName + '$' + operatorName + '#' + "VariableNotSupported");
+            } else {
+                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + ")");
             }
         } else if (operator instanceof DbBinaryOperator) {
             Object value = convertFieldValue(fieldValue);
@@ -229,19 +238,19 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 Object second = convertFieldValue(values.get(1));
                 return ((DbTernaryOperator) operator).buildSql(columnName, first, second, dialect);
             } else if (values.size() < 2) { // 参数不够
-                throw ufe(subject, fieldName + '$' + operatorName + '#' + "MissVariables");
+                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
             } else { // 参数过多
-                throw ufe(subject, fieldName + '$' + operatorName + '#' + "TooManyVariables");
+                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
             }
         } else if (operator instanceof DbMultivariateOperator) {
             List<Object> values = convertFieldValues(parseListFieldValue(fieldValue));
             if (!values.isEmpty()) {
                 return ((DbMultivariateOperator) operator).buildSql(columnName, values, dialect);
             } else { // 参数不能为空
-                throw ufe(subject, fieldName + '$' + operatorName + '#' + "MissVariables");
+                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operatorName + " ...)");
             }
         } else {
-            throw ufe(subject, fieldName + '#' + "UnsupportedOperate" + '(' + operatorName + ')');
+            throw ufe(desc, "UnsupportedOperator:(" + fieldName + ' ' + operatorName + " ...)");
         }
     }
 
@@ -250,7 +259,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             // 已指定是字段名, 按字段名处理
             DbFieldName temp = (DbFieldName) fieldValue;
             String fieldName = temp.getFieldName();
-            String columnName = getColumnName(fieldName, true);
+            String columnName = getColumnName(fieldName);
             return new DbFieldName(columnName);
         }
         if (fieldValue instanceof DbFieldValue) {
@@ -327,9 +336,11 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 usePinyin = true;
                 fieldName = fieldName.substring(0, fieldName.length() - PINYIN_SUFFIX.length()).trim();
             }
-            String columnName = getColumnName(fieldName, false);
-            if (VerifyTools.isBlank(columnName)) {
-                unsupported.add(fieldName);
+            String columnName;
+            try {
+                columnName = getColumnName(fieldName);
+            } catch (UnsupportedFieldExeption e) {
+                unsupported.addAll(e.getFields());
                 continue;
             }
             if (usePinyin) { // 根据数据库类型转换为拼音排序表达式
@@ -349,7 +360,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             }
         }
         if (!unsupported.isEmpty()) {
-            throw ufe("order by sql", unsupported);
+            throw ufe("build order by sql unsupported fields", unsupported);
         }
         if (whole && !buffer.isEmpty()) {
             buffer.prepend("ORDER BY", ' ');
@@ -399,7 +410,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             }
         }
         if (!unsupported.isEmpty()) {
-            throw ufe("field sql", unsupported);
+            throw ufe("build field sql unsupported fields", unsupported);
         }
 
         // 根据列顺序生成SQL
@@ -472,26 +483,26 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName) {
+    public String getColumnName(String fieldName) throws UnsupportedFieldExeption {
         return getColumnName(fieldName, true);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName, boolean throwOnNotFound) throws UnsupportedFieldExeption {
+    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption {
         for (SimpleFieldColumn item : this.columns) {
             if (item.matchesByFieldName(fieldName)) {
                 return toTableColumnName(item);
             }
         }
-        if (throwOnNotFound) {
-            throw ufe("-", fieldName);
+        if (throwOnUnsupportedField) {
+            throw ufe("unsupported field", fieldName);
         } else {
             return null;
         }
     }
 
-    protected abstract UnsupportedFieldExeption ufe(String subject, String field);
+    protected abstract UnsupportedFieldExeption ufe(String message, String field);
 
-    protected abstract UnsupportedFieldExeption ufe(String subject, List<String> fields);
+    protected abstract UnsupportedFieldExeption ufe(String message, List<String> fields);
 }

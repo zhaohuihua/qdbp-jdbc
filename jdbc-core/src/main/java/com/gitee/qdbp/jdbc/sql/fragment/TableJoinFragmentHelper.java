@@ -1,13 +1,18 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinType;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -27,6 +32,99 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
     public TableJoinFragmentHelper(TableJoin tables, SqlDialect dialect) {
         super(DbTools.parseFieldColumns(tables), dialect);
         this.tables = tables;
+    }
+
+    protected List<SimpleFieldColumn> getFields(String fieldName) {
+        List<SimpleFieldColumn> fields = new ArrayList<>();
+        if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
+            return fields;
+        }
+        for (SimpleFieldColumn item : this.columns) {
+            if (item.matchesByFieldName(fieldName)) {
+                fields.add(item);
+            }
+        }
+        return fields;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public boolean containsField(String fieldName) {
+        if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
+            return false;
+        }
+        List<SimpleFieldColumn> fields = getFields(fieldName);
+        return !fields.isEmpty();
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String getColumnName(String fieldName) throws UnsupportedFieldExeption {
+        List<SimpleFieldColumn> fields = getFields(fieldName);
+        if (fields.isEmpty()) {
+            throw ufe("unsupported field", fieldName);
+        } else if (fields.size() > 1) {
+            throw ufe("unsupported field", "AmbiguousField:" + fieldName);
+        } else {
+            return toTableColumnName(fields.get(0));
+        }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption {
+        List<SimpleFieldColumn> fields = getFields(fieldName);
+        if (fields.isEmpty()) {
+            if (throwOnUnsupportedField) {
+                throw ufe("unsupported field", fieldName);
+            } else {
+                return null;
+            }
+        } else if (fields.size() > 1) {
+            if (throwOnUnsupportedField) {
+                throw ufe("unsupported field", "AmbiguousField:" + fieldName);
+            } else {
+                return null;
+            }
+        } else {
+            return toTableColumnName(fields.get(0));
+        }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+        if (VerifyTools.isBlank(fields)) {
+            return buildFieldsSql();
+        }
+
+        // Column 'parent_id' in field list is ambiguous
+        // 字段名映射
+        Map<String, Void> fieldMap = new HashMap<String, Void>();
+        List<String> unsupported = new ArrayList<String>();
+        for (String fieldName : fields) {
+            if (containsField(fieldName)) {
+                fieldMap.put(fieldName, null);
+            } else {
+                unsupported.add(fieldName);
+            }
+        }
+        if (!unsupported.isEmpty()) {
+            throw ufe("field sql", unsupported);
+        }
+
+        // 根据列顺序生成SQL
+        SqlBuffer buffer = new SqlBuffer();
+        for (SimpleFieldColumn item : columns) {
+            if (!fieldMap.containsKey(item.getFieldName())) {
+                continue;
+            }
+            if (!buffer.isEmpty()) {
+                buffer.append(',');
+            }
+            buffer.append(toFullColumnName(item));
+        }
+        return buffer;
     }
 
     /** {@inheritDoc} **/
@@ -59,13 +157,11 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         return buffer;
     }
 
-    protected UnsupportedFieldExeption ufe(String subject, String field) {
-        String message = subject + " unsupported fields";
+    protected UnsupportedFieldExeption ufe(String message, String field) {
         return new UnsupportedFieldExeption(toDescString(tables), message, Arrays.asList(field));
     }
 
-    protected UnsupportedFieldExeption ufe(String subject, List<String> fields) {
-        String message = subject + " unsupported fields";
+    protected UnsupportedFieldExeption ufe(String message, List<String> fields) {
         return new UnsupportedFieldExeption(toDescString(tables), message, fields);
     }
 
