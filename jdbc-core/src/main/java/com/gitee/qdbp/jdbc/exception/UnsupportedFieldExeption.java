@@ -45,8 +45,9 @@ public class UnsupportedFieldExeption extends RuntimeException {
 
     @Override
     public String getMessage() {
-        String details = ConvertTools.joinToString(fields);
-        return StringTools.concat(' ', beanType, VerifyTools.nvl(message, "unsupported fields"), details);
+        String details = fields == null ? null : '[' + ConvertTools.joinToString(fields) + ']';
+        String desc = VerifyTools.nvl(message, "unsupported fields");
+        return StringTools.concat(' ', beanType, desc, details);
     }
 
     @Override
