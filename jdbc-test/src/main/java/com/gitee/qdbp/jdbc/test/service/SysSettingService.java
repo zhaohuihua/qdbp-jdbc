@@ -20,7 +20,6 @@ import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 public class SysSettingService {
 
     private static Logger log = LoggerFactory.getLogger(SysSettingService.class);
@@ -40,20 +39,24 @@ public class SysSettingService {
     @Autowired
     private DataSourceTransactionManager transactionManager;
 
+    @Transactional(readOnly = true)
     public int countLogging(DbWhere where) {
         CrudDao<SysLoggerEntity> dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
         return dao.count(where);
     }
 
+    @Transactional(readOnly = true)
     public int countSetting(DbWhere where) {
         CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
         return dao.count(where);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public String createSetting(SysSettingEntity entity) {
         return createSetting(entity, TestModel.skipLogging);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public String createSetting(SysSettingEntity entity, TestModel testModel) {
         // 新增数据
         log.debug("Before insert");
