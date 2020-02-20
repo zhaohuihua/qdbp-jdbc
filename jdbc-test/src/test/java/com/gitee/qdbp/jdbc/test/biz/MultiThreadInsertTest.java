@@ -5,10 +5,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
@@ -56,7 +58,7 @@ public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
         SysSettingEntity entity = new SysSettingEntity();
         entity.setName("setting-" + 0);
         entity.setValue("测试 setting-" + 0);
-        sysSettingService.createSetting(entity);
+        sysSettingService.createSetting(entity, 5000L);
     }
 
     @Test(priority = 3)
@@ -97,10 +99,12 @@ public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
 
         public void run() {
             try {
-                sysSettingService.createSetting(entity);
+                sysSettingService.createSetting(entity, 5000L);
                 counter.incrementAndGet();
+            } catch (DataAccessException | ServiceException e) {
+                log.error("Failed to create setting, {}, {}", entity.getName(), e.toString());
             } catch (Exception e) {
-                log.error("Failed to create, {}, {}", entity.getName(), e.getClass().getSimpleName());
+                log.error("Failed to create setting, {}", entity.getName(), e);
             } finally {
                 latch.countDown();
             }

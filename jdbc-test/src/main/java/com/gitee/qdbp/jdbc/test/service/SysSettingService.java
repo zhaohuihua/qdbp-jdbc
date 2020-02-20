@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
@@ -51,29 +53,60 @@ public class SysSettingService {
         return dao.count(where);
     }
 
+    @Transactional(readOnly = true)
+    public PageList<SysSettingEntity> listSetting(DbWhere where, OrderPaging odpg) {
+        CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+        return dao.list(where, odpg);
+    }
+
+    @Transactional(readOnly = true)
+    public PageList<SysSettingEntity> listSetting(DbWhere where, OrderPaging odpg, long sleepMills) {
+        log.debug("Before query setting");
+        CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+        PageList<SysSettingEntity> list = dao.list(where, odpg);
+        if (sleepMills > 0) {
+            try {
+                // 业务处理
+                log.debug("Start to business handle");
+                Thread.sleep(sleepMills);
+                log.debug("Success to business handle");
+            } catch (InterruptedException e) {
+            }
+        }
+        log.debug("Finished to query setting, rows={}", list.getTotal());
+        return list;
+    }
+
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-    public String createSetting(SysSettingEntity entity) {
-        return createSetting(entity, TestModel.skipLogging);
+    public String createSetting(SysSettingEntity entity, long sleepMills) {
+        return createSetting(entity, sleepMills, TestModel.skipLogging);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public String createSetting(SysSettingEntity entity, TestModel testModel) {
+        return createSetting(entity, 0, TestModel.skipLogging);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+    public String createSetting(SysSettingEntity entity, long sleepMills, TestModel testModel) {
         // 新增数据
-        log.debug("Before insert");
+        log.debug("Before insert setting");
         entity.setState(SettingState.DISABLED);
         CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
         String id = dao.insert(entity, true);
-        log.debug("Success to insert data, id={}", id);
+        log.debug("Success to insert setting, id={}", id);
         if (testModel != TestModel.skipLogging) {
             recordLogger("SysSetting", "Success to create " + entity.getName(), true);
         }
 
-        try {
-            // 业务处理
-            log.debug("Start to business handle");
-            Thread.sleep(5000L);
-            log.debug("Success to business handle");
-        } catch (InterruptedException e) {
+        if (sleepMills > 0) {
+            try {
+                // 业务处理
+                log.debug("Start to business handle");
+                Thread.sleep(sleepMills);
+                log.debug("Success to business handle");
+            } catch (InterruptedException e) {
+            }
         }
 
         // 更新数据
@@ -90,14 +123,14 @@ public class SysSettingService {
         try {
             dao.update(ud, where, true, true);
             if (testModel != TestModel.skipLogging) {
-                log.debug("Success to update data, id={}", id);
-                recordLogger("SysSetting", "Success to update " + entity.getName(), logSuccess);
+                log.debug("Success to update setting, id={}", id);
+                recordLogger("SysSetting", "Success to update setting for " + entity.getName(), logSuccess);
             }
             return id;
         } catch (Throwable e) {
-            log.debug("Failed to update data, id={}", id);
+            log.debug("Failed to update setting, id={}", id);
             if (testModel != TestModel.skipLogging) {
-                recordLogger("SysSetting", "Failed to update " + entity.getName(), logSuccess);
+                recordLogger("SysSetting", "Failed to update setting for " + entity.getName(), logSuccess);
             }
             throw e;
         }
