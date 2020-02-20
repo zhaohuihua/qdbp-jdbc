@@ -98,7 +98,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         MapToBeanConverter converter = DbTools.getMapToBeanConverter();
         return new TableRowToBeanMapper<>(clazz, converter);
     }
-    
+
     private String getFormattedSqlString(SqlBuffer sb, int indent) {
         String sql = sb.getExecutableSqlString(sqlDialect);
         return DbTools.formatSql(sql, 1);
@@ -107,63 +107,17 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public <T> T execute(SqlBuffer sb, PreparedStatementCallback<T> action) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL statement:\n{}", getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = sb.getPreparedVariables();
-        return namedParameterJdbcOperations.execute(sql, params, action);
-    }
-
-    @Override
-    public <T> T query(SqlBuffer sb, ResultSetExtractor<T> rse) throws DataAccessException {
-        VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
-        }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
-        return namedParameterJdbcOperations.query(sql, params, rse);
-    }
-
-    @Override
-    public void query(SqlBuffer sb, RowCallbackHandler rch) throws DataAccessException {
-        VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
-        }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
-        namedParameterJdbcOperations.query(sql, params, rch);
-    }
-
-    @Override
-    public <T> List<T> query(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
-        VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
-        }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
-        List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
-        if (log.isDebugEnabled()) {
-            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
-        }
-        return list;
-    }
-
-    @Override
-    public <T> T queryForObject(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
-        VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
-        }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
         try {
-            T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
+            T result = namedParameterJdbcOperations.execute(sql, params, action);
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -175,7 +129,91 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     @Override
+    public <T> T query(SqlBuffer sb, ResultSetExtractor<T> rse) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+        }
+        String sql = sb.getPreparedSqlString();
+        Map<String, Object> params = sb.getPreparedVariables();
+        try {
+            T result = namedParameterJdbcOperations.query(sql, params, rse);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+            }
+            return result;
+        } catch (EmptyResultDataAccessException e) {
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns 0 row, {}ms.", time);
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public void query(SqlBuffer sb, RowCallbackHandler rch) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+        }
+        String sql = sb.getPreparedSqlString();
+        Map<String, Object> params = sb.getPreparedVariables();
+        namedParameterJdbcOperations.query(sql, params, rch);
+        if (log.isDebugEnabled()) {
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL query, time consumed {}ms.", time);
+        }
+    }
+
+    @Override
+    public <T> List<T> query(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+        }
+        String sql = sb.getPreparedSqlString();
+        Map<String, Object> params = sb.getPreparedVariables();
+        List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
+        if (log.isDebugEnabled()) {
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
+        }
+        return list;
+    }
+
+    @Override
+    public <T> T queryForObject(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+        }
+        String sql = sb.getPreparedSqlString();
+        Map<String, Object> params = sb.getPreparedVariables();
+        try {
+            T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+            }
+            return result;
+        } catch (EmptyResultDataAccessException e) {
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns 0 row, {}ms.", time);
+            }
+            return null;
+        }
+    }
+
+    @Override
     public <T> T queryForObject(SqlBuffer sb, Class<T> resultType) throws DataAccessException {
+        long startTime = System.currentTimeMillis();
         try {
             T result;
             if (isSimpleClass(resultType)) {
@@ -190,12 +228,14 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 result = queryForObject(sb, newRowToBeanMapper(resultType));
             }
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns 0 row.");
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns 0 row, {}ms.", time);
             }
             return null;
         }
@@ -204,6 +244,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public Map<String, Object> queryForMap(SqlBuffer sb) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
@@ -212,12 +253,14 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         try {
             Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns {} rows.", result == null ? 0 : 1);
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns 0 row.");
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns 0 row, {}ms.", time);
             }
             return null;
         }
@@ -226,6 +269,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
@@ -238,7 +282,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             list = namedParameterJdbcOperations.query(sql, params, newRowToBeanMapper(elementType));
         }
         if (log.isDebugEnabled()) {
-            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
         }
         return list;
     }
@@ -246,6 +291,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public List<Map<String, Object>> queryForList(SqlBuffer sb) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
@@ -253,7 +299,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         Map<String, Object> params = sb.getPreparedVariables();
         List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
         if (log.isDebugEnabled()) {
-            log.debug("SQL query returns {} rows.", list == null ? 0 : list.size());
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
         }
         return list;
     }
@@ -261,17 +308,24 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public SqlRowSet queryForRowSet(SqlBuffer sb) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = sb.getPreparedVariables();
-        return namedParameterJdbcOperations.queryForRowSet(sql, params);
+        SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
+        if (log.isDebugEnabled()) {
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL query, time consumed {}ms.", time);
+        }
+        return result;
     }
 
     @Override
     public int update(SqlBuffer sb) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL update:\n{}", getFormattedSqlString(sb, 1));
         }
@@ -279,7 +333,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         Map<String, Object> params = sb.getPreparedVariables();
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
-            log.debug("SQL update affected " + rows + " rows");
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL update affected " + rows + " rows, time consumed {}ms", time);
         }
         return rows;
     }
@@ -287,6 +342,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     @Override
     public int update(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL update:\n{}", getFormattedSqlString(sb, 1));
         }
@@ -295,7 +351,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         SqlParameterSource msps = new MapSqlParameterSource(params);
         int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
         if (log.isDebugEnabled()) {
-            log.debug("SQL update affected " + rows + " rows");
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL update affected {} rows, time consumed {}ms.", rows, time);
         }
         return rows;
     }
