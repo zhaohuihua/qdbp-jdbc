@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.util.StringUtils;
-import com.gitee.qdbp.able.matches.AntStringMatcher;
-import com.gitee.qdbp.able.matches.EqualsStringMatcher;
-import com.gitee.qdbp.able.matches.RegexpStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
-import com.gitee.qdbp.tools.utils.StringTools;
+import com.gitee.qdbp.able.matches.WrapStringMatcher;
 
 public class InnerTools {
 
@@ -53,15 +50,7 @@ public class InnerTools {
         List<StringMatcher> result = new ArrayList<>();
         List<String> list = InnerTools.tokenizeToStringList(text);
         for (String item : list) {
-            if (item.startsWith("regexp:")) {
-                String value = StringTools.removePrefix(item, "regexp:");
-                result.add(new RegexpStringMatcher(value));
-            } else if (item.startsWith("ant:")) {
-                String value = StringTools.removePrefix(item, "ant:");
-                result.add(new AntStringMatcher(value));
-            } else {
-                result.add(new EqualsStringMatcher(item));
-            }
+            result.add(WrapStringMatcher.parseMatcher(item));
         }
         return result;
     }
