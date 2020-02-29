@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.test.enums.DataState;
  * 系统日志表
  *
  * @author zhaohuihua
- * @version 200208
+ * @version 20200208
  */
 public class SysLoggerEntity implements Serializable {
 

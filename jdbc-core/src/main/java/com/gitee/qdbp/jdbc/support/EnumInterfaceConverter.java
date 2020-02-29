@@ -14,7 +14,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * String/Integer转换为EnumInterface的子枚举类
  *
  * @author zhaohuihua
- * @version 200202
+ * @version 20200202
  */
 public class EnumInterfaceConverter<I extends EnumInterface, E extends Enum<E>> implements ConditionalGenericConverter {
 

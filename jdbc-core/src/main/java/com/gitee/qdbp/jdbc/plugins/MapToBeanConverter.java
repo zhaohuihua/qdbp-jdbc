@@ -6,7 +6,7 @@ import java.util.Map;
  * Map到JavaBean的转换
  *
  * @author zhaohuihua
- * @version 200201
+ * @version 20200201
  */
 public interface MapToBeanConverter {
 

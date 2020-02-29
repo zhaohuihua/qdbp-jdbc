@@ -10,7 +10,7 @@ import com.gitee.qdbp.jdbc.sql.SqlTools;
  * 多元NotIn运算符
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public class DbMultivariateNotInOperator extends DbAbstractOperator implements DbMultivariateOperator {
 

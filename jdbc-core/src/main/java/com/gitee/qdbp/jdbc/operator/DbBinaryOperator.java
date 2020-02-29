@@ -7,7 +7,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 二元运算符, 如 等于/不等于/大于/小于/LIKE/NOT LIKE等
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public interface DbBinaryOperator extends DbBaseOperator {
 

@@ -7,7 +7,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 一元运算符, 如 IS NULL, IS NOT NULL
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public interface DbUnaryOperator extends DbBaseOperator {
 

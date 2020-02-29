@@ -10,7 +10,7 @@ import com.gitee.qdbp.tools.utils.RandomTools;
  * NORMAL转换为0, DELETED转换为8位随机数
  *
  * @author zhaohuihua
- * @version 200129
+ * @version 20200129
  */
 public class DataStateToDbValueConverter implements Converter<DataState, DbFieldValue> {
 

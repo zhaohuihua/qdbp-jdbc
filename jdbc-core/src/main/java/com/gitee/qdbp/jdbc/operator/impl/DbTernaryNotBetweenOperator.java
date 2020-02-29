@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 三元NotBetween运算符
  *
  * @author zhaohuihua
- * @version 200208
+ * @version 20200208
  */
 public class DbTernaryNotBetweenOperator extends DbAbstractOperator implements DbTernaryOperator {
 

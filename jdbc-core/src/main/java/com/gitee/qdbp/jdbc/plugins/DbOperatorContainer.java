@@ -6,7 +6,7 @@ import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
  * 运算符容器
  *
  * @author zhaohuihua
- * @version 200129
+ * @version 20200129
  */
 public interface DbOperatorContainer {
 

@@ -28,7 +28,7 @@ import com.gitee.qdbp.jdbc.test.enums.DataState;
  * QdbcBoot工厂类, 手动设置DbPluginContainer
  *
  * @author zhaohuihua
- * @version 200129
+ * @version 20200129
  */
 public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
 

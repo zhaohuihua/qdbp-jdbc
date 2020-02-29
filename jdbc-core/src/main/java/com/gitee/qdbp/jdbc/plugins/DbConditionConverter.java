@@ -8,7 +8,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
  * JavaBean到数据库条件的转换
  *
  * @author zhaohuihua
- * @version 200207
+ * @version 20200207
  */
 public interface DbConditionConverter {
 

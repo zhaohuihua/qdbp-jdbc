@@ -9,7 +9,7 @@ import com.gitee.qdbp.jdbc.test.enums.SettingState;
  * 系统设置表
  *
  * @author zhaohuihua
- * @version 200208
+ * @version 20200208
  */
 public class SysSettingEntity implements Serializable {
 

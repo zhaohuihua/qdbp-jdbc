@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.test.service.SysSettingService.TestModel;
  * 事务测试, Setting是主事务, 记录日志为非事务执行(TransactionDefinition.PROPAGATION_NOT_SUPPORTED)
  *
  * @author zhaohuihua
- * @version 200212
+ * @version 20200212
  */
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })

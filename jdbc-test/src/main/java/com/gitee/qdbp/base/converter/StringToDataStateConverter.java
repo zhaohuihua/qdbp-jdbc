@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.test.enums.DataState;
  * 0转换为NORMAL, 其他值转换为DELETED
  *
  * @author zhaohuihua
- * @version 200129
+ * @version 20200129
  */
 public class StringToDataStateConverter implements Converter<String, DataState> {
 

@@ -7,7 +7,7 @@ import java.util.List;
  * 如不等于: Type是!=; Alias是NotEquals和Not Equals; Name是NotEquals<br>
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public interface DbBaseOperator {
 

@@ -30,7 +30,7 @@ import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
  * 逻辑参考自spring的BeanPropertyRowMapper<br>
  *
  * @author zhaohuihua
- * @version 200201
+ * @version 20200201
  */
 public class SpringMapToBeanConverter
         implements MapToBeanConverter, ConditionalGenericConverter, ConversionServiceAware {

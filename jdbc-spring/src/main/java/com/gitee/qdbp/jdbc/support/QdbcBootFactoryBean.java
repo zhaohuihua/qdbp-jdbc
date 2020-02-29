@@ -21,7 +21,7 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
  * 同时负责数据库插件初始化处理
  *
  * @author zhaohuihua
- * @version 200128
+ * @version 20200128
  */
 public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingBean, ApplicationContextAware {
 

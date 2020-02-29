@@ -13,7 +13,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * 利用fastjson进行JavaBean到Map的转换
  *
  * @author zhaohuihua
- * @version 200207
+ * @version 20200207
  */
 public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
 

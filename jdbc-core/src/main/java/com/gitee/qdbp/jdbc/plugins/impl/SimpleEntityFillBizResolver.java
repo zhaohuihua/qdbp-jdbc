@@ -8,7 +8,7 @@ import com.gitee.qdbp.tools.utils.RandomTools;
  * 获取当前登录用户的账号/生成实体类的主键
  *
  * @author zhaohuihua
- * @version 200128
+ * @version 20200128
  */
 public class SimpleEntityFillBizResolver implements EntityFillBizResolver {
 

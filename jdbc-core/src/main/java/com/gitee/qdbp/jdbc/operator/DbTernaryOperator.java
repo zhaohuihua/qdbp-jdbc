@@ -7,7 +7,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 三元运算符, 如 BETWEEN
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public interface DbTernaryOperator extends DbBaseOperator {
 

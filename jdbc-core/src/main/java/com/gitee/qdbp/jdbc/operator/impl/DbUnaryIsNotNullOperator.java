@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 一元IsNotNull运算符
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public class DbUnaryIsNotNullOperator extends DbAbstractOperator implements DbUnaryOperator {
 

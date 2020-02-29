@@ -117,7 +117,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.execute(sql, params, action);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -141,7 +141,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.query(sql, params, rse);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -165,7 +165,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         namedParameterJdbcOperations.query(sql, params, rch);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query, time consumed {}ms.", time);
+            log.debug("SQL query, elapsed time {}ms.", time);
         }
     }
 
@@ -181,7 +181,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
+            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
         }
         return list;
     }
@@ -199,7 +199,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -229,7 +229,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             }
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -254,7 +254,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, time consumed {}ms.", result == null ? 0 : 1, time);
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
@@ -283,7 +283,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         }
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
+            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
         }
         return list;
     }
@@ -300,7 +300,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, time consumed {}ms.", list == null ? 0 : list.size(), time);
+            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
         }
         return list;
     }
@@ -317,7 +317,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query, time consumed {}ms.", time);
+            log.debug("SQL query, elapsed time {}ms.", time);
         }
         return result;
     }
@@ -334,7 +334,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL update affected " + rows + " rows, time consumed {}ms", time);
+            log.debug("SQL update affected " + rows + " rows, elapsed time {}ms", time);
         }
         return rows;
     }
@@ -352,7 +352,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL update affected {} rows, time consumed {}ms.", rows, time);
+            log.debug("SQL update affected {} rows, elapsed time {}ms.", rows, time);
         }
         return rows;
     }

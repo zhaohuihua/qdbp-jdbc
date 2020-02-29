@@ -7,7 +7,7 @@ import java.util.List;
  * 基本运算符Abstract类
  *
  * @author zhaohuihua
- * @version 200126
+ * @version 20200126
  */
 public abstract class DbAbstractOperator {
 

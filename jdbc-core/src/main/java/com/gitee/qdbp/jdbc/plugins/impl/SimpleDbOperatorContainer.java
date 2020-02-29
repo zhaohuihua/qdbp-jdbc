@@ -29,7 +29,7 @@ import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
  * 运算符容器
  *
  * @author zhaohuihua
- * @version 200126
+ * @version 20200126
  */
 public class SimpleDbOperatorContainer implements DbOperatorContainer {
 

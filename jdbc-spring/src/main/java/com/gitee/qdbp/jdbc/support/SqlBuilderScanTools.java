@@ -16,7 +16,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * SqlBuilder扫描工具
  *
  * @author zhaohuihua
- * @version 200129
+ * @version 20200129
  */
 public class SqlBuilderScanTools {
 

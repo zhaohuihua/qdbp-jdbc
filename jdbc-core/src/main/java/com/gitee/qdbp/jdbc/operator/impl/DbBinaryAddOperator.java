@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 二元Add运算符(UPDATE SET columnName=columnName+number)
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public class DbBinaryAddOperator extends DbAbstractOperator implements DbBinaryOperator {
 

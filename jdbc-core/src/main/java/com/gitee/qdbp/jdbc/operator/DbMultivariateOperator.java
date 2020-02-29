@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 多元运算符, 如 IN / NOT IN
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public interface DbMultivariateOperator extends DbBaseOperator {
 

@@ -5,7 +5,7 @@ package com.gitee.qdbp.jdbc.plugins;
  * 与业务强相关的方法单独抽取一个接口, 方便业务侧提供实现类
  *
  * @author zhaohuihua
- * @version 200128
+ * @version 20200128
  */
 public interface EntityFillBizResolver {
 

@@ -7,7 +7,7 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
  * 利用fastjson进行Map到JavaBean的转换
  *
  * @author zhaohuihua
- * @version 200201
+ * @version 20200201
  */
 public class FastJsonMapToBeanConverter implements MapToBeanConverter {
 

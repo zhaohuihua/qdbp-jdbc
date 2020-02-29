@@ -46,7 +46,7 @@ public class DbPluginContainer {
      * 加载类是线程安全的, 虚拟机保证只会装载一次内部类, 不会出现并发问题<br>
      *
      * @author zhaohuihua
-     * @version 200129
+     * @version 20200129
      */
     public static class InnerInstance {
 

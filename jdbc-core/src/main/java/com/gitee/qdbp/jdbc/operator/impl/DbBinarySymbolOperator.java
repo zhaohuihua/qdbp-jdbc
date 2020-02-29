@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * 二元符号运算符, 如 = != &lt; &gt; &lt;= &gt;= 等
  *
  * @author zhaohuihua
- * @version 200123
+ * @version 20200123
  */
 public class DbBinarySymbolOperator extends DbAbstractOperator implements DbBinaryOperator {
 
