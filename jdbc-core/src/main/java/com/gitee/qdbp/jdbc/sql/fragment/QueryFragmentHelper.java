@@ -71,7 +71,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成Select字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(如果没有传入参数将生成所有的表字段)
      * @return SQL语句
      */
     SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldExeption;
@@ -79,7 +79,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成Select字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(不能为空)
      * @return SQL语句
      */
     SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
@@ -87,7 +87,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成Insert字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(如果没有传入参数将生成所有的表字段)
      * @return SQL语句
      */
     SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldExeption;
@@ -95,7 +95,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成Insert字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(不能为空)
      * @return SQL语句
      */
     SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
@@ -103,7 +103,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成OrderBy/GroupBy字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(如果没有传入参数将生成所有的表字段)
      * @return SQL语句
      */
     SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldExeption;
@@ -111,7 +111,7 @@ public interface QueryFragmentHelper {
     /**
      * 生成OrderBy/GroupBy字段列表SQL语句
      * 
-     * @param fields 只包含指定字段名
+     * @param fields 只包含指定字段名(不能为空)
      * @return SQL语句
      */
     SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
