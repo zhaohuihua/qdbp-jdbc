@@ -30,7 +30,7 @@ public class QuerySqlBuilder {
     public SqlBuffer buildFindSql(DbWhere where) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql());
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', sqlHelper.buildWhereSql(where, true));
@@ -45,7 +45,7 @@ public class QuerySqlBuilder {
     public SqlBuffer buildListSql(SqlBuffer whereSql, List<Ordering> orderings) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildFieldsSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql());
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', whereSql);
@@ -71,7 +71,7 @@ public class QuerySqlBuilder {
 
     public SqlBuffer buildGroupCountSql(String groupBy, DbWhere where) {
         // 字段列表
-        SqlBuffer fields = sqlHelper.buildFieldsSql(groupBy);
+        SqlBuffer fields = sqlHelper.buildByFieldsSql(groupBy);
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
@@ -94,7 +94,7 @@ public class QuerySqlBuilder {
         if (distinct) {
             buffer.append("DISTINCT", ' ');
         }
-        buffer.append(sqlHelper.buildFieldsSql(fieldName));
+        buffer.append(sqlHelper.buildSelectFieldsSql(fieldName));
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', sqlHelper.buildWhereSql(where, true));

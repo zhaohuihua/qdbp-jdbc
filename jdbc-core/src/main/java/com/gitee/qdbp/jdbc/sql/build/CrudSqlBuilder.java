@@ -29,8 +29,8 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         CrudFragmentHelper sqlHelper = helper();
         String tableName = sqlHelper.getTableName();
         Set<String> fieldNames = entity.keySet();
+        SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
         SqlBuffer valuesSqlBuffer = sqlHelper.buildInsertValuesSql(entity);
-        SqlBuffer fieldsSqlBuffer = sqlHelper.buildFieldsSql(fieldNames);
 
         SqlBuffer buffer = new SqlBuffer();
         // INSERT INTO (...)

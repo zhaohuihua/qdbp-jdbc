@@ -370,34 +370,63 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildFieldsSql() {
+    public SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldExeption {
+        return doChooseBuildFieldsSql(fields, true);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+        return doBuildSpecialFieldsSql(fields, true);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldExeption {
+        return doChooseBuildFieldsSql(fields, false);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+        return doBuildSpecialFieldsSql(fields, false);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldExeption {
+        return doChooseBuildFieldsSql(fields, false);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+        return doBuildSpecialFieldsSql(fields, false);
+    }
+
+    protected SqlBuffer doChooseBuildFieldsSql(String[] fields, boolean columnAlias) {
+        if (fields == null || fields.length == 0) {
+            return doBuildAllFieldsSql(true);
+        } else {
+            Set<String> fieldList = ConvertTools.toSet(fields);
+            return doBuildSpecialFieldsSql(fieldList, true);
+        }
+    }
+
+    protected SqlBuffer doBuildAllFieldsSql(boolean columnAlias) {
         SqlBuffer buffer = new SqlBuffer();
         for (SimpleFieldColumn item : columns) {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            buffer.append(toFullColumnName(item));
+            buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
         }
         return buffer;
     }
 
-    /** {@inheritDoc} **/
-    @Override
-    public SqlBuffer buildFieldsSql(String... fields) throws UnsupportedFieldExeption {
-        if (fields == null || fields.length == 0) {
-            return buildFieldsSql();
-        } else {
-            Set<String> fieldList = ConvertTools.toSet(fields);
-            return buildFieldsSql(fieldList);
-        }
-    }
-
-    /** {@inheritDoc} **/
-    @Override
-    public SqlBuffer buildFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
-        if (VerifyTools.isBlank(fields)) {
-            return buildFieldsSql();
-        }
+    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias)
+            throws UnsupportedFieldExeption {
+        VerifyTools.requireNotBlank(fields, "fields");
 
         // 字段名映射
         Map<String, Void> fieldMap = new HashMap<String, Void>();
@@ -416,13 +445,12 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
         for (SimpleFieldColumn item : columns) {
-            if (!fieldMap.containsKey(item.getFieldName())) {
-                continue;
+            if (fieldMap.containsKey(item.getFieldName())) {
+                if (!buffer.isEmpty()) {
+                    buffer.append(',');
+                }
+                buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
             }
-            if (!buffer.isEmpty()) {
-                buffer.append(',');
-            }
-            buffer.append(toFullColumnName(item));
         }
         return buffer;
     }
@@ -446,27 +474,12 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return false;
     }
 
-    /** 返回带表别名的字段名 **/
-    protected String toTableFieldName(SimpleFieldColumn field) {
-        return field.toTableFieldName();
-    }
-
-    /** 返回带表别名的列名 **/
-    protected String toTableColumnName(SimpleFieldColumn field) {
-        return field.toTableColumnName();
-    }
-
-    /** 返回带表别名和列别名的完整列名 **/
-    protected String toFullColumnName(SimpleFieldColumn field) {
-        return field.toFullColumnName();
-    }
-
     /** {@inheritDoc} **/
     @Override
     public List<String> getFieldNames() {
         List<String> list = new ArrayList<>();
         for (SimpleFieldColumn item : columns) {
-            list.add(toTableFieldName(item));
+            list.add(item.toTableFieldName());
         }
         return list;
     }
@@ -476,7 +489,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     public List<String> getColumnNames() {
         List<String> list = new ArrayList<>();
         for (SimpleFieldColumn item : columns) {
-            list.add(toTableColumnName(item));
+            list.add(item.toTableColumnName());
         }
         return list;
     }
@@ -492,7 +505,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption {
         for (SimpleFieldColumn item : this.columns) {
             if (item.matchesByFieldName(fieldName)) {
-                return toTableColumnName(item);
+                return item.toTableColumnName();
             }
         }
         if (throwOnUnsupportedField) {

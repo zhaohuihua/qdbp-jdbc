@@ -69,27 +69,52 @@ public interface QueryFragmentHelper {
     SqlBuffer buildOrderBySql(List<Ordering> orderings, boolean whole) throws UnsupportedFieldExeption;
 
     /**
-     * 生成Select/Insert字段列表SQL语句
-     * 
-     * @return SQL语句
-     */
-    SqlBuffer buildFieldsSql();
-
-    /**
-     * 生成Select/Insert字段列表SQL语句
+     * 生成Select字段列表SQL语句
      * 
      * @param fields 只包含指定字段名
      * @return SQL语句
      */
-    SqlBuffer buildFieldsSql(String... fields) throws UnsupportedFieldExeption;
+    SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldExeption;
 
     /**
-     * 生成Select/Insert字段列表SQL语句
+     * 生成Select字段列表SQL语句
      * 
      * @param fields 只包含指定字段名
      * @return SQL语句
      */
-    SqlBuffer buildFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
+    SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
+
+    /**
+     * 生成Insert字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名
+     * @return SQL语句
+     */
+    SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldExeption;
+
+    /**
+     * 生成Insert字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名
+     * @return SQL语句
+     */
+    SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
+
+    /**
+     * 生成OrderBy/GroupBy字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名
+     * @return SQL语句
+     */
+    SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldExeption;
+
+    /**
+     * 生成OrderBy/GroupBy字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名
+     * @return SQL语句
+     */
+    SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption;
 
     /**
      * 生成FROM语句<br>

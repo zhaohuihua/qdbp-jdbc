@@ -66,7 +66,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         } else if (fields.size() > 1) {
             throw ufe("unsupported field", "AmbiguousField:" + fieldName);
         } else {
-            return toTableColumnName(fields.get(0));
+            return fields.get(0).toTableColumnName();
         }
     }
 
@@ -87,42 +87,42 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
                 return null;
             }
         } else {
-            return toTableColumnName(fields.get(0));
+            return fields.get(0).toTableColumnName();
         }
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
-        if (VerifyTools.isBlank(fields)) {
-            return buildFieldsSql();
-        }
+    public SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias) throws UnsupportedFieldExeption {
+        VerifyTools.requireNotBlank(fields, "fields");
 
-        // Column 'parent_id' in field list is ambiguous
         // 字段名映射
         Map<String, Void> fieldMap = new HashMap<String, Void>();
         List<String> unsupported = new ArrayList<String>();
         for (String fieldName : fields) {
-            if (containsField(fieldName)) {
-                fieldMap.put(fieldName, null);
-            } else {
+            List<SimpleFieldColumn> matchesFields = getFields(fieldName);
+            if (matchesFields.isEmpty()) {
                 unsupported.add(fieldName);
+            } else if (matchesFields.size() > 1) {
+                unsupported.add("AmbiguousField:" + fieldName);
+            } else {
+                fieldMap.put(fieldName, null);
             }
         }
         if (!unsupported.isEmpty()) {
-            throw ufe("field sql", unsupported);
+            // Column 'xxx' in field list is ambiguous
+            throw ufe("build field sql unsupported fields", unsupported);
         }
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
         for (SimpleFieldColumn item : columns) {
-            if (!fieldMap.containsKey(item.getFieldName())) {
-                continue;
+            if (fieldMap.containsKey(item.toTableFieldName()) || fieldMap.containsKey(item.getFieldName())) {
+                if (!buffer.isEmpty()) {
+                    buffer.append(',');
+                }
+                buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
             }
-            if (!buffer.isEmpty()) {
-                buffer.append(',');
-            }
-            buffer.append(toFullColumnName(item));
         }
         return buffer;
     }

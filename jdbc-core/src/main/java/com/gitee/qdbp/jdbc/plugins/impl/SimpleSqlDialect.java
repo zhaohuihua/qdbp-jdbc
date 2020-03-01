@@ -332,7 +332,7 @@ public class SimpleSqlDialect implements SqlDialect {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT", ' ');
-        buffer.append(sqlHelper.buildFieldsSql(selectFields));
+        buffer.append(sqlHelper.buildSelectFieldsSql(selectFields));
         buffer.append(' ', sqlHelper.buildFromSql());
         // START WITH {codeField} IN ( {startCodes} ) 
         buffer.append(' ', "START WITH", ' ').append(sqlHelper.buildInSql(codeField, startCodes, false));
@@ -401,7 +401,7 @@ public class SimpleSqlDialect implements SqlDialect {
         params.put("codeField", codeField);
         params.put("parentField", parentField);
         params.put("tableName", sqlHelper.buildFromSql());
-        params.put("selectFields", sqlHelper.buildFieldsSql(selectFields));
+        params.put("selectFields", sqlHelper.buildSelectFieldsSql(selectFields));
         params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, false));
         if (where != null && !where.isEmpty()) {
             params.put("whereCondition", sqlHelper.buildWhereSql(where, true));
@@ -439,7 +439,7 @@ public class SimpleSqlDialect implements SqlDialect {
     protected SqlBuffer productionRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
 
-        String selectFieldSql = sqlHelper.buildFieldsSql(selectFields).toString();
+        String selectFieldSql = sqlHelper.buildSelectFieldsSql(selectFields).toString();
         String whereSql = null;
         if (where != null && !where.isEmpty()) {
             whereSql = sqlHelper.buildWhereSql(where, false).toString();
