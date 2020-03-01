@@ -406,10 +406,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     protected SqlBuffer doChooseBuildFieldsSql(String[] fields, boolean columnAlias) {
         if (fields == null || fields.length == 0) {
-            return doBuildAllFieldsSql(true);
+            return doBuildAllFieldsSql(columnAlias);
         } else {
             Set<String> fieldList = ConvertTools.toSet(fields);
-            return doBuildSpecialFieldsSql(fieldList, true);
+            return doBuildSpecialFieldsSql(fieldList, columnAlias);
         }
     }
 
