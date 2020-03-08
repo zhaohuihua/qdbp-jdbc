@@ -24,6 +24,7 @@ import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 利用spring的ConvertionService进行Map到JavaBean的转换<br>
@@ -43,9 +44,25 @@ public class SpringMapToBeanConverter
 
     @Override
     public <T> T convert(Map<String, ?> map, Class<T> mappedClass) {
-        Map<String, PropertyDescriptor> mappedFields = getPropertyDescriptorMaps(mappedClass);
+        VerifyTools.requireNonNull(map, "map");
+        VerifyTools.requireNonNull(mappedClass, "class");
         T mappedObject = BeanUtils.instantiateClass(mappedClass);
-        BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(mappedObject);
+        doFill(map, mappedObject, mappedClass);
+        return mappedObject;
+    }
+
+    @Override
+    public <T> void fill(Map<String, ?> map, T bean) {
+        VerifyTools.requireNonNull(map, "map");
+        VerifyTools.requireNonNull(bean, "bean");
+
+        Class<?> mappedClass = bean.getClass();
+        doFill(map, bean, mappedClass);
+    }
+
+    private <T> void doFill(Map<String, ?> map, T bean, Class<?> clazz) {
+        Map<String, PropertyDescriptor> mappedFields = getPropertyDescriptorMaps(clazz);
+        BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(bean);
         initBeanWrapper(bw);
 
         boolean typeMismatchForNullValueLogged = false;
@@ -67,7 +84,7 @@ public class SpringMapToBeanConverter
                 bw.setPropertyValue(pd.getName(), value);
             } catch (NotWritablePropertyException e) {
                 String m = "Unable to set property '%s.%s'";
-                String className = mappedClass.getSimpleName();
+                String className = clazz.getSimpleName();
                 throw new DataRetrievalFailureException(String.format(m, className, pd.getName()), e);
             } catch (TypeMismatchException e) {
                 if (value != null) {
@@ -77,14 +94,12 @@ public class SpringMapToBeanConverter
                     typeMismatchForNullValueLogged = true; // 只记一次日志
                     String m = "Intercepted TypeMismatchException "
                             + "with null value when setting property '{}.{}' of type '{}'";
-                    String className = mappedClass.getSimpleName();
+                    String className = clazz.getSimpleName();
                     String propertyType = ClassUtils.getQualifiedName(pd.getPropertyType());
                     log.debug(m, className, pd.getName(), propertyType, e);
                 }
             }
         }
-
-        return mappedObject;
     }
 
     protected Map<String, PropertyDescriptor> getPropertyDescriptorMaps(Class<?> mappedClass) {
