@@ -52,7 +52,7 @@ public class SpringMapToBeanConverter
     }
 
     @Override
-    public <T> void fill(Map<String, ?> map, T bean) {
+    public void fill(Map<String, ?> map, Object bean) {
         VerifyTools.requireNonNull(map, "map");
         VerifyTools.requireNonNull(bean, "bean");
 
@@ -60,7 +60,7 @@ public class SpringMapToBeanConverter
         doFill(map, bean, mappedClass);
     }
 
-    private <T> void doFill(Map<String, ?> map, T bean, Class<?> clazz) {
+    private void doFill(Map<String, ?> map, Object bean, Class<?> clazz) {
         Map<String, PropertyDescriptor> mappedFields = getPropertyDescriptorMaps(clazz);
         BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(bean);
         initBeanWrapper(bw);

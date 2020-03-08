@@ -23,9 +23,8 @@ public interface MapToBeanConverter {
     /**
      * 将Map内容设置到Java对象中
      * 
-     * @param <T> 目标类型
      * @param map Map
      * @param bean 目标对象
      */
-    <T> void fill(Map<String, ?> map, T bean);
+    void fill(Map<String, ?> map, Object bean);
 }

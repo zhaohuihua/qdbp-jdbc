@@ -39,11 +39,10 @@ abstract class FastJsonTools {
      * 将Map内容设置到Java对象中<br>
      * copy from JavaBeanDeserializer.createInstance(Map<String, Object>, ParserConfig);
      * 
-     * @param <T> 目标类型
      * @param map Map
      * @param bean 目标Java对象
      */
-    public static <T> void mapFillBean(Map<String, ?> map, T bean) {
+    public static void mapFillBean(Map<String, ?> map, Object bean) {
         Class<?> clazz = bean.getClass();
         ParserConfig config = ParserConfig.getGlobalInstance();
         ObjectDeserializer deserializer = config.getDeserializer(clazz);

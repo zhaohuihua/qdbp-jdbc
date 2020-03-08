@@ -20,7 +20,7 @@ public class FastJsonMapToBeanConverter implements MapToBeanConverter {
     }
 
     @Override
-    public <T> void fill(Map<String, ?> map, T bean) {
+    public void fill(Map<String, ?> map, Object bean) {
         VerifyTools.requireNonNull(map, "map");
         VerifyTools.requireNonNull(bean, "bean");
         FastJsonTools.mapFillBean(map, bean);
