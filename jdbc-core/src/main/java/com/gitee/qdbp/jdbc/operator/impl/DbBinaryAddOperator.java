@@ -19,15 +19,9 @@ public class DbBinaryAddOperator extends DbAbstractOperator implements DbBinaryO
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue, SqlDialect dialect) {
         SqlBuffer buffer = new SqlBuffer();
-        if (columnValue instanceof Number && ((Number) columnValue).doubleValue() < 0) {
-            buffer.append(columnName).append('=');
-            buffer.append(columnName).append('-');
-            buffer.addVariable(columnValue);
-        } else {
-            buffer.append(columnName).append('=');
-            buffer.append(columnName).append('+');
-            buffer.addVariable(columnValue);
-        }
+        buffer.append(columnName).append('=');
+        buffer.append(columnName).append('+');
+        buffer.addVariable(columnValue);
         return buffer;
     }
 
