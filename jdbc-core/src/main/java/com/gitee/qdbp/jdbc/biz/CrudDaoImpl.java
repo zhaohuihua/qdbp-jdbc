@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.biz;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -141,18 +142,55 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     private static FirstColumnMapper<String> FIRST_COLUMN_STRING_MAPPER = new FirstColumnMapper<>(String.class);
 
+    private Map<String, Object> copmareMapDifference(Map<String, Object> original, Map<String, Object> current) {
+        Map<String, Object> diff = new HashMap<>();
+        for (Map.Entry<String, Object> entry : original.entrySet()) {
+            if (!current.containsKey(entry.getKey())) {
+                diff.put(entry.getKey(), null);
+            }
+        }
+        for (Map.Entry<String, Object> entry : current.entrySet()) {
+            if (VerifyTools.notEquals(entry.getValue(), original.get(entry.getKey()))) {
+                diff.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return diff;
+    }
+
     @Override
     public String insert(T entity, boolean fillCreateParams) throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
-        DbConditionConverter converter = DbTools.getDbConditionConverter();
-        Map<String, Object> readyEntity = converter.convertBeanToInsertMap(entity);
-        return insert(readyEntity, fillCreateParams);
+
+        // 将对象转换为map
+        DbConditionConverter conditionConverter = DbTools.getDbConditionConverter();
+        Map<String, Object> readyEntity = conditionConverter.convertBeanToInsertMap(entity);
+        // 记录下所有字段值原值, 用于比较差异
+        Map<String, Object> original = new HashMap<>();
+        original.putAll(readyEntity);
+        // 填充主键/数据状态/创建人/创建时间等信息
+        String id = executeEntityFill(readyEntity, fillCreateParams);
+        // 执行数据库插入
+        SqlBuffer buffer = builder().buildInsertSql(readyEntity);
+        jdbc.update(buffer);
+        // 比对修改后的字段值与原值的差异, 复制到原对象
+        Map<String, Object> diff = copmareMapDifference(original, readyEntity);
+        MapToBeanConverter mapToBeanConverter = DbTools.getMapToBeanConverter();
+        mapToBeanConverter.fill(diff, entity);
+        return id;
     }
 
     @Override
     public String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException {
         VerifyTools.requireNotBlank(entity, "entity");
+        // 填充主键/数据状态/创建人/创建时间等信息
+        String id = executeEntityFill(entity, fillCreateParams);
+        // 执行数据库插入
+        SqlBuffer buffer = builder().buildInsertSql(entity);
+        jdbc.update(buffer);
+        return id;
+    }
 
+    private String executeEntityFill(Map<String, Object> entity, boolean fillCreateParams) {
         String tableName = builder().helper().getTableName();
         String id = null;
         // 查找主键
@@ -169,10 +207,6 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         if (fillCreateParams) {
             entityFillExecutor.fillTableCreteParams(entity);
         }
-
-        SqlBuffer buffer = builder().buildInsertSql(entity);
-
-        jdbc.update(buffer);
         return id;
     }
 
