@@ -1,6 +1,7 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.update;
 
 import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
+import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 

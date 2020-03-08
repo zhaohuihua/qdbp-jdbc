@@ -1,21 +1,22 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.where;
 
 import java.util.Collection;
 import com.gitee.qdbp.jdbc.operator.DbMultivariateOperator;
+import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 
 /**
- * 多元NotIn运算符
+ * 多元IN运算符
  *
  * @author zhaohuihua
  * @version 20200123
  */
-public class DbMultivariateNotInOperator extends DbAbstractOperator implements DbMultivariateOperator {
+public class DbMultivariateInOperator extends DbAbstractOperator implements DbMultivariateOperator {
 
-    public DbMultivariateNotInOperator() {
-        super("Not In", "NotIn");
+    public DbMultivariateInOperator() {
+        super("In");
     }
 
     @Override
@@ -23,7 +24,7 @@ public class DbMultivariateNotInOperator extends DbAbstractOperator implements D
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(columnName);
         buffer.append(' ');
-        buffer.append(SqlTools.buildNotInSql(columnValues));
+        buffer.append(SqlTools.buildInSql(columnValues));
         return buffer;
     }
 

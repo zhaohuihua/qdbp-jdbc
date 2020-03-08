@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.where;
 
 /**
  * 二元等号运算符

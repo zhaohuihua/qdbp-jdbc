@@ -1,19 +1,20 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.where;
 
 import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
+import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
- * 二元不等号运算符
+ * 二元等号运算符
  *
  * @author zhaohuihua
  * @version 20200123
  */
-public class DbBinaryNotEqualsOperator extends DbAbstractOperator implements DbBinaryOperator {
+public class DbBinaryEqualsOperator extends DbAbstractOperator implements DbBinaryOperator {
 
-    public DbBinaryNotEqualsOperator() {
-        super("!=", "Not Equals", "NotEquals");
+    public DbBinaryEqualsOperator() {
+        super("=", "Equals");
     }
 
     @Override
@@ -21,9 +22,9 @@ public class DbBinaryNotEqualsOperator extends DbAbstractOperator implements DbB
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(columnName);
         if (columnValue == null || "".equals(columnValue)) {
-            buffer.append(' ').append("IS NOT NULL");
+            buffer.append(' ').append("IS NULL");
         } else {
-            buffer.append("!=").addVariable(columnValue);
+            buffer.append('=').addVariable(columnValue);
         }
         return buffer;
     }

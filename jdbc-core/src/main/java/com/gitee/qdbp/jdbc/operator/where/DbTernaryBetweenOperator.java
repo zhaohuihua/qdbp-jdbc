@@ -1,26 +1,27 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.where;
 
 import com.gitee.qdbp.jdbc.operator.DbTernaryOperator;
+import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
- * 三元NotBetween运算符
+ * 三元Between运算符
  *
  * @author zhaohuihua
- * @version 20200208
+ * @version 20200123
  */
-public class DbTernaryNotBetweenOperator extends DbAbstractOperator implements DbTernaryOperator {
+public class DbTernaryBetweenOperator extends DbAbstractOperator implements DbTernaryOperator {
 
-    public DbTernaryNotBetweenOperator() {
-        super("NotBetween");
+    public DbTernaryBetweenOperator() {
+        super("Between");
     }
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue1, Object columnValue2, SqlDialect dialect) {
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(columnName);
-        buffer.append(' ', "NOT").append(' ', "BETWEEN", ' ');
+        buffer.append(' ', "BETWEEN", ' ');
         buffer.addVariable(columnValue1);
         buffer.append(' ', "AND", ' ');
         buffer.addVariable(columnValue2);

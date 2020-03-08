@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.operator.impl;
+package com.gitee.qdbp.jdbc.operator.base;
 
 import java.util.Arrays;
 import java.util.List;
