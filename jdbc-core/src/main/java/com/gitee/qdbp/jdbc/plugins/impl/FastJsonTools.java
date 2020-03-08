@@ -1,6 +1,9 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,10 +15,14 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.parser.deserializer.FieldDeserializer;
+import com.alibaba.fastjson.parser.deserializer.JavaBeanDeserializer;
+import com.alibaba.fastjson.parser.deserializer.ObjectDeserializer;
 import com.alibaba.fastjson.serializer.JSONSerializable;
 import com.alibaba.fastjson.serializer.JavaBeanSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.alibaba.fastjson.util.FieldInfo;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
@@ -27,6 +34,119 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
  * @version 180621
  */
 abstract class FastJsonTools {
+
+    /**
+     * 将Map内容设置到Java对象中<br>
+     * copy from JavaBeanDeserializer.createInstance(Map<String, Object>, ParserConfig);
+     * 
+     * @param <T> 目标类型
+     * @param map Map
+     * @param bean 目标Java对象
+     */
+    public static <T> void mapFillBean(Map<String, ?> map, T bean) {
+        Class<?> clazz = bean.getClass();
+        ParserConfig config = ParserConfig.getGlobalInstance();
+        ObjectDeserializer deserializer = config.getDeserializer(clazz);
+        if (!(deserializer instanceof JavaBeanDeserializer)) {
+            throw new JSONException("can not get javaBeanDeserializer. " + clazz.getName());
+        }
+        JavaBeanDeserializer javaBeanDeser = (JavaBeanDeserializer) deserializer;
+        try {
+            mapFillBean(map, bean, config, javaBeanDeser);
+        } catch (Exception e) {
+            throw new JSONException(e.getMessage(), e);
+        }
+    }
+
+    private static void mapFillBean(Map<String, ?> map, Object bean, ParserConfig config,
+            JavaBeanDeserializer javaBeanDeser) throws IllegalArgumentException, IllegalAccessException {
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            FieldDeserializer fieldDeser = javaBeanDeser.smartMatch(key);
+            if (fieldDeser == null) {
+                continue;
+            }
+
+            final FieldInfo fieldInfo = fieldDeser.fieldInfo;
+            Field field = fieldDeser.fieldInfo.field;
+            Type paramType = fieldInfo.fieldType;
+
+            if (field != null) {
+                Class<?> fieldType = field.getType();
+                if (fieldType == boolean.class) {
+                    if (value == Boolean.FALSE) {
+                        field.setBoolean(bean, false);
+                        continue;
+                    }
+
+                    if (value == Boolean.TRUE) {
+                        field.setBoolean(bean, true);
+                        continue;
+                    }
+                } else if (fieldType == int.class) {
+                    if (value instanceof Number) {
+                        field.setInt(bean, ((Number) value).intValue());
+                        continue;
+                    }
+                } else if (fieldType == long.class) {
+                    if (value instanceof Number) {
+                        field.setLong(bean, ((Number) value).longValue());
+                        continue;
+                    }
+                } else if (fieldType == float.class) {
+                    if (value instanceof Number) {
+                        field.setFloat(bean, ((Number) value).floatValue());
+                        continue;
+                    } else if (value instanceof String) {
+                        String strVal = (String) value;
+                        float floatValue;
+                        if (strVal.length() <= 10) {
+                            floatValue = TypeUtils.parseFloat(strVal);
+                        } else {
+                            floatValue = Float.parseFloat(strVal);
+                        }
+
+                        field.setFloat(bean, floatValue);
+                        continue;
+                    }
+                } else if (fieldType == double.class) {
+                    if (value instanceof Number) {
+                        field.setDouble(bean, ((Number) value).doubleValue());
+                        continue;
+                    } else if (value instanceof String) {
+                        String strVal = (String) value;
+                        double doubleValue;
+                        if (strVal.length() <= 10) {
+                            doubleValue = TypeUtils.parseDouble(strVal);
+                        } else {
+                            doubleValue = Double.parseDouble(strVal);
+                        }
+
+                        field.setDouble(bean, doubleValue);
+                        continue;
+                    }
+                } else if (value != null && paramType == value.getClass()) {
+                    field.set(bean, value);
+                    continue;
+                }
+            }
+
+            String format = fieldInfo.format;
+            if (format != null && paramType == Date.class) {
+                value = TypeUtils.castToDate(value, format);
+            } else {
+                if (paramType instanceof ParameterizedType) {
+                    value = TypeUtils.cast(value, (ParameterizedType) paramType, config);
+                } else {
+                    value = TypeUtils.cast(value, paramType, config);
+                }
+            }
+
+            fieldDeser.setValue(bean, value);
+        }
+    }
 
     /**
      * 将Map转换为Java对象
