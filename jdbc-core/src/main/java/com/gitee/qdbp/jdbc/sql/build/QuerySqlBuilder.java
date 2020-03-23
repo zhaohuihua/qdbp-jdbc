@@ -87,6 +87,12 @@ public class QuerySqlBuilder {
 
     public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, DbWhere where,
             List<Ordering> orderings) throws ServiceException {
+        SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
+        return buildListFieldValuesSql(fieldName, distinct, wsb, orderings);
+    }
+
+    public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, SqlBuffer where,
+            List<Ordering> orderings) throws ServiceException {
         SqlBuffer buffer = new SqlBuffer();
 
         // SELECT ... FROM
@@ -97,7 +103,7 @@ public class QuerySqlBuilder {
         buffer.append(sqlHelper.buildSelectFieldsSql(fieldName));
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
+        buffer.append('\n', where);
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.append('\n', sqlHelper.buildOrderBySql(orderings, true));

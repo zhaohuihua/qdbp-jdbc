@@ -67,14 +67,15 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         return new TableRowToBeanMapper<>(clazz, converter);
     }
 
-    private CrudSqlBuilder builder() {
+    @Override
+    public CrudSqlBuilder getSqlBuilder() {
         return (CrudSqlBuilder) this.sqlBuilder;
     }
 
     @Override
     public T findById(String id) {
         VerifyTools.requireNotBlank(id, "id");
-        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedFindById, class=" + clazz);
         }
@@ -103,7 +104,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     private List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             List<Ordering> orderings) throws ServiceException {
-        CrudFragmentHelper sqlHelper = builder().helper();
+        CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
         List<String> selectFields = sqlHelper.getFieldNames();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
@@ -133,7 +134,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
     private List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
             DbWhere where, List<Ordering> orderings) throws ServiceException {
-        CrudFragmentHelper sqlHelper = builder().helper();
+        CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
         Set<String> selectFields = ConvertTools.toSet(codeField);
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
@@ -170,7 +171,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         // 填充主键/数据状态/创建人/创建时间等信息
         String id = executeEntityFill(readyEntity, fillCreateParams);
         // 执行数据库插入
-        SqlBuffer buffer = builder().buildInsertSql(readyEntity);
+        SqlBuffer buffer = getSqlBuilder().buildInsertSql(readyEntity);
         jdbc.update(buffer);
         // 比对修改后的字段值与原值的差异, 复制到原对象
         Map<String, Object> diff = copmareMapDifference(original, readyEntity);
@@ -185,16 +186,16 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         // 填充主键/数据状态/创建人/创建时间等信息
         String id = executeEntityFill(entity, fillCreateParams);
         // 执行数据库插入
-        SqlBuffer buffer = builder().buildInsertSql(entity);
+        SqlBuffer buffer = getSqlBuilder().buildInsertSql(entity);
         jdbc.update(buffer);
         return id;
     }
 
     private String executeEntityFill(Map<String, Object> entity, boolean fillCreateParams) {
-        String tableName = builder().helper().getTableName();
+        String tableName = getSqlBuilder().helper().getTableName();
         String id = null;
         // 查找主键
-        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             log.debug("PrimaryKeyInfoNotFound, class={}", clazz);
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
@@ -234,7 +235,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
         // 查找主键
-        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedUpdateById, class=" + clazz);
         }
@@ -313,7 +314,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     private int doUpdate(DbUpdate readyEntity, DbWhere readyWhere, boolean errorOnUnaffected) throws ServiceException {
-        SqlBuffer buffer = builder().buildUpdateSql(readyEntity, readyWhere);
+        SqlBuffer buffer = getSqlBuilder().buildUpdateSql(readyEntity, readyWhere);
 
         int rows = jdbc.update(buffer);
 
@@ -337,7 +338,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }
@@ -374,7 +375,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     @Override
     public int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKeyFieldColumn pk = builder().helper().getPrimaryKey();
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             throw new UnsupportedOperationException("PrimaryKeyInfoNotFound, UnsupportedDeleteById, class=" + clazz);
         }
@@ -413,12 +414,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
                 if (fillUpdateParams) {
                     entityFillExecutor.fillTableUpdateParams(ud);
                 }
-                buffer = builder().buildUpdateSql(ud, readyWhere);
+                buffer = getSqlBuilder().buildUpdateSql(ud, readyWhere);
             } else { // 不支持逻辑删除
                 throw new ServiceException(DbErrorCode.UNSUPPORTED_LOGICAL_DELETE);
             }
         } else {
-            buffer = builder().buildDeleteSql(readyWhere);
+            buffer = getSqlBuilder().buildDeleteSql(readyWhere);
         }
 
         int rows = jdbc.update(buffer);
