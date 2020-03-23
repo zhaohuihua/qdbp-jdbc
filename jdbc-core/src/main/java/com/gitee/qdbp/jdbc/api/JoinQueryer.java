@@ -7,6 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 
 /**
  * 基础表连接查询操作<br>
@@ -17,6 +18,9 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
  * @version 190608
  */
 public interface JoinQueryer<T> {
+
+    /** SQL生成工具 **/
+    QuerySqlBuilder getSqlBuilder();
 
     /**
      * 根据查询条件获取对象<br>
@@ -136,10 +140,10 @@ public interface JoinQueryer<T> {
      * @param fieldName 指定字段名
      * @param distinct 是否去重
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 如果不排序应传入Orderings.NONE
+     * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @param valueClazz 字段值类型
      * @return 字段的值列表
      */
-    <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
+    <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException;
 }

@@ -107,21 +107,27 @@ public abstract class BaseQueryerImpl<T> {
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        List<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
+        PageList<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
 
-    public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
+    public <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        return doListFieldValues(fieldName, distinct, readyWhere, null, valueClazz);
+        return doListFieldValues(fieldName, distinct, readyWhere, odpg, valueClazz);
     }
 
-    private <V> List<V> doListFieldValues(String fieldName, boolean distinct, DbWhere where, List<Ordering> orderings,
+    private <V> PageList<V> doListFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildListFieldValuesSql(fieldName, distinct, where, orderings);
-        return jdbc.query(buffer, new FirstColumnMapper<>(valueClazz));
+        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(where, true);
+        SqlBuffer qsb = sqlBuilder.buildListFieldValuesSql(fieldName, distinct, wsb, odpg.getOrderings());
+        SqlBuffer csb = null;
+        if (odpg.isPaging() && odpg.isNeedCount()) {
+            csb = sqlBuilder.buildCountSql(wsb);
+        }
+        PartList<V> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, new FirstColumnMapper<>(valueClazz));
+        return list == null ? null : new PageList<V>(list, list.getTotal());
     }
 
     public int count(DbWhere where) throws ServiceException {

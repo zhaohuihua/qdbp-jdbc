@@ -60,4 +60,9 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
         return majorTableAlias;
     }
 
+    @Override
+    public QuerySqlBuilder getSqlBuilder() {
+        return (QuerySqlBuilder) sqlBuilder;
+    }
+
 }
