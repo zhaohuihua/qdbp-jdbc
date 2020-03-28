@@ -22,27 +22,27 @@
 	http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<!-- dataSource 配置 -->
-	<bean id="sysDataSource" class="com.gitee.qdbp.base.settings.druid.EasyDruidDataSource" init-method="init" destroy-method="close">
-		<!-- 基本属性 url、user、password -->
-		<property name="settings" value="${jdbc.sys}" />
-		<property name="url" value="jdbc:mysql://{address}/{dbname}" />
-		<property name="params" value="?tinyInt1isBit=false&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;useSSL=false" />
+	<bean id="sysDataSource" class="com.gitee.qdbp.jdbc.support.AutoDruidDataSource" init-method="init" destroy-method="close">
+		<property name="properties" ref="setting" />
+		<property name="config" value="${jdbc.sys}" />
+		<property name="url" value="auto" />
+		<property name="driverClassName" value="auto" />
+		<property name="validationQuery" value="auto" />
 
 		<!-- 配置初始化大小、最小、最大 -->
 		<property name="initialSize" value="1" />
 		<property name="minIdle" value="1" />
-		<property name="maxActive" value="20" />
+		<property name="maxActive" value="30" />
 
 		<!-- 配置获取连接等待超时的时间 -->
-		<property name="maxWait" value="60000" />
+		<property name="maxWait" value="30000" />
 
 		<!-- 配置间隔多久才进行一次检测, 检测需要关闭的空闲连接, 单位是毫秒 -->
-		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+		<property name="timeBetweenEvictionRunsMillis" value="120000" />
 
 		<!-- 配置一个连接在池中最小生存的时间, 单位是毫秒 -->
 		<property name="minEvictableIdleTimeMillis" value="300000" />
 
-		<property name="validationQuery" value="SELECT 'x' FROM DUAL" />
 		<property name="testWhileIdle" value="true" />
 		<property name="testOnBorrow" value="false" />
 		<property name="testOnReturn" value="false" />

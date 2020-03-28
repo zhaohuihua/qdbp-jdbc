@@ -1,4 +1,4 @@
-package com.gitee.qdbp.base.settings.druid;
+package com.gitee.qdbp.jdbc.support;
 
 import java.sql.SQLException;
 import java.util.regex.Matcher;
@@ -182,30 +182,7 @@ public class EasyDruidDataSource extends DruidDataSource {
                 }
             }
         }
-        String driverClass = this.getDriverClassName();
-        String jdbcUrl = this.getUrl();
-        if (driverClass == null && jdbcUrl != null && jdbcUrl.startsWith("jdbc:db2")) {
-            // Resolve the DB2 driver from JDBC URL
-            // Type2 COM.ibm.db2.jdbc.app.DB2Driver, url = jdbc:db2:databasename
-            // Type3 COM.ibm.db2.jdbc.net.DB2Driver, url = jdbc:db2:ServerIP:6789:databasename
-            // Type4 8.1+ com.ibm.db2.jcc.DB2Driver, url = jdbc:db2://ServerIP:50000/databasename
-            String prefix = "jdbc:db2:";
-            if (jdbcUrl.startsWith(prefix + "//")) { // Type4
-                this.setDriverClassName("com.ibm.db2.jcc.DB2Driver");
-            } else {
-                String suffix = jdbcUrl.substring(prefix.length());
-                if (suffix.indexOf(':') > 0) { // Type3
-                    this.setDriverClassName("COM.ibm.db2.jdbc.net.DB2Driver");
-                } else { // Type2
-                    this.setDriverClassName("COM.ibm.db2.jdbc.app.DB2Driver");
-                }
-            }
-        }
         super.init();
     }
 
-    public static void main(String[] args) {
-        String prefix = "jdbc:db2:";
-        System.out.println("jdbc:db2:ServerIP:6789:databasename".substring(prefix.length()));
-    }
 }
