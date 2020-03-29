@@ -9,7 +9,7 @@ package com.gitee.qdbp.jdbc.operator.where;
 public class DbBinaryGreaterEqualsThenOperator extends DbBinarySymbolOperator {
 
     public DbBinaryGreaterEqualsThenOperator() {
-        super(">=", "GreaterEqualsThen");
+        super(">=", "GreaterEqualsThen", "Min");
     }
 
 }
