@@ -7,12 +7,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.alibaba.druid.filter.Filter;
-import com.alibaba.druid.filter.config.ConfigFilter;
-import com.alibaba.druid.filter.config.ConfigTools;
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.util.Base64;
-import com.gitee.qdbp.tools.codec.Base58Tools;
+import com.gitee.qdbp.tools.crypto.GlobalCipherTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.PropertyTools;
@@ -27,7 +23,7 @@ import com.gitee.qdbp.tools.utils.StringTools;
  * 密码支持两种配置方式, 第1种是明文密码, 第2种是加密密码<br>
  * dbtype:username:password@address/dbname:schema // 明文密码<br>
  * dbtype:username@address/dbname:schema?EncryptedPassword // 加密密码<br>
- * 数据库密码加密: java -cp qdbp-jdbc-spring.jar com.gitee.qdbp.jdbc.support.AutoDruidDataSource password<br>
+ * 数据库密码加密: java -cp qdbp-able.jar com.gitee.qdbp.tools.crypto.GlobalCipherTools db password<br>
  * config第1段是dbtype.subtype, subtype可以没有. 例如mysql, mysql.8, oralce, oralce.sid<br>
  * 通过dbtype.subtype从properties之中自动查找jdbc.url/jdbc.params/jdbc.driver/jdbc.testquery<br>
  * 查找时优先查找jdbc.url.dbtype.subtype, 如果没有再查找jdbc.url.dbtype, 最后查找jdbc.url<br>
@@ -112,7 +108,6 @@ public class AutoDruidDataSource extends DruidDataSource {
 
     protected String dbconfig;
     protected Properties properties;
-    protected Boolean isNeedDecrypt;
     protected String dbtype;
     protected String dbname;
     protected String dbschema;
@@ -166,12 +161,8 @@ public class AutoDruidDataSource extends DruidDataSource {
 
         this.setUsername(username);
         if (encrypted != null) {
-            this.isNeedDecrypt = true;
-            byte[] bytes = Base58Tools.decode(encrypted);
-            String base64String = Base64.byteArrayToBase64(bytes);
-            this.setPassword(base64String);
+            this.setPassword(GlobalCipherTools.decrypt("db", encrypted));
         } else {
-            this.isNeedDecrypt = false;
             this.setPassword(password);
         }
     }
@@ -223,18 +214,6 @@ public class AutoDruidDataSource extends DruidDataSource {
             super.setDriverClassName(driver);
         }
 
-        // 判断数据库密码是否加密
-        if (isNeedDecrypt != null) {
-            String value = String.valueOf(isNeedDecrypt.booleanValue());
-            this.connectProperties.put("config.decrypt", value);
-            for (Filter i : this.filters) {
-                // 已知config.decrypt是给ConfigFilter用的
-                if (i instanceof ConfigFilter) {
-                    // 尽管目前ConfigFilter.configFromProperties是个空实现, 还是调一下
-                    i.configFromProperties(this.connectProperties);
-                }
-            }
-        }
         // 处理特殊的Driver
         resolveDriver();
         super.init();
@@ -323,10 +302,4 @@ public class AutoDruidDataSource extends DruidDataSource {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        String password = args[0];
-        String ciphertext = ConfigTools.encrypt(password);
-        byte[] bytes = Base64.base64ToByteArray(ciphertext);
-        System.out.println(Base58Tools.encode(bytes));
-    }
 }
