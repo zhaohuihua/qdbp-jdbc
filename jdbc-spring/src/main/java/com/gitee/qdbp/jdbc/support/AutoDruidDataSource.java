@@ -53,9 +53,15 @@ jdbc.xxx = h2.mem@~/dbname
         &lt;/list&gt;
     &lt;/property&gt;
 &lt;/bean&gt;
-&lt;bean class="com.gitee.qdbp.base.settings.druid.AutoDruidDataSource" init-method="init" destroy-method="close"&gt;
-    &lt;property name="config" value="${jdbc.xxx}" /&gt;
+&lt;bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"&gt;
     &lt;property name="properties" ref="setting" /&gt;
+&lt;/bean&gt;
+&lt;bean class="com.gitee.qdbp.base.settings.druid.AutoDruidDataSource" init-method="init" destroy-method="close"&gt;
+    &lt;property name="properties" ref="setting" /&gt;
+    &lt;property name="config" value="${jdbc.xxx}" /&gt;
+    &lt;property name="url" value="auto" /&gt;
+    &lt;property name="driverClassName" value="auto" /&gt;
+    &lt;property name="validationQuery" value="auto" /&gt;
 &lt;/bean&gt;
  * </pre>
  * 
@@ -215,7 +221,7 @@ public class AutoDruidDataSource extends DruidDataSource {
         }
 
         // 处理特殊的Driver
-        resolveDriver();
+        resolveSpecialDriver();
         super.init();
     }
 
@@ -278,8 +284,8 @@ public class AutoDruidDataSource extends DruidDataSource {
         return StringTools.format(s, "address", dbaddress, "dbname", dbname, "schema", dbschema);
     }
 
-    /** 推断Driver **/
-    protected void resolveDriver() {
+    /** 推断Driver(1.1.22以上版本不需要了,已贡献到主版本) **/
+    protected void resolveSpecialDriver() {
         String driverClass = this.getDriverClassName();
         String jdbcUrl = this.getUrl();
         if ((driverClass == null || driverClass.length() == 0) && jdbcUrl != null && jdbcUrl.startsWith("jdbc:db2")) {
