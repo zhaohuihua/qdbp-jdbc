@@ -357,15 +357,28 @@ public class SimpleSqlDialect implements SqlDialect {
      * 标准递归, 语法都差不多, 唯一的区别是关键字: <br>
      * MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可<br>
      * <pre>
-    WITH RECURSIVE RECURSIVE_SUB_TABLE(_TEMP_) AS (
+    WITH RECURSIVE recursive_temp_table(_TEMP_) AS (
         SELECT {codeField} AS _TEMP_ FROM {tableName} WHERE {codeField} IN ( {startCodes} ) 
         UNION ALL
-        SELECT {codeField} FROM {tableName} INNER JOIN RECURSIVE_SUB_TABLE ON {parentField} = _TEMP_
+        SELECT {codeField} FROM {tableName} INNER JOIN recursive_temp_table ON {parentField} = _TEMP_
     )
-    SELECT * FROM {tableName} WHERE {codeField} IN (
-        SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE
+    SELECT {selectFields} FROM {tableName} WHERE {codeField} IN (
+        SELECT _TEMP_ FROM recursive_temp_table
     )
     WHERE ...
+    ORDER BY ...
+     * </pre>
+     * <pre>
+    -- 实测发现DB2不支持_开头的字段名, 不支持field AS alias, WITH AS中不支持INNER JOIN
+    WITH recursive_temp_table(temp_parent) AS (
+        SELECT {codeField} temp_parent FROM {tableName} WHERE {codeField} IN ( {startCodes} ) 
+        UNION ALL
+        SELECT {codeField} FROM {tableName} A, recursive_temp_table B ON A.{parentField} = B.temp_parent
+    )
+    SELECT {selectFields} FROM {tableName} WHERE {codeField} IN (
+        SELECT temp_parent FROM recursive_temp_table
+    )
+    AND ...
     ORDER BY ...
      * </pre>
      * 
@@ -384,16 +397,16 @@ public class SimpleSqlDialect implements SqlDialect {
             QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
-        String sqlTemplate = "#{keyword} RECURSIVE_SUB_TABLE(_TEMP_) AS (\n"
-                + "    SELECT #{codeField} AS _TEMP_ FROM #{tableName} WHERE ${startCodeCondition}\n"
+        String sqlTemplate = "#{keyword} recursive_temp_table(temp_parent) AS (\n"
+                + "    SELECT #{codeField} temp_parent FROM #{tableName} WHERE ${startCodeCondition}\n"
                 + "    UNION ALL\n"
-                + "    SELECT #{codeField} FROM #{tableName} INNER JOIN RECURSIVE_SUB_TABLE ON #{parentField} = _TEMP_\n"
+                + "    SELECT #{codeField} FROM #{tableName} A, recursive_temp_table B ON A.#{parentField} = B.temp_parent\n"
                 + ")\n"
                 + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
-                + "    SELECT _TEMP_ FROM RECURSIVE_SUB_TABLE\n"
+                + "    SELECT temp_parent FROM recursive_temp_table\n"
                 + ")\n"
                 + "${whereCondition}\n"
-                + "${orderByCondition} ";
+                + "#{orderByCondition} ";
         // @formatter:on
 
         Map<String, Object> params = new HashMap<>();
@@ -404,10 +417,10 @@ public class SimpleSqlDialect implements SqlDialect {
         params.put("selectFields", sqlHelper.buildSelectFieldsSql(selectFields));
         params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, false));
         if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlHelper.buildWhereSql(where, true));
+            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
         }
         if (VerifyTools.isNotBlank(orderings)) {
-            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, true));
+            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
         SqlParser parser = DbTools.buildSqlParser(this);
         return parser.parse(sqlTemplate, params);
