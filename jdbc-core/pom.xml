@@ -12,6 +12,8 @@
 	<version>2.0.0</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
+	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
+	<description>qdbp jdbc core project https://gitee.com/qdbp/qdbp-jdbc/</description>
 
 	<dependencies>
 

@@ -12,6 +12,8 @@
 	<version>2.0.0</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
+	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
+	<description>qdbp jdbc test project</description>
 
 	<properties>
 		<project.build.jdk>1.8</project.build.jdk>
