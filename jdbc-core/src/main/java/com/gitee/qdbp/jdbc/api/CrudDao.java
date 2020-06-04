@@ -6,7 +6,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
@@ -58,7 +58,7 @@ public interface CrudDao<T> {
      * @param orderings 排序字段
      * @return 列表数据
      */
-    List<T> listAll(List<Ordering> orderings) throws ServiceException;
+    List<T> listAll(Orderings orderings) throws ServiceException;
 
     /**
      * 根据条件分页查询实体列表<br>
@@ -98,6 +98,23 @@ public interface CrudDao<T> {
      * @param fieldName 指定字段名
      * @param distinct 是否去重
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param valueClazz 字段值类型
+     * @return 字段的值列表
+     */
+    <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, Orderings orderings,
+            Class<V> valueClazz) throws ServiceException;
+
+    /**
+     * 根据条件查询某个字段的值列表<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT {columnName} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * 
+     * @param fieldName 指定字段名
+     * @param distinct 是否去重
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @param valueClazz 字段值类型
      * @return 字段的值列表
@@ -120,7 +137,7 @@ public interface CrudDao<T> {
      * @return 子节点编号
      */
     List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings);
+            Orderings orderings);
 
     /**
      * 递归查询所有子节点<br>
@@ -136,7 +153,7 @@ public interface CrudDao<T> {
      * @return 子节点编号
      */
     List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings);
+            Orderings orderings);
 
     /**
      * 递归查询所有子节点编号<br>
@@ -153,7 +170,7 @@ public interface CrudDao<T> {
      * @return 子节点编号
      */
     List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings);
+            Orderings orderings);
 
     /**
      * 递归查询所有子节点编号<br>
@@ -170,7 +187,7 @@ public interface CrudDao<T> {
      * @return 子节点编号
      */
     List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings);
+            Orderings orderings);
 
     /**
      * 根据条件统计实体数量<br>

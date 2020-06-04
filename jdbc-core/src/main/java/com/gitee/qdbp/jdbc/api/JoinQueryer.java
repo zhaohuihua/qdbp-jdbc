@@ -5,7 +5,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 
@@ -61,7 +61,7 @@ public interface JoinQueryer<T> {
      * @param orderings 排序字段
      * @return 列表数据
      */
-    List<T> listAll(List<Ordering> orderings) throws ServiceException;
+    List<T> listAll(Orderings orderings) throws ServiceException;
 
     /**
      * 根据条件分页查询实体列表<br>

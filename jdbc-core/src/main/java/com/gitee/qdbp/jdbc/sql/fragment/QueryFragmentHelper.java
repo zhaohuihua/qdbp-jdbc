@@ -5,7 +5,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
@@ -66,7 +66,7 @@ public interface QueryFragmentHelper {
      * @param whole 是否输出完整的OrderBy语句, true=带ORDER BY前缀, false=不带ORDER BY前缀
      * @return SQL语句
      */
-    SqlBuffer buildOrderBySql(List<Ordering> orderings, boolean whole) throws UnsupportedFieldExeption;
+    SqlBuffer buildOrderBySql(Orderings orderings, boolean whole) throws UnsupportedFieldExeption;
 
     /**
      * 生成Select字段列表SQL语句

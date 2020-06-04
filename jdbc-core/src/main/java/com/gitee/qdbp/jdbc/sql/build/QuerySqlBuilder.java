@@ -1,9 +1,8 @@
 package com.gitee.qdbp.jdbc.sql.build;
 
-import java.util.List;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -37,12 +36,12 @@ public class QuerySqlBuilder {
         return buffer;
     }
 
-    public SqlBuffer buildListSql(DbWhere where, List<Ordering> orderings) {
+    public SqlBuffer buildListSql(DbWhere where, Orderings orderings) {
         SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
         return buildListSql(wsb, orderings);
     }
 
-    public SqlBuffer buildListSql(SqlBuffer whereSql, List<Ordering> orderings) {
+    public SqlBuffer buildListSql(SqlBuffer whereSql, Orderings orderings) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql());
@@ -86,13 +85,13 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, DbWhere where,
-            List<Ordering> orderings) throws ServiceException {
+            Orderings orderings) throws ServiceException {
         SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
         return buildListFieldValuesSql(fieldName, distinct, wsb, orderings);
     }
 
     public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, SqlBuffer where,
-            List<Ordering> orderings) throws ServiceException {
+            Orderings orderings) throws ServiceException {
         SqlBuffer buffer = new SqlBuffer();
 
         // SELECT ... FROM

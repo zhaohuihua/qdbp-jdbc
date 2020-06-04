@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -283,7 +283,7 @@ public class SimpleSqlDialect implements SqlDialect {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper builder) {
+            Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper builder) {
         DbType dbType = dbVersion.getDbType();
         VerifyTools.requireNotBlank(startCodes, "startCodes");
 
@@ -327,7 +327,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     protected SqlBuffer oracleRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
+            Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper sqlHelper) {
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
@@ -393,7 +393,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     protected SqlBuffer normalRecursiveFindChildren(String keyword, List<String> startCodes, String codeField,
-            String parentField, Collection<String> selectFields, DbWhere where, List<Ordering> orderings,
+            String parentField, Collection<String> selectFields, DbWhere where, Orderings orderings,
             QueryFragmentHelper sqlHelper) {
 
         // @formatter:off
@@ -450,7 +450,7 @@ public class SimpleSqlDialect implements SqlDialect {
      * @return SQL语句
      */
     protected SqlBuffer productionRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper sqlHelper) {
+            Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper sqlHelper) {
 
         String selectFieldSql = sqlHelper.buildSelectFieldsSql(selectFields).toString();
         String whereSql = null;

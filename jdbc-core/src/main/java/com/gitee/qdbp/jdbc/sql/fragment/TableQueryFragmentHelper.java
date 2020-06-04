@@ -17,6 +17,7 @@ import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
@@ -321,7 +322,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildOrderBySql(List<Ordering> orderings, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildOrderBySql(Orderings orderings, boolean whole) throws UnsupportedFieldExeption {
         if (VerifyTools.isBlank(orderings)) {
             return null;
         }

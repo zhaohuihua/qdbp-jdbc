@@ -1,8 +1,8 @@
 package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.List;
-import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 
 /**
  * 扫描数据表和列信息<br>

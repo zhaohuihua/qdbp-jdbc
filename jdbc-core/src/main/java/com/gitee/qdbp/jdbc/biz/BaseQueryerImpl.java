@@ -8,7 +8,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
@@ -73,7 +73,7 @@ public abstract class BaseQueryerImpl<T> {
         return listAll(null);
     }
 
-    public List<T> listAll(List<Ordering> orderings) {
+    public List<T> listAll(Orderings orderings) {
         DbWhere where = new DbWhere();
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
@@ -109,6 +109,14 @@ public abstract class BaseQueryerImpl<T> {
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
         PageList<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
+    }
+
+    public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, Orderings orderings,
+            Class<V> valueClazz) throws ServiceException {
+        DbWhere readyWhere = checkWhere(where);
+        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        PageList<V> result = doListFieldValues(fieldName, distinct, readyWhere, OrderPaging.of(orderings), valueClazz);
+        return result == null ? null : result.toList();
     }
 
     public <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,

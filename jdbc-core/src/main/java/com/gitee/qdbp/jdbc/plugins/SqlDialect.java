@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
@@ -101,6 +101,6 @@ public interface SqlDialect {
      * @return SQL语句
      */
     SqlBuffer buildFindChildrenSql(List<String> startCodes, String codeField, String parentField,
-            Collection<String> selectFields, DbWhere where, List<Ordering> orderings, QueryFragmentHelper helper);
+            Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper helper);
 
 }

@@ -12,7 +12,7 @@ import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.ordering.Ordering;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
@@ -87,7 +87,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     @Override
     public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings) {
+            Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
@@ -96,14 +96,14 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     @Override
     public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings) {
+            Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
     private List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings) throws ServiceException {
+            Orderings orderings) throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
         List<String> selectFields = sqlHelper.getFieldNames();
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
@@ -113,7 +113,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     @Override
     public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings) {
+            Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         List<String> startCodes = ConvertTools.toList(startCode);
@@ -122,7 +122,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     @Override
     public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            List<Ordering> orderings) {
+            Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillTableWhereDataStatus(readyWhere);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
@@ -133,7 +133,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     // MYSQL 8.0+: 使用WITH RECURSIVE递归 
     // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
     private List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
-            DbWhere where, List<Ordering> orderings) throws ServiceException {
+            DbWhere where, Orderings orderings) throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
         Set<String> selectFields = ConvertTools.toSet(codeField);
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
