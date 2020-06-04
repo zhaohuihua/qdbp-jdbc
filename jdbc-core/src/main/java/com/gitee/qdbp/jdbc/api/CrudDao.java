@@ -61,6 +61,20 @@ public interface CrudDao<T> {
     List<T> listAll(Orderings orderings) throws ServiceException;
 
     /**
+     * 根据条件查询实体列表<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0<br>
+     * SELECT {columnNames} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * 
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @return 列表数据
+     */
+    List<T> list(DbWhere where, Orderings orderings) throws ServiceException;
+
+    /**
      * 根据条件分页查询实体列表<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>

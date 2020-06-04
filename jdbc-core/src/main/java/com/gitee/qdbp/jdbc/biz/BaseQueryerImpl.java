@@ -93,6 +93,11 @@ public abstract class BaseQueryerImpl<T> {
         return this.doList(wsb, odpg);
     }
 
+    public List<T> list(DbWhere where, Orderings orderings) throws ServiceException {
+        SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
+        return jdbc.query(buffer, rowToBeanMapper);
+    }
+
     private PageList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
         SqlBuffer qsb = sqlBuilder.buildListSql(wsb, odpg.getOrderings());
         SqlBuffer csb = null;
