@@ -24,10 +24,10 @@ public interface WhereSqlBuilder<T extends WhereCondition> {
      * 生成Where SQL语句
      * 
      * @param condition 条件
-     * @param sqlBuilder SQL生成参数
+     * @param sqlHelper SQL片段生成帮助类
      * @return SQL语句
      * @throws UnsupportedFieldExeption
      */
-    SqlBuffer buildSql(T condition, QueryFragmentHelper sqlBuilder) throws UnsupportedFieldExeption;
+    SqlBuffer buildSql(T condition, QueryFragmentHelper sqlHelper) throws UnsupportedFieldExeption;
 
 }
