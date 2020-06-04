@@ -1,7 +1,7 @@
 package com.gitee.qdbp.jdbc.plugins;
 
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 
@@ -26,8 +26,8 @@ public interface UpdateSqlBuilder<T extends UpdateCondition> {
      * @param condition 条件
      * @param sqlBuilder SQL生成参数
      * @return SQL语句
-     * @throws UnsupportedFieldExeption
+     * @throws UnsupportedFieldException
      */
-    SqlBuffer buildSql(T condition, QueryFragmentHelper sqlBuilder) throws UnsupportedFieldExeption;
+    SqlBuffer buildSql(T condition, QueryFragmentHelper sqlBuilder) throws UnsupportedFieldException;
 
 }

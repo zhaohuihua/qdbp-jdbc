@@ -11,7 +11,7 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinType;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -59,7 +59,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName) throws UnsupportedFieldExeption {
+    public String getColumnName(String fieldName) throws UnsupportedFieldException {
         List<SimpleFieldColumn> fields = getFields(fieldName);
         if (fields.isEmpty()) {
             throw ufe("unsupported field", fieldName);
@@ -72,7 +72,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption {
+    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
         List<SimpleFieldColumn> fields = getFields(fieldName);
         if (fields.isEmpty()) {
             if (throwOnUnsupportedField) {
@@ -93,7 +93,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias) throws UnsupportedFieldExeption {
+    public SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
         // 字段名映射
@@ -157,12 +157,12 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         return buffer;
     }
 
-    protected UnsupportedFieldExeption ufe(String message, String field) {
-        return new UnsupportedFieldExeption(toDescString(tables), message, Arrays.asList(field));
+    protected UnsupportedFieldException ufe(String message, String field) {
+        return new UnsupportedFieldException(toDescString(tables), message, Arrays.asList(field));
     }
 
-    protected UnsupportedFieldExeption ufe(String message, List<String> fields) {
-        return new UnsupportedFieldExeption(toDescString(tables), message, fields);
+    protected UnsupportedFieldException ufe(String message, List<String> fields) {
+        return new UnsupportedFieldException(toDescString(tables), message, fields);
     }
 
     private String toDescString(TableJoin tables) {

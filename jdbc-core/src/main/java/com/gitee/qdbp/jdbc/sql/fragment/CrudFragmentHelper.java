@@ -4,7 +4,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
@@ -37,7 +37,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * @param entity 字段变量映射表
      * @return SQL语句
      */
-    SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldExeption;
+    SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldException;
 
     /**
      * 生成Update字段值占位符列表SQL语句<br>
@@ -47,7 +47,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀
      * @return SQL语句
      */
-    SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldExeption;
+    SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldException;
 
     /**
      * 生成Update字段值占位符列表SQL语句<br>
@@ -57,7 +57,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀
      * @return SQL语句
      */
-    SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldExeption;
+    SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldException;
 
     /**
      * 生成自定义条件的Update SQL语句
@@ -65,5 +65,5 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * @param condition 单字段条件
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀
      */
-    <T extends UpdateCondition> SqlBuffer buildUpdateSql(T condition, boolean whole) throws UnsupportedFieldExeption;
+    <T extends UpdateCondition> SqlBuffer buildUpdateSql(T condition, boolean whole) throws UnsupportedFieldException;
 }

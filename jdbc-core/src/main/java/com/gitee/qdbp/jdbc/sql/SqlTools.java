@@ -1,7 +1,7 @@
 package com.gitee.qdbp.jdbc.sql;
 
 import java.util.Collection;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -43,7 +43,7 @@ public abstract class SqlTools {
      * @param matches true=in, false=not in
      */
     private static SqlBuffer buildInSql(Collection<?> fieldValues, boolean matches)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         SqlBuffer buffer = new SqlBuffer();
         if (VerifyTools.isBlank(fieldValues)) {
             return buffer;

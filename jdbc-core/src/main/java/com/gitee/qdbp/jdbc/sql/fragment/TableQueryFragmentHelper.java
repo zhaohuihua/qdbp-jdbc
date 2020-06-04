@@ -18,7 +18,7 @@ import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
@@ -54,7 +54,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildWhereSql(DbWhere where, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildWhereSql(DbWhere where, boolean whole) throws UnsupportedFieldException {
         if (where == null || where.isEmpty()) {
             return null;
         }
@@ -100,7 +100,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 } else {
                     unsupported.add("UnsupportedCondition:" + condition.getClass().getSimpleName());
                 }
-            } catch (UnsupportedFieldExeption e) {
+            } catch (UnsupportedFieldException e) {
                 unsupported.addAll(e.getFields());
             }
         }
@@ -132,7 +132,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildWhereSql(DbField condition, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildWhereSql(DbField condition, boolean whole) throws UnsupportedFieldException {
         if (condition == null || condition.isEmpty()) {
             return null;
         }
@@ -146,7 +146,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         String columnName;
         try {
             columnName = getColumnName(fieldName);
-        } catch (UnsupportedFieldExeption e) {
+        } catch (UnsupportedFieldException e) {
             e.setMessage("build where sql unsupported field");
             throw e;
         }
@@ -168,7 +168,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public <T extends WhereCondition> SqlBuffer buildWhereSql(T condition, boolean whole)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         if (condition == null || condition.isEmpty()) {
             return null;
         }
@@ -190,11 +190,11 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildInSql(String fieldName, Collection<?> fieldValues, boolean whole)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         String columnName;
         try {
             columnName = getColumnName(fieldName);
-        } catch (UnsupportedFieldExeption e) {
+        } catch (UnsupportedFieldException e) {
             e.setMessage("build where in sql unsupported field");
             throw e;
         }
@@ -206,11 +206,11 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         String columnName;
         try {
             columnName = getColumnName(fieldName);
-        } catch (UnsupportedFieldExeption e) {
+        } catch (UnsupportedFieldException e) {
             e.setMessage("build where not in sql unsupported field");
             throw e;
         }
@@ -322,7 +322,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildOrderBySql(Orderings orderings, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildOrderBySql(Orderings orderings, boolean whole) throws UnsupportedFieldException {
         if (VerifyTools.isBlank(orderings)) {
             return null;
         }
@@ -340,7 +340,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             String columnName;
             try {
                 columnName = getColumnName(fieldName);
-            } catch (UnsupportedFieldExeption e) {
+            } catch (UnsupportedFieldException e) {
                 unsupported.addAll(e.getFields());
                 continue;
             }
@@ -371,37 +371,37 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldException {
         return doChooseBuildFieldsSql(fields, true);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
         return doBuildSpecialFieldsSql(fields, true);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldException {
         return doChooseBuildFieldsSql(fields, false);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
         return doBuildSpecialFieldsSql(fields, false);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldException {
         return doChooseBuildFieldsSql(fields, false);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldExeption {
+    public SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
         return doBuildSpecialFieldsSql(fields, false);
     }
 
@@ -426,7 +426,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     }
 
     protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
         // 字段名映射
@@ -497,13 +497,13 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName) throws UnsupportedFieldExeption {
+    public String getColumnName(String fieldName) throws UnsupportedFieldException {
         return getColumnName(fieldName, true);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldExeption {
+    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
         for (SimpleFieldColumn item : this.columns) {
             if (item.matchesByFieldName(fieldName)) {
                 return item.toTableColumnName();
@@ -516,7 +516,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
     }
 
-    protected abstract UnsupportedFieldExeption ufe(String message, String field);
+    protected abstract UnsupportedFieldException ufe(String message, String field);
 
-    protected abstract UnsupportedFieldExeption ufe(String message, List<String> fields);
+    protected abstract UnsupportedFieldException ufe(String message, List<String> fields);
 }

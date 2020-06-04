@@ -9,7 +9,7 @@ import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
-import com.gitee.qdbp.jdbc.exception.UnsupportedFieldExeption;
+import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
@@ -42,7 +42,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldExeption {
+    public SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
@@ -71,7 +71,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildUpdateSetSql(DbUpdate entity, boolean whole) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
@@ -96,7 +96,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
                 } else {
                     unsupported.add(condition.getClass().getSimpleName() + "#UnsupportedCondition");
                 }
-            } catch (UnsupportedFieldExeption e) {
+            } catch (UnsupportedFieldException e) {
                 unsupported.addAll(e.getFields());
             }
         }
@@ -109,7 +109,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         return buffer;
     }
 
-    public SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldExeption {
+    public SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldException {
         if (field == null) {
             return null;
         }
@@ -139,7 +139,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     /** {@inheritDoc} **/
     @Override
     public <T extends UpdateCondition> SqlBuffer buildUpdateSql(T condition, boolean whole)
-            throws UnsupportedFieldExeption {
+            throws UnsupportedFieldException {
         if (condition == null || condition.isEmpty()) {
             return null;
         }
@@ -180,12 +180,12 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     }
 
     @Override
-    protected UnsupportedFieldExeption ufe(String message, String field) {
-        return new UnsupportedFieldExeption(clazz.getSimpleName(), message, Arrays.asList(field));
+    protected UnsupportedFieldException ufe(String message, String field) {
+        return new UnsupportedFieldException(clazz.getSimpleName(), message, Arrays.asList(field));
     }
 
     @Override
-    protected UnsupportedFieldExeption ufe(String message, List<String> fields) {
-        return new UnsupportedFieldExeption(clazz.getSimpleName(), message, fields);
+    protected UnsupportedFieldException ufe(String message, List<String> fields) {
+        return new UnsupportedFieldException(clazz.getSimpleName(), message, fields);
     }
 }

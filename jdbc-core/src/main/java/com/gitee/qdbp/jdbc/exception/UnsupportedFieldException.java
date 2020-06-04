@@ -11,7 +11,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 190601
  */
-public class UnsupportedFieldExeption extends RuntimeException {
+public class UnsupportedFieldException extends RuntimeException {
 
     /** serialVersionUID **/
     private static final long serialVersionUID = 1L;
@@ -20,14 +20,14 @@ public class UnsupportedFieldExeption extends RuntimeException {
     private String message;
     private List<String> fields;
 
-    public UnsupportedFieldExeption(String beanType, String message, List<String> fields) {
+    public UnsupportedFieldException(String beanType, String message, List<String> fields) {
         super(message);
         this.beanType = beanType;
         this.message = message;
         this.fields = fields;
     }
 
-    public UnsupportedFieldExeption(String message, List<String> fields) {
+    public UnsupportedFieldException(String message, List<String> fields) {
         this(null, message, fields);
     }
 
