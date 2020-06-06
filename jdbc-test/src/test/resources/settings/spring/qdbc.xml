@@ -59,6 +59,7 @@
 				<property name="updateUserField" value="${qdbc.entityData.updateUserField:updatorId}" />
 				<property name="updateTimeField" value="${qdbc.entityData.updateTimeField:updateTime}" />
 				<property name="logicalDeleteField" value="${qdbc.entityData.logicalDeleteField:dataState}" />
+				<property name="logicalDeleteRandoms" value="${qdbc.entityData.logicalDeleteRandoms:0}" />
 				<property name="dataEffectiveFlag">
 					<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
 						<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataEffectiveFlag}" />
