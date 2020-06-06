@@ -10,6 +10,7 @@ import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 
 /**
  * SQL容器
@@ -403,16 +404,32 @@ public class SqlBuffer implements Serializable {
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(DbVersion version) {
-        return getExecutableSqlString(DbTools.buildSqlDialect(version));
+        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 0);
     }
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(SqlDialect dialect) {
+        return generateExecutableSqlString(dialect, 0);
+    }
+
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    public String getLoggingSqlString(DbVersion version) {
+        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 100);
+    }
+
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    public String getLoggingSqlString(SqlDialect dialect) {
+        return generateExecutableSqlString(dialect, 100);
+    }
+
+    /** 生成完整的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    protected String generateExecutableSqlString(SqlDialect dialect, int stringLimit) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
-                sql.append(DbTools.variableToString(variable.value, dialect));
+                String string = DbTools.variableToString(variable.value, dialect);
+                sql.append(tryCutStringOverlength(string, stringLimit));
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -423,9 +440,26 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
+    /** 尝试截短字符串 **/
+    protected static String tryCutStringOverlength(String string, int limit) {
+        if (limit <= 0) {
+            return string;
+        }
+        if (!string.startsWith("'") || !string.endsWith("'")) {
+            return string;
+        }
+        int length = string.length() - 2;
+        if (length <= limit) {
+            return string;
+        }
+        string = string.substring(1, string.length() - 1);
+        string = StringTools.ellipsis(string, limit) + '(' + length + ')';
+        return "'" + string + "'";
+    }
+
     public String toString() {
         SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(DbType.Oracle));
-        return getExecutableSqlString(dialect);
+        return getLoggingSqlString(dialect);
     }
 
     protected static interface Item {
