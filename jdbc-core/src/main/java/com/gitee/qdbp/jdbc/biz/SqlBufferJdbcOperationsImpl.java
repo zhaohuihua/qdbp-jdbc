@@ -100,7 +100,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     private String getFormattedSqlString(SqlBuffer sb, int indent) {
-        String sql = sb.getExecutableSqlString(sqlDialect);
+        String sql = sb.getLoggingSqlString(sqlDialect);
         return DbTools.formatSql(sql, 1);
     }
 
