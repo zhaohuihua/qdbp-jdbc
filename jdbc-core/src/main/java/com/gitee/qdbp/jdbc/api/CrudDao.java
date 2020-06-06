@@ -5,6 +5,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
@@ -42,6 +43,17 @@ public interface CrudDao<T> {
     T find(DbWhere where) throws ServiceException;
 
     /**
+     * 根据查询条件获取对象, 只查询指定字段<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0
+     * 
+     * @param fields 查询的字段
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @return 实体对象
+     */
+    T find(Fields fields, DbWhere where) throws ServiceException;
+
+    /**
      * 查找所有的实体列表, 不分页<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0
@@ -51,14 +63,35 @@ public interface CrudDao<T> {
     List<T> listAll() throws ServiceException;
 
     /**
+     * 查找所有的实体列表, 不分页, 只查询指定字段<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0
+     * 
+     * @param fields 查询的字段
+     * @return 列表数据
+     */
+    List<T> listAll(Fields fields) throws ServiceException;
+
+    /**
      * 查找所有的实体列表, 不分页<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0 ORDER BY {orderByConditions}
      * 
-     * @param orderings 排序字段
+     * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
      */
     List<T> listAll(Orderings orderings) throws ServiceException;
+
+    /**
+     * 查找所有的实体列表, 不分页, 只查询指定字段<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0 ORDER BY {orderByConditions}
+     * 
+     * @param fields 查询的字段
+     * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
+     * @return 列表数据
+     */
+    List<T> listAll(Fields fields, Orderings orderings) throws ServiceException;
 
     /**
      * 根据条件查询实体列表<br>
@@ -66,7 +99,8 @@ public interface CrudDao<T> {
      * <br>
      * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0<br>
      * SELECT {columnNames} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
@@ -80,13 +114,45 @@ public interface CrudDao<T> {
      * <br>
      * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0<br>
      * SELECT {columnNames} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @return 列表数据
      */
     PageList<T> list(DbWhere where, OrderPaging odpg) throws ServiceException;
+
+    /**
+     * 主要功能: 按指定字段查找所有的实体列表, 不分页<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT {columnNames} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
+     * 
+     * @param fields 查询的字段
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @return 列表数据
+     */
+    List<T> list(Fields fields, DbWhere where, Orderings orderings) throws ServiceException;
+
+    /**
+     * 主要功能: 根据条件分页按指定字段查询实体列表<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0<br>
+     * SELECT {columnNames} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
+     * 
+     * @param fields 查询的字段
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
+     * @return 列表数据
+     */
+    PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) throws ServiceException;
 
     /**
      * 根据条件查询某个字段的值<br>
@@ -107,7 +173,8 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param fieldName 指定字段名
      * @param distinct 是否去重
@@ -124,7 +191,8 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableName}<br>
-     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0 ORDER BY {orderByConditions}
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
      * @param fieldName 指定字段名
      * @param distinct 是否去重
@@ -150,8 +218,7 @@ public interface CrudDao<T> {
      * @param orderings 排序条件, 如果不排序应传入Orderings.NONE
      * @return 子节点编号
      */
-    List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
-            Orderings orderings);
+    List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where, Orderings orderings);
 
     /**
      * 递归查询所有子节点<br>

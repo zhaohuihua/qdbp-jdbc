@@ -8,17 +8,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.SubWhere;
+import com.gitee.qdbp.able.jdbc.fields.AllFields;
+import com.gitee.qdbp.able.jdbc.fields.DistinctFields;
+import com.gitee.qdbp.able.jdbc.fields.ExcludeFields;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
+import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
+import com.gitee.qdbp.able.result.ResultCode;
+import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
@@ -42,11 +51,11 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
-    protected final List<? extends SimpleFieldColumn> columns;
+    protected final AllFieldColumn<? extends SimpleFieldColumn> columns;
     protected final SqlDialect dialect;
 
     /** 构造函数 **/
-    public TableQueryFragmentHelper(List<? extends SimpleFieldColumn> columns, SqlDialect dialect) {
+    public TableQueryFragmentHelper(AllFieldColumn<? extends SimpleFieldColumn> columns, SqlDialect dialect) {
         VerifyTools.requireNotBlank(columns, "columns");
         this.columns = columns;
         this.dialect = dialect;
@@ -372,13 +381,21 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldException {
+        // fields可以为空, 走doChooseBuildFieldsSql判断
         return doChooseBuildFieldsSql(fields, true);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
-        return doBuildSpecialFieldsSql(fields, true);
+        // fields不能为空, 直接调doBuildSpecialFieldsSql
+        return doBuildSpecialFieldsSql(fields, true, true);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildSelectFieldsSql(Fields fields) throws UnsupportedFieldException {
+        return doChooseBuildFieldsSql(fields, true);
     }
 
     /** {@inheritDoc} **/
@@ -390,7 +407,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
-        return doBuildSpecialFieldsSql(fields, false);
+        return doBuildSpecialFieldsSql(fields, true, false);
     }
 
     /** {@inheritDoc} **/
@@ -402,7 +419,13 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
-        return doBuildSpecialFieldsSql(fields, false);
+        return doBuildSpecialFieldsSql(fields, true, false);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildByFieldsSql(Fields fields) throws UnsupportedFieldException {
+        return doChooseBuildFieldsSql(fields, false);
     }
 
     protected SqlBuffer doChooseBuildFieldsSql(String[] fields, boolean columnAlias) {
@@ -410,13 +433,49 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return doBuildAllFieldsSql(columnAlias);
         } else {
             Set<String> fieldList = ConvertTools.toSet(fields);
-            return doBuildSpecialFieldsSql(fieldList, columnAlias);
+            return doBuildSpecialFieldsSql(fieldList, true, columnAlias);
+        }
+    }
+
+    protected SqlBuffer doChooseBuildFieldsSql(Fields fields, boolean columnAlias) {
+        if (fields == null || fields instanceof AllFields) {
+            // 全部字段
+            return doBuildAllFieldsSql(columnAlias);
+        } else if (fields instanceof ExcludeFields) {
+            // 排除型字段列表
+            List<String> items = fields.getItems();
+            if (items == null || items.isEmpty()) {
+                // 如果未排除任何字段, 就是全部字段
+                return doBuildAllFieldsSql(columnAlias);
+            } else {
+                // isWhitelist=false, 只生成不在列表中的字段
+                return doBuildSpecialFieldsSql(items, false, columnAlias);
+            }
+        } else if (fields instanceof IncludeFields) {
+            // 导入型字段列表
+            List<String> items = fields.getItems();
+            if (items == null || items.isEmpty()) {
+                // 未指定任何字段, 报错
+                throw new ServiceException(DbErrorCode.DB_INCLUDE_FIELDS_IS_EMPTY);
+            } else {
+                // 以白名单方式生成在列表中指定的字段
+                SqlBuffer buffer = doBuildSpecialFieldsSql(items, true, columnAlias);
+                // 如果是DistinctFields, SQL前面加上DISTINCT
+                if (fields instanceof DistinctFields) {
+                    buffer.prepend("DISTINCT", ' ');
+                }
+                return buffer;
+            }
+        } else {
+            // 不支持的字段类型
+            String msg = "UnsupportedFieldsType: " + fields.getClass().getSimpleName();
+            throw new ServiceException(ResultCode.UNSUPPORTED_OPERATION, msg);
         }
     }
 
     protected SqlBuffer doBuildAllFieldsSql(boolean columnAlias) {
         SqlBuffer buffer = new SqlBuffer();
-        for (SimpleFieldColumn item : columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
@@ -425,7 +484,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return buffer;
     }
 
-    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias)
+    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean isWhitelist, boolean columnAlias)
             throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
@@ -445,8 +504,8 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
-        for (SimpleFieldColumn item : columns) {
-            if (fieldMap.containsKey(item.getFieldName())) {
+        for (SimpleFieldColumn item : this.columns.items()) {
+            if (fieldMap.containsKey(item.getFieldName()) == isWhitelist) {
                 if (!buffer.isEmpty()) {
                     buffer.append(',');
                 }
@@ -467,7 +526,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
             return false;
         }
-        for (SimpleFieldColumn item : this.columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             if (item.matchesByFieldName(fieldName)) {
                 return true;
             }
@@ -479,7 +538,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public List<String> getFieldNames() {
         List<String> list = new ArrayList<>();
-        for (SimpleFieldColumn item : columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             list.add(item.toTableFieldName());
         }
         return list;
@@ -489,7 +548,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public List<String> getColumnNames() {
         List<String> list = new ArrayList<>();
-        for (SimpleFieldColumn item : columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             list.add(item.toTableColumnName());
         }
         return list;
@@ -504,7 +563,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
-        for (SimpleFieldColumn item : this.columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             if (item.matchesByFieldName(fieldName)) {
                 return item.toTableColumnName();
             }

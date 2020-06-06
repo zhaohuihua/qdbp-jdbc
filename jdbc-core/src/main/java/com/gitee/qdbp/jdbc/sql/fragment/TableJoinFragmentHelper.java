@@ -30,7 +30,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** 构造函数 **/
     public TableJoinFragmentHelper(TableJoin tables, SqlDialect dialect) {
-        super(DbTools.parseFieldColumns(tables), dialect);
+        super(DbTools.parseToAllFieldColumn(tables), dialect);
         this.tables = tables;
     }
 
@@ -39,7 +39,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
             return fields;
         }
-        for (SimpleFieldColumn item : this.columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             if (item.matchesByFieldName(fieldName)) {
                 fields.add(item);
             }
@@ -93,7 +93,8 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean columnAlias) throws UnsupportedFieldException {
+    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean isWhitelist, boolean columnAlias)
+            throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
         // 字段名映射
@@ -116,8 +117,9 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
-        for (SimpleFieldColumn item : columns) {
-            if (fieldMap.containsKey(item.toTableFieldName()) || fieldMap.containsKey(item.getFieldName())) {
+        for (SimpleFieldColumn item : this.columns.items()) {
+            boolean exists = fieldMap.containsKey(item.toTableFieldName()) || fieldMap.containsKey(item.getFieldName());
+            if (exists == isWhitelist) {
                 if (!buffer.isEmpty()) {
                     buffer.append(',');
                 }
@@ -157,10 +159,12 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         return buffer;
     }
 
+    @Override
     protected UnsupportedFieldException ufe(String message, String field) {
         return new UnsupportedFieldException(toDescString(tables), message, Arrays.asList(field));
     }
 
+    @Override
     protected UnsupportedFieldException ufe(String message, List<String> fields) {
         return new UnsupportedFieldException(toDescString(tables), message, fields);
     }

@@ -16,6 +16,8 @@ public enum DbErrorCode implements IResultMessage {
     DB_PRIMARY_KEY_VALUE_IS_REQUIRED("主键值不能为空"),
     /** 受影响记录数为0 **/
     DB_AFFECTED_ROWS_IS_ZERO("受影响记录数为0"),
+    /** 参数有误, 未指定字段列表 **/
+    DB_INCLUDE_FIELDS_IS_EMPTY("参数有误, 未指定字段列表"),
     /** 该数据不支持逻辑删除 **/
     UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除");
 

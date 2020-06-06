@@ -34,7 +34,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** 构造函数 **/
     public TableCrudFragmentHelper(Class<?> clazz, SqlDialect dialect) {
-        super(DbTools.parseFieldColumns(clazz), dialect);
+        super(DbTools.parseToAllFieldColumn(clazz), dialect);
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);
         this.primaryKey = DbTools.parsePrimaryKey(clazz);
@@ -57,7 +57,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
-        for (SimpleFieldColumn item : columns) {
+        for (SimpleFieldColumn item : this.columns.items()) {
             if (!entity.containsKey(item.getFieldName())) {
                 continue;
             }

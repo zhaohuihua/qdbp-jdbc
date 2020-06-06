@@ -2,6 +2,8 @@ package com.gitee.qdbp.jdbc.sql.build;
 
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
+import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
@@ -27,9 +29,13 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildFindSql(DbWhere where) {
+        return buildFindSql(Fields.ALL, where);
+    }
+
+    public SqlBuffer buildFindSql(Fields fields, DbWhere where) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql(fields));
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', sqlHelper.buildWhereSql(where, true));
@@ -38,13 +44,22 @@ public class QuerySqlBuilder {
 
     public SqlBuffer buildListSql(DbWhere where, Orderings orderings) {
         SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
-        return buildListSql(wsb, orderings);
+        return buildListSql(Fields.ALL, wsb, orderings);
+    }
+
+    public SqlBuffer buildListSql(Fields fields, DbWhere where, Orderings orderings) {
+        SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
+        return buildListSql(fields, wsb, orderings);
     }
 
     public SqlBuffer buildListSql(SqlBuffer whereSql, Orderings orderings) {
+        return buildListSql(Fields.ALL, whereSql, orderings);
+    }
+
+    public SqlBuffer buildListSql(Fields fields, SqlBuffer whereSql, Orderings orderings) {
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql());
+        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql(fields));
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', whereSql);
@@ -69,29 +84,34 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildGroupCountSql(String groupBy, DbWhere where) {
+        return buildGroupCountSql(new IncludeFields(groupBy), where);
+    }
+
+    public SqlBuffer buildGroupCountSql(Fields fields, DbWhere where) {
         // 字段列表
-        SqlBuffer fields = sqlHelper.buildByFieldsSql(groupBy);
+        SqlBuffer fieldSql = sqlHelper.buildSelectFieldsSql(fields);
+        SqlBuffer groupBySql = sqlHelper.buildByFieldsSql(fields);
 
         SqlBuffer buffer = new SqlBuffer();
         // SELECT ... FROM
         buffer.append("SELECT");
-        buffer.append(' ', fields).append(',').append("COUNT(*)");
+        buffer.append(' ', fieldSql).append(',').append("COUNT(*)");
         buffer.append('\n', sqlHelper.buildFromSql());
         // WHERE ...
         buffer.append('\n', sqlHelper.buildWhereSql(where, true));
         // GROUP BY ...
-        buffer.append('\n', "GROUP BY").append(' ', fields);
+        buffer.append('\n', "GROUP BY").append(' ', groupBySql);
         return buffer;
     }
 
-    public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, DbWhere where,
-            Orderings orderings) throws ServiceException {
+    public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, DbWhere where, Orderings orderings)
+            throws ServiceException {
         SqlBuffer wsb = sqlHelper.buildWhereSql(where, true);
         return buildListFieldValuesSql(fieldName, distinct, wsb, orderings);
     }
 
-    public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, SqlBuffer where,
-            Orderings orderings) throws ServiceException {
+    public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, SqlBuffer where, Orderings orderings)
+            throws ServiceException {
         SqlBuffer buffer = new SqlBuffer();
 
         // SELECT ... FROM

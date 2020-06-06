@@ -5,6 +5,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -57,7 +58,8 @@ public interface QueryFragmentHelper {
      * @param fieldValues 字段值
      * @param whole 是否输出完整的WHERE语句, true=带WHERE前缀, false=不带WHERE前缀
      */
-    SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole) throws UnsupportedFieldException;
+    SqlBuffer buildNotInSql(String fieldName, Collection<?> fieldValues, boolean whole)
+            throws UnsupportedFieldException;
 
     /**
      * 生成OrderBy SQL语句
@@ -83,6 +85,14 @@ public interface QueryFragmentHelper {
      * @return SQL语句
      */
     SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldException;
+
+    /**
+     * 生成Select字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名(不能为空)
+     * @return SQL语句
+     */
+    SqlBuffer buildSelectFieldsSql(Fields fields) throws UnsupportedFieldException;
 
     /**
      * 生成Insert字段列表SQL语句
@@ -115,6 +125,14 @@ public interface QueryFragmentHelper {
      * @return SQL语句
      */
     SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldException;
+
+    /**
+     * 生成OrderBy/GroupBy字段列表SQL语句
+     * 
+     * @param fields 只包含指定字段名(不能为空)
+     * @return SQL语句
+     */
+    SqlBuffer buildByFieldsSql(Fields fields) throws UnsupportedFieldException;
 
     /**
      * 生成FROM语句<br>

@@ -7,6 +7,7 @@ import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
@@ -63,14 +64,22 @@ public abstract class BaseQueryerImpl<T> {
     }
 
     public T find(DbWhere where) {
+        return find(Fields.ALL, where);
+    }
+
+    public T find(Fields fields, DbWhere where) {
         VerifyTools.requireNotBlank(where, "where");
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
-        SqlBuffer buffer = sqlBuilder.buildFindSql(where);
+        SqlBuffer buffer = sqlBuilder.buildFindSql(fields, where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
 
     public List<T> listAll() {
-        return listAll(null);
+        return listAll(Orderings.NONE);
+    }
+
+    public List<T> listAll(Fields fields) {
+        return listAll(Fields.ALL, Orderings.NONE);
     }
 
     public List<T> listAll(Orderings orderings) {
@@ -80,7 +89,18 @@ public abstract class BaseQueryerImpl<T> {
         return jdbc.query(buffer, rowToBeanMapper);
     }
 
+    public List<T> listAll(Fields fields, Orderings orderings) {
+        DbWhere where = new DbWhere();
+        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
+        return jdbc.query(buffer, rowToBeanMapper);
+    }
+
     public PageList<T> list(DbWhere where, OrderPaging odpg) {
+        return list(Fields.ALL, where, odpg);
+    }
+
+    public PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) {
         // DbWhere readyWhere = checkWhere(where); // 带分页查询列表, 允许条件为空, 因此不检查
         DbWhere readyWhere = where;
         if (where == null || where == DbWhere.NONE) {
@@ -90,16 +110,20 @@ public abstract class BaseQueryerImpl<T> {
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
-        return this.doList(wsb, odpg);
+        return this.doList(fields, wsb, odpg);
     }
 
     public List<T> list(DbWhere where, Orderings orderings) throws ServiceException {
-        SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
+        return list(Fields.ALL, where, orderings);
+    }
+
+    public List<T> list(Fields fields, DbWhere where, Orderings orderings) throws ServiceException {
+        SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
 
-    private PageList<T> doList(SqlBuffer wsb, OrderPaging odpg) {
-        SqlBuffer qsb = sqlBuilder.buildListSql(wsb, odpg.getOrderings());
+    private PageList<T> doList(Fields fields, SqlBuffer wsb, OrderPaging odpg) {
+        SqlBuffer qsb = sqlBuilder.buildListSql(fields, wsb, odpg.getOrderings());
         SqlBuffer csb = null;
         if (odpg.isPaging() && odpg.isNeedCount()) {
             csb = sqlBuilder.buildCountSql(wsb);
