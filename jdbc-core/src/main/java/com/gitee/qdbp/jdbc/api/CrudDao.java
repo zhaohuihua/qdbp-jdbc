@@ -47,7 +47,7 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND DATA_STATE=0
      * 
-     * @param fields 查询的字段
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @return 实体对象
      */
@@ -67,7 +67,7 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0
      * 
-     * @param fields 查询的字段
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
      * @return 列表数据
      */
     List<T> listAll(Fields fields) throws ServiceException;
@@ -87,7 +87,7 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE=0 ORDER BY {orderByConditions}
      * 
-     * @param fields 查询的字段
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
      * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
      */
@@ -131,7 +131,7 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param fields 查询的字段
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
@@ -147,7 +147,7 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE=0<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param fields 查询的字段
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @return 列表数据
