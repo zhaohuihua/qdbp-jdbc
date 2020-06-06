@@ -412,17 +412,17 @@ public class SqlBuffer implements Serializable {
         return generateExecutableSqlString(dialect, 0);
     }
 
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
     public String getLoggingSqlString(DbVersion version) {
         return generateExecutableSqlString(DbTools.buildSqlDialect(version), 100);
     }
 
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
     public String getLoggingSqlString(SqlDialect dialect) {
         return generateExecutableSqlString(dialect, 100);
     }
 
-    /** 生成完整的SQL语句(预编译参数替换为拼写式参数)(如果值长度超过100会被截断) **/
+    /** 生成完整的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
     protected String generateExecutableSqlString(SqlDialect dialect, int stringLimit) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
