@@ -20,6 +20,8 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** 逻辑删除字段名 **/
     private String logicalDeleteField;
+    /** 逻辑删除时是否使用随机数标记数据状态: 0=不使用, 大于0表示随机数的位数 **/
+    private int logicalDeleteRandoms;
     /** 数据有效标记 **/
     private DS dataEffectiveFlag;
     /** 数据无效标记 **/
@@ -43,6 +45,16 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
     /** 逻辑删除字段名 **/
     public void setLogicalDeleteField(String logicalDeleteField) {
         this.logicalDeleteField = logicalDeleteField;
+    }
+
+    /** 逻辑删除时是否使用随机数标记数据状态: 0=不使用, 大于0表示随机数的位数 **/
+    public int getLogicalDeleteRandoms() {
+        return logicalDeleteRandoms;
+    }
+
+    /** 逻辑删除时是否使用随机数标记数据状态: 0=不使用, 大于0表示随机数的位数 **/
+    public void setLogicalDeleteRandoms(int logicalDeleteRandoms) {
+        this.logicalDeleteRandoms = logicalDeleteRandoms;
     }
 
     /** 数据有效标记 **/
@@ -172,8 +184,12 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
     /** {@inheritDoc} **/
     @Override
     public void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
+        Object ineffectiveFlag = dataIneffectiveFlag;
+        if (logicalDeleteRandoms > 0) {
+            ineffectiveFlag = RandomTools.generateNumber(logicalDeleteRandoms);
+        }
         // 将数据状态设置为无效
-        fillValueIfAbsent(ud, logicalDeleteField, dataIneffectiveFlag, allFields);
+        fillValueIfAbsent(ud, logicalDeleteField, ineffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
