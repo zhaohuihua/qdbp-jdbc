@@ -13,7 +13,7 @@
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
 	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
-	<description>qdbp jdbc test project</description>
+	<description>qdbp jdbc test project, https://gitee.com/qdbp/qdbp-jdbc/</description>
 
 	<properties>
 		<project.build.jdk>1.8</project.build.jdk>
@@ -21,6 +21,10 @@
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.gitee.qdbp</groupId>
+			<artifactId>qdbp-able</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-tools</artifactId>

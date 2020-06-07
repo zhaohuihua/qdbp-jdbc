@@ -13,10 +13,14 @@
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
 	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
-	<description>qdbp jdbc spring project https://gitee.com/qdbp/qdbp-jdbc/</description>
+	<description>qdbp jdbc spring project, https://gitee.com/qdbp/qdbp-jdbc/</description>
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.gitee.qdbp</groupId>
+			<artifactId>qdbp-able</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-core</artifactId>
