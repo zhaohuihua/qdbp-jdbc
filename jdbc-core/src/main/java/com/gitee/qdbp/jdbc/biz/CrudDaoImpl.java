@@ -383,7 +383,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
-        return this.doDelete(where, true, false, errorOnUnaffected);
+        return this.doDelete(where, false, false, errorOnUnaffected);
     }
 
     @Override
@@ -396,12 +396,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         if (VerifyTools.isBlank(readyWhere)) {
             throw new IllegalArgumentException("where must not be empty, please use physicalDeleteAll()");
         }
-        return this.doDelete(readyWhere, true, false, errorOnUnaffected);
+        return this.doDelete(readyWhere, false, false, errorOnUnaffected);
     }
 
     @Override
     public int physicalDelete(DbWhere where, boolean errorOnUnaffected) throws ServiceException {
-        return this.doDelete(where, true, false, errorOnUnaffected);
+        return this.doDelete(where, false, false, errorOnUnaffected);
     }
 
     private int doDelete(DbWhere readyWhere, boolean logical, boolean fillUpdateParams, boolean errorOnUnaffected)
