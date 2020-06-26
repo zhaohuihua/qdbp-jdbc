@@ -29,6 +29,7 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -147,7 +148,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, {}ms.", time);
+                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         }
@@ -205,7 +206,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, {}ms.", time);
+                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         }
@@ -229,15 +230,33 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             }
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
+                queryForObjectLogResult(time, result);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, {}ms.", time);
+                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
+        }
+    }
+
+    private void queryForObjectLogResult(long time, Object result) {
+        if (result == null) {
+            log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+            return;
+        }
+        Class<?> resultType = result.getClass();
+        if (resultType == String.class) {
+            String string = (String) result;
+            String desc = string.length() > 100 ? "String(" + string.length() + ")" : string;
+            log.debug("SQL query returns 1 row, the value is {}, elapsed time {}ms.", desc, time);
+        } else if (ReflectTools.isPrimitive(resultType) || resultType.isEnum()) {
+            String string = result.toString();
+            log.debug("SQL query returns 1 row, the value is {}, elapsed time {}ms.", string, time);
+        } else {
+            log.debug("SQL query returns 1 row, elapsed time {}ms.", time);
         }
     }
 
@@ -260,7 +279,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, {}ms.", time);
+                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         }
