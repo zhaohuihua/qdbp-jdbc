@@ -89,7 +89,8 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
             throw new IllegalArgumentException("clazz is null");
         }
 
-        // 字段顺序: ID放在最前面, 然后按继承顺序排序, 最后放公共的字段(创建人/创建时间/更新人/更新时间/逻辑删除标记)
+        // 字段顺序: ID放在最前面, 然后是当前类自身的字段, 然后按继承顺序依次向上取父类的字段
+        // 然后是公共包下的父类字段, 以及通过字段名指定的公共字段(创建人/创建时间/更新人/更新时间/逻辑删除标记)
         SimpleFieldColumn idColumn = null;
         List<SimpleFieldColumn> commonColumns = new ArrayList<>();
         List<SimpleFieldColumn> allColumns = new ArrayList<>();
@@ -139,8 +140,8 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
         if (idColumn != null) {
             allColumns.add(0, idColumn); // ID插入到最前面
         }
-        if (!commonColumns.isEmpty()) {
-            allColumns.addAll(commonColumns);
+        if (!commonColumns.isEmpty()) { // 公共字段插入到最后面
+            allColumns.addAll(sortCommonColumns(commonColumns));
         }
         return allColumns;
     }
@@ -151,5 +152,13 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
 
     private boolean isCommonFieldName(String fieldName) {
         return commonFieldResolver != null && commonFieldResolver.isCommonFieldName(fieldName);
+    }
+
+    private List<SimpleFieldColumn> sortCommonColumns(List<SimpleFieldColumn> columns) {
+        if (commonFieldResolver == null) {
+            return columns;
+        } else {
+            return commonFieldResolver.sortCommonFields(columns);
+        }
     }
 }

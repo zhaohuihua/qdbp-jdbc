@@ -2,9 +2,12 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.CommonFieldResolver;
 import com.gitee.qdbp.jdbc.utils.InnerTools;
 
@@ -125,6 +128,40 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
             }
             return false;
         }
+    }
+
+    @Override
+    public List<SimpleFieldColumn> sortCommonFields(List<SimpleFieldColumn> fields) {
+        if (commonFieldNameMatchers == null || commonFieldNameMatchers.isEmpty()) {
+            return fields;
+        }
+        // 通过字段名指定的公共字段
+        List<SimpleFieldColumn> commonFieldColumns = new ArrayList<>();
+        Map<String, Void> commonFieldNames = new HashMap<>();
+        // 按照配置的公共字段顺序排序, 而不管字段在类中的声明顺序
+        for (StringMatcher matcher : commonFieldNameMatchers) {
+            for (SimpleFieldColumn field : fields) {
+                if (matcher.matches(field.getFieldName())) {
+                    commonFieldColumns.add(field);
+                    commonFieldNames.put(field.getFieldName(), null);
+                }
+            }
+        }
+        // 先放公共包下的字段, 再放通过字段名指定的公共字段
+        List<SimpleFieldColumn> result = new ArrayList<>();
+        // 先放公共包下的字段(即先放不是通过字段指定的)
+        if (commonFieldColumns.size() < fields.size()) {
+            for (SimpleFieldColumn field : fields) {
+                if (!commonFieldNames.containsKey(field.getColumnName())) {
+                    result.add(field); // 不是通过字段指定的
+                }
+            }
+        }
+        // 再放通过字段名指定的公共字段
+        if (!commonFieldColumns.isEmpty()) {
+            result.addAll(commonFieldColumns);
+        }
+        return result;
     }
 
 }
