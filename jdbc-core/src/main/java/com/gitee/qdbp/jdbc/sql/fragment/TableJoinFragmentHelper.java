@@ -1,7 +1,6 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -159,17 +158,17 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         return buffer;
     }
 
-    @Override
-    protected UnsupportedFieldException ufe(String message, String field) {
-        return new UnsupportedFieldException(toDescString(tables), message, Arrays.asList(field));
-    }
+    private String tablesDescString;
 
     @Override
-    protected UnsupportedFieldException ufe(String message, List<String> fields) {
-        return new UnsupportedFieldException(toDescString(tables), message, fields);
+    protected String getOwnerDescString() {
+        if (tablesDescString == null) {
+            tablesDescString = getTablesDescString(tables);
+        }
+        return tablesDescString;
     }
 
-    private String toDescString(TableJoin tables) {
+    private String getTablesDescString(TableJoin tables) {
         StringBuilder buffer = new StringBuilder();
         TableItem major = tables.getMajor();
         buffer.append(major.getTableType().getSimpleName());

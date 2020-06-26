@@ -1,7 +1,6 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -180,12 +179,8 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     }
 
     @Override
-    protected UnsupportedFieldException ufe(String message, String field) {
-        return new UnsupportedFieldException(clazz.getSimpleName(), message, Arrays.asList(field));
+    protected String getOwnerDescString() {
+        return clazz.getSimpleName();
     }
 
-    @Override
-    protected UnsupportedFieldException ufe(String message, List<String> fields) {
-        return new UnsupportedFieldException(clazz.getSimpleName(), message, fields);
-    }
 }

@@ -76,6 +76,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         SqlBuffer buffer = new SqlBuffer();
         List<String> unsupported = new ArrayList<String>();
         boolean first = true;
+        // 逐一遍历条件项, 生成where语句
         Iterator<DbCondition> iterator = where.iterator();
         while (iterator.hasNext()) {
             DbCondition condition = iterator.next();
@@ -90,19 +91,19 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             }
 
             try {
-                if (condition instanceof WhereCondition) {
+                if (condition instanceof WhereCondition) { // 自定义条件
                     WhereCondition subCondition = (WhereCondition) condition;
                     SqlBuffer subSql = buildWhereSql(subCondition, false);
                     if (!subSql.isEmpty()) {
                         buffer.append("( ").append(subSql).append(" )");
                     }
-                } else if (condition instanceof SubWhere) {
+                } else if (condition instanceof SubWhere) { // 子条件
                     SubWhere subWhere = (SubWhere) condition;
                     SqlBuffer subSql = buildWhereSql(subWhere, false);
                     if (!subSql.isEmpty()) {
                         buffer.append(subSql);
                     }
-                } else if (condition instanceof DbField) {
+                } else if (condition instanceof DbField) { // 字段条件
                     DbField item = (DbField) condition;
                     SqlBuffer fieldSql = buildWhereSql(item, false);
                     buffer.append(fieldSql);
@@ -113,21 +114,8 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 unsupported.addAll(e.getFields());
             }
         }
-        if (unsupported.isEmpty()) {
-            if (!buffer.isEmpty()) {
-                if (where instanceof SubWhere) {
-                    // 子SQL要用括号括起来
-                    buffer.prepend("( ").append(" )");
-                    if (!((SubWhere) where).isPositive()) {
-                        buffer.prepend("NOT", ' ');
-                    }
-                }
-                if (whole) {
-                    buffer.prepend("WHERE", ' ');
-                }
-            }
-            return buffer;
-        } else {
+
+        if (!unsupported.isEmpty()) { // 存在异常字段
             // 此处必须报错, 否则将可能由于疏忽大意导致严重的问题
             // 由于前面的判断都是基于where.isEmpty(), 逻辑是只要where不是空就必定会生成where语句
             // 如果不报错, 那么有可能因为字段名写错导致where条件为空
@@ -137,6 +125,21 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             // -- 如果不报错, 在这个场景下将会导致表记录被全部删除!
             throw ufe("build where sql unsupported fields", unsupported);
         }
+
+        if (!buffer.isEmpty()) {
+            // 后期处理, 如果不是肯定条件则前面加上NOT, 如果whole=true则在前面加上WHERE
+            if (where instanceof SubWhere) {
+                // 子SQL要用括号括起来
+                buffer.prepend("( ").append(" )");
+                if (!((SubWhere) where).isPositive()) {
+                    buffer.prepend("NOT", ' ');
+                }
+            }
+            if (whole) {
+                buffer.prepend("WHERE", ' ');
+            }
+        }
+        return buffer;
     }
 
     /** {@inheritDoc} **/
@@ -574,8 +577,15 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return null;
         }
     }
+    
+    /** 关于当前SQL片段帮助类的详情描述(用于异常信息问题定位) **/
+    protected abstract String getOwnerDescString();
 
-    protected abstract UnsupportedFieldException ufe(String message, String field);
+    protected final UnsupportedFieldException ufe(String message, String field) {
+        return new UnsupportedFieldException(getOwnerDescString(), message, Arrays.asList(field));
+    }
 
-    protected abstract UnsupportedFieldException ufe(String message, List<String> fields);
+    protected final UnsupportedFieldException ufe(String message, List<String> fields) {
+        return new UnsupportedFieldException(getOwnerDescString(), message, fields);
+    }
 }
