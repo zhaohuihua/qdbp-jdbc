@@ -23,6 +23,6 @@ public class FastJsonMapToBeanConverter implements MapToBeanConverter {
     public void fill(Map<String, ?> map, Object bean) {
         VerifyTools.requireNonNull(map, "map");
         VerifyTools.requireNonNull(bean, "bean");
-        FastJsonTools.mapFillBean(map, bean);
+        FastJsonTools.mapFillToBean(map, bean);
     }
 }

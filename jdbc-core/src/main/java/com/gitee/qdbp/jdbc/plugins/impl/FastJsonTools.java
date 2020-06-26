@@ -25,6 +25,7 @@ import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.util.FieldInfo;
 import com.alibaba.fastjson.util.TypeUtils;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.ReflectTools;
 
 /**
  * Json工具类<br>
@@ -42,7 +43,7 @@ abstract class FastJsonTools {
      * @param map Map
      * @param bean 目标Java对象
      */
-    public static void mapFillBean(Map<String, ?> map, Object bean) {
+    public static void mapFillToBean(Map<String, ?> map, Object bean) {
         Class<?> clazz = bean.getClass();
         ParserConfig config = ParserConfig.getGlobalInstance();
         ObjectDeserializer deserializer = config.getDeserializer(clazz);
@@ -51,13 +52,13 @@ abstract class FastJsonTools {
         }
         JavaBeanDeserializer javaBeanDeser = (JavaBeanDeserializer) deserializer;
         try {
-            mapFillBean(map, bean, config, javaBeanDeser);
+            mapFillToBean(map, bean, config, javaBeanDeser);
         } catch (Exception e) {
             throw new JSONException(e.getMessage(), e);
         }
     }
 
-    private static void mapFillBean(Map<String, ?> map, Object bean, ParserConfig config,
+    private static void mapFillToBean(Map<String, ?> map, Object bean, ParserConfig config,
             JavaBeanDeserializer javaBeanDeser) throws IllegalArgumentException, IllegalAccessException {
         for (Map.Entry<String, ?> entry : map.entrySet()) {
             String key = entry.getKey();
@@ -251,7 +252,7 @@ abstract class FastJsonTools {
         if (CharSequence.class.isAssignableFrom(clazz)) {
             throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
         }
-        if (isPrimitive(clazz)) {
+        if (ReflectTools.isPrimitive(clazz, false)) {
             throw new IllegalArgumentException(bean.getClass().getSimpleName() + " can't convert to map.");
         }
         if (clazz.isArray()) {
@@ -340,8 +341,8 @@ abstract class FastJsonTools {
         if (CharSequence.class.isAssignableFrom(clazz)) {
             return bean.toString();
         }
-        if (isPrimitive(clazz)) {
-            return bean;
+        if (ReflectTools.isPrimitive(clazz, false)) {
+            return bean; // 保留原始类型及原始类型的包装类型/字符串/日期/枚举/Number的所有子类
         }
 
         if (clazz.isArray()) {
@@ -376,18 +377,6 @@ abstract class FastJsonTools {
 
         String text = JSON.toJSONString(bean);
         return JSON.parse(text);
-    }
-
-    private static boolean isPrimitive(Class<?> clazz) {
-        // @formatter:off
-        return clazz.isPrimitive()
-            || clazz.isEnum()
-            || clazz == Boolean.class
-            || clazz == Character.class
-            || clazz == String.class
-            || Number.class.isAssignableFrom(clazz)
-            || Date.class.isAssignableFrom(clazz);
-        // @formatter:on
     }
 
 }
