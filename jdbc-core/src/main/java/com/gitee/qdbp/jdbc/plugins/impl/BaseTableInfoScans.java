@@ -105,6 +105,7 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
                 if (map.containsKey(field.getName())) {
                     continue;
                 }
+                map.put(field.getName(), null);
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue; // 排除静态字段
                 }
