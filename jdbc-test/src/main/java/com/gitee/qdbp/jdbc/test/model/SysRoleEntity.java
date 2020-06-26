@@ -1,14 +1,12 @@
 package com.gitee.qdbp.jdbc.test.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
+import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
-import com.gitee.qdbp.jdbc.test.enums.DataState;
 
-public class SysRoleEntity implements Serializable {
+public class SysRoleEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
@@ -16,8 +14,6 @@ public class SysRoleEntity implements Serializable {
     /** 表名 **/
     public static final String TABLE = "sys_role_core_info";
 
-    /** 角色ID **/
-    private String id;
     /** 租户编号 **/
     private String tenantCode;
     /** 用户类型 **/
@@ -32,24 +28,10 @@ public class SysRoleEntity implements Serializable {
     private String creatorId;
     /** 创建人姓名 **/
     private String creatorName;
-    /** 创建时间 **/
-    private Date createTime;
     /** 默认角色(如果用户没有任何角色,默认会赋予该角色) **/
     private Boolean defaults;
     /** 选项 **/
     private RoleOptions options;
-    /** 数据状态:0为正常|其他为删除 **/
-    private DataState dataState;
-
-    /** 获取角色ID **/
-    public String getId() {
-        return id;
-    }
-
-    /** 设置角色ID **/
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /** 获取租户编号 **/
     public String getTenantCode() {
@@ -121,16 +103,6 @@ public class SysRoleEntity implements Serializable {
         this.creatorName = creatorName;
     }
 
-    /** 获取创建时间 **/
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    /** 设置创建时间 **/
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
     /** 获取默认角色(如果用户没有任何角色,默认会赋予该角色) **/
     public Boolean getDefaults() {
         return defaults;
@@ -157,16 +129,6 @@ public class SysRoleEntity implements Serializable {
     /** 设置选项 **/
     public void setOptions(RoleOptions options) {
         this.options = options;
-    }
-
-    /** 获取数据状态:0为正常|其他为删除 **/
-    public DataState getDataState() {
-        return dataState;
-    }
-
-    /** 设置数据状态:0为正常|其他为删除 **/
-    public void setDataState(DataState dataState) {
-        this.dataState = dataState;
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.gitee.qdbp.jdbc.test.biz;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +11,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
+import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -17,6 +21,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
 import com.gitee.qdbp.jdbc.utils.ParseTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
@@ -79,5 +84,30 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
         PageList<SysUserEntity> users = dao.list(where, OrderPaging.NONE);
         log.debug("UserOrQueryResult: {}", JsonTools.toLogString(users));
         Assert.assertTrue(users.size() > 0);
+    }
+
+    @Test(priority = 6)
+    public void testUserPaging() {
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        DbWhere where = DbWhere.NONE;
+        int total = dao.count(where);
+        log.debug("UserRecordCount: {}", total);
+        Orderings orderings = Orderings.of("createTime desc");
+        int pageSize = 10;
+        int pageCount = Math.min(5, (total + pageSize - 1) / pageSize);
+        for (int i = 1; i <= pageCount; i++) {
+            Paging paging = new Paging(i, pageSize, false);
+            PageList<SysUserEntity> users = dao.list(where, OrderPaging.of(paging, orderings));
+            log.debug("UserNames: {}", ConvertTools.joinToString(getUserNames(users)));
+            Assert.assertTrue(users.size() > 0);
+        }
+    }
+    
+    private List<String> getUserNames(PageList<SysUserEntity> users) {
+        List<String> userNames = new ArrayList<>();
+        for (SysUserEntity user : users) {
+            userNames.add(user.toDisplayName());
+        }
+        return userNames;
     }
 }

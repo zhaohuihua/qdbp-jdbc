@@ -1,12 +1,10 @@
 package com.gitee.qdbp.jdbc.test.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
+import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.AccountType;
-import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.enums.Gender;
 import com.gitee.qdbp.jdbc.test.enums.UserSource;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
@@ -17,7 +15,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserState;
  * @author zhh
  * @version 170712
  */
-public class SysUserEntity implements Serializable {
+public class SysUserEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
@@ -25,8 +23,6 @@ public class SysUserEntity implements Serializable {
     /** 表名 **/
     public static final String TABLE = "sys_user_core_info";
 
-    /** 用户ID **/
-    private String id;
     /** 租户编号 **/
     private String tenantCode;
     /** 用户类型 **/
@@ -55,8 +51,6 @@ public class SysUserEntity implements Serializable {
     private String identity;
     /** 密码 **/
     private String password;
-    /** 创建时间 **/
-    private Date createTime;
     /** 是否为超级用户 **/
     private Boolean superman;
     /** 选项 **/
@@ -65,18 +59,6 @@ public class SysUserEntity implements Serializable {
     private UserState userState;
     /** 注册来源 **/
     private UserSource userSource;
-    /** 数据状态:0为正常|其他为删除 **/
-    private DataState dataState;
-
-    /** 获取用户ID **/
-    public String getId() {
-        return id;
-    }
-
-    /** 设置用户ID **/
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /** 获取租户编号 **/
     public String getTenantCode() {
@@ -218,16 +200,6 @@ public class SysUserEntity implements Serializable {
         this.password = password;
     }
 
-    /** 获取创建时间 **/
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    /** 设置创建时间 **/
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
     /** 获取是否为超级用户 **/
     public Boolean getSuperman() {
         return superman;
@@ -276,16 +248,6 @@ public class SysUserEntity implements Serializable {
         this.userSource = userSource;
     }
 
-    /** 获取数据状态:0为正常|其他为删除 **/
-    public DataState getDataState() {
-        return dataState;
-    }
-
-    /** 设置数据状态:0为正常|其他为删除 **/
-    public void setDataState(DataState dataState) {
-        this.dataState = dataState;
-    }
-
     /** 获取用户的显示名称 **/
     public String toDisplayName() {
         if (nickName != null && nickName.length() > 0) {
@@ -308,7 +270,7 @@ public class SysUserEntity implements Serializable {
     @Override
     public String toString() {
         String name = toDisplayName();
-        return name == null ? id : name;
+        return name == null ? getId() : name;
     }
 
     /**

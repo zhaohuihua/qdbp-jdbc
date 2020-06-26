@@ -88,7 +88,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
             DbWhere where = new DbWhere();
             where.on("content", "like", key);
             int logCount = sysSettingService.countLogging(where);
-            Assert.assertEquals(logCount, 0);
+            Assert.assertEquals(logCount, 0); // 期望日志数为0
         }
     }
 

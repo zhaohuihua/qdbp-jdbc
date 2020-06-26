@@ -1,12 +1,12 @@
 package com.gitee.qdbp.jdbc.test.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
+import com.gitee.qdbp.jdbc.test.base.IdEntity;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
-public class SysUserRoleEntity implements Serializable {
+public class SysUserRoleEntity extends IdEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
@@ -14,24 +14,12 @@ public class SysUserRoleEntity implements Serializable {
     /** 表名 **/
     public static final String TABLE = "sys_user_role_ref";
 
-    /** 主键ID **/
-    private String id;
     /** 用户ID **/
     private String userId;
     /** 角色ID **/
     private String roleId;
     /** 数据状态:0为正常|其他为删除 **/
     private DataState dataState;
-
-    /** 获取主键ID **/
-    public String getId() {
-        return id;
-    }
-
-    /** 设置主键ID **/
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /** 获取用户ID **/
     public String getUserId() {

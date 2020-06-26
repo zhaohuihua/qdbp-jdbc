@@ -1,8 +1,7 @@
 package com.gitee.qdbp.jdbc.test.model;
 
-import java.io.Serializable;
 import java.util.Date;
-import com.gitee.qdbp.jdbc.test.enums.DataState;
+import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
 
 /**
@@ -11,30 +10,21 @@ import com.gitee.qdbp.jdbc.test.enums.SettingState;
  * @author zhaohuihua
  * @version 20200208
  */
-public class SysSettingEntity implements Serializable {
+public class SysSettingEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
     /** 表名 **/
     public static final String TABLE = "TEST_SETTING";
 
-    private String id;
     private String name;
     private String value;
     private Integer version;
     private String remark;
     private SettingState state;
+    /** 与父类重复的字段 **/
     private Date createTime;
     private Date updateTime;
-    private DataState dataState;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -90,14 +80,6 @@ public class SysSettingEntity implements Serializable {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public DataState getDataState() {
-        return dataState;
-    }
-
-    public void setDataState(DataState dataState) {
-        this.dataState = dataState;
     }
 
 }

@@ -84,7 +84,7 @@ public class SysSettingService {
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public String createSetting(SysSettingEntity entity, TestModel testModel) {
-        return createSetting(entity, 0, TestModel.skipLogging);
+        return createSetting(entity, 0, testModel);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
