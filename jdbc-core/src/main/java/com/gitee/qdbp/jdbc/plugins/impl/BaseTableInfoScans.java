@@ -101,15 +101,17 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
             List<SimpleFieldColumn> innerNormalColumns = new ArrayList<>();
             Field[] fields = temp.getDeclaredFields();
             for (Field field : fields) {
-                field.setAccessible(true);
-                if (map.containsKey(field.getName())) {
+                // field.setAccessible(true); // 并没有读取字段值, 不需要修改Accessible
+                String fieldName = field.getName();
+                // 排除父类中已被子类覆盖的字段
+                if (map.containsKey(fieldName)) {
                     continue;
                 }
-                map.put(field.getName(), null);
+                map.put(fieldName, null);
+                // 排除静态字段
                 if (Modifier.isStatic(field.getModifiers())) {
-                    continue; // 排除静态字段
+                    continue;
                 }
-                String fieldName = field.getName();
                 SimpleFieldColumn column = scanColumn(field, temp);
                 if (idColumn == null) {
                     SimpleFieldColumn tempColumn = scanPrimaryKey(field, column, temp);
