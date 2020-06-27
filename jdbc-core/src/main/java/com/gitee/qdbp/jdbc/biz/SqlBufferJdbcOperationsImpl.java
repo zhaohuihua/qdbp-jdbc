@@ -1,6 +1,5 @@
 package com.gitee.qdbp.jdbc.biz;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -217,7 +216,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         try {
             T result;
-            if (isSimpleClass(resultType)) {
+            if (ReflectTools.isPrimitive(resultType, false)) {
                 VerifyTools.requireNotBlank(sb, "sqlBuffer");
                 if (log.isDebugEnabled()) {
                     log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
@@ -295,7 +294,7 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = sb.getPreparedVariables();
         List<T> list;
-        if (isSimpleClass(elementType)) {
+        if (ReflectTools.isPrimitive(elementType, false)) {
             list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
         } else {
             list = namedParameterJdbcOperations.query(sql, params, newRowToBeanMapper(elementType));
@@ -374,12 +373,6 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
             log.debug("SQL update affected {} rows, elapsed time {}ms.", rows, time);
         }
         return rows;
-    }
-
-    private boolean isSimpleClass(Class<?> clazz) {
-        return clazz == String.class || Number.class.isAssignableFrom(clazz) || Date.class.isAssignableFrom(clazz)
-                || clazz == Boolean.class || clazz == double.class || clazz == int.class || clazz == long.class
-                || clazz == short.class || clazz == float.class || clazz == boolean.class || clazz == byte.class;
     }
 
     @Override
