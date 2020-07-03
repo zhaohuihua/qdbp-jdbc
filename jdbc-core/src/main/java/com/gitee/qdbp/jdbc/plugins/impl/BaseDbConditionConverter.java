@@ -45,13 +45,12 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
     }
 
     @Override
-    public DbWhere convertBeanToDbWhere(Object bean) {
+    public Map<String, Object> convertBeanToUpdateMap(Object bean) {
         Map<String, Object> map = convertBeanToMap(bean);
-        // clearEmptyString=true: 值为空字符串的Wherre字段, 表示用户未填写, 应予清除
-        // 因为这里的bean对象极有可能来自于controller的参数
-        // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
-        clearBlankValue(map, true, true);
-        return parseMapToDbWhere(map, EmptiableWhere.class);
+        // clearEmptyString=false: 值为空字符串的Update字段, 表示设置为NULL, 应予保留
+        // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
+        clearBlankValue(map, true, false);
+        return map;
     }
 
     @Override
@@ -61,6 +60,16 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
         // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
         clearBlankValue(map, true, false);
         return parseMapToDbUpdate(map, DbUpdate.class);
+    }
+
+    @Override
+    public DbWhere convertBeanToDbWhere(Object bean) {
+        Map<String, Object> map = convertBeanToMap(bean);
+        // clearEmptyString=true: 值为空字符串的Wherre字段, 表示用户未填写, 应予清除
+        // 因为这里的bean对象极有可能来自于controller的参数
+        // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
+        clearBlankValue(map, true, true);
+        return parseMapToDbWhere(map, EmptiableWhere.class);
     }
 
     /**
@@ -82,11 +91,23 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * @return Where对象
      */
     @Override
-    public <T> DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<T> beanType) {
+    public DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<?> beanType) {
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
         List<String> fieldNames = allFields.getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, whereArrayFields);
         return parseMapToDbWhere(map, EmptiableWhere.class);
+    }
+
+    /**
+     * 从map中获取参数构建DbWhere对象
+     * 
+     * @param map Map参数
+     * @param instanceType DbWhere对象类型
+     * @return DbWhere对象实例
+     */
+    @Override
+    public DbWhere parseMapToDbWhere(Map<String, Object> map) {
+        return parseMapToDbWhere(map, DbWhere.class);
     }
 
     /**
@@ -102,6 +123,18 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
         // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
         List<DbField> fields = parseMapToDbFields(map, true);
         return DbWhere.ofFields(fields, instanceType);
+    }
+
+    /**
+     * 从map中获取参数构建DbUpdate对象
+     * 
+     * @param map Map参数
+     * @param instanceType DbUpdate对象类型
+     * @return DbUpdate对象实例
+     */
+    @Override
+    public DbUpdate parseMapToDbUpdate(Map<String, Object> map) {
+        return parseMapToDbUpdate(map, DbUpdate.class);
     }
 
     /**
@@ -197,7 +230,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      * @return Update对象
      */
     @Override
-    public <T> DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<T> beanType) {
+    public DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<?> beanType) {
         VerifyTools.requireNonNull(params, "params");
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
         List<String> fieldNames = allFields.getFieldNames();
