@@ -341,7 +341,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
      * 
      * @param entity 实体对象
@@ -356,7 +356,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
      * 
      * @param entity 实体对象(<b>注意:</b> 如果存在
@@ -370,7 +370,7 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param entity 实体对象
@@ -386,7 +386,7 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param entity 实体对象
@@ -402,7 +402,7 @@ public interface CrudDao<T> {
     /**
      * 根据主键编号批量更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
      * -- 1.某些实现类可能无法获取到准确的受影响行数<br>
      * -- 2.大部分的实现类要求实体列表字段对齐<br>
@@ -419,7 +419,7 @@ public interface CrudDao<T> {
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE ID IN ({ids}) DATA_STATE=0
      *
      * @param ids 待删除的主键编号
@@ -433,10 +433,10 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量更新实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
-     * @param where 匹配条件
+     * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
      * @param fillUpdateParams 是否自动填充更新参数
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
@@ -446,10 +446,10 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量删除实体对象(逻辑删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
-     * @param where 匹配条件
+     * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
      * @param fillUpdateParams 是否自动填充更新参数
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
@@ -459,7 +459,7 @@ public interface CrudDao<T> {
 
     /**
      * 根据主键编号删除实体对象(物理删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE ID IN ({ids}) DATA_STATE=0
      *
      * @param ids 待删除的主键编号
@@ -471,10 +471,10 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量删除实体对象(物理删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
-     * @param where 匹配条件
+     * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
      * @param fillUpdateParams 是否自动填充更新参数
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
@@ -484,10 +484,10 @@ public interface CrudDao<T> {
 
     /**
      * 根据条件批量删除实体对象(物理删除)<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
-     * @param where 匹配条件
+     * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @param fillUpdateParams 是否自动填充更新参数
      * @return 受影响行数
