@@ -17,6 +17,7 @@ public class SysLoggerEntity extends CommEntity {
 
     private String name;
     private String content;
+    private Integer sortIndex;
 
     public String getName() {
         return name;
@@ -32,6 +33,14 @@ public class SysLoggerEntity extends CommEntity {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Integer getSortIndex() {
+        return sortIndex;
+    }
+
+    public void setSortIndex(Integer sortIndex) {
+        this.sortIndex = sortIndex;
     }
 
 }
