@@ -34,7 +34,6 @@ import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
 import com.gitee.qdbp.jdbc.operator.DbMultivariateOperator;
 import com.gitee.qdbp.jdbc.operator.DbTernaryOperator;
 import com.gitee.qdbp.jdbc.operator.DbUnaryOperator;
-import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -185,10 +184,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return null;
         }
 
-        Class<? extends WhereCondition> type = condition.getClass();
-        // JDK8+不用强转
-        @SuppressWarnings("unchecked")
-        WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.defaults().getWhereSqlBuilder(type);
+        WhereSqlBuilder<T> builder = DbTools.getWhereSqlBuilder(condition);
         if (builder == null) {
             throw ufe("build where sql", "SqlBuilderNotFound:" + condition.getClass().getSimpleName());
         }

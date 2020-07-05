@@ -12,7 +12,6 @@ import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
-import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -143,10 +142,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
             return null;
         }
 
-        Class<? extends UpdateCondition> type = condition.getClass();
-        // JDK8+不用强转
-        @SuppressWarnings("unchecked")
-        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.defaults().getUpdateSqlBuilder(type);
+        UpdateSqlBuilder<T> builder = DbTools.getUpdateSqlBuilder(condition);
         if (builder == null) {
             throw ufe("update sql", condition.getClass().getSimpleName() + "#SqlBuilderNotFound");
         }
