@@ -177,12 +177,6 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
-        // 修改时不涉及数据状态的处理
-    }
-
-    /** {@inheritDoc} **/
-    @Override
     public void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
         Object ineffectiveFlag = dataIneffectiveFlag;
         if (logicalDeleteRandoms > 0) {
@@ -194,7 +188,7 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillTableCreteParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
+    public void fillTableCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
         Date now = new Date();
         fillValueIfAbsent(model, createTimeField, now, allFields);
         fillValueIfAbsent(model, updateTimeField, now, allFields);

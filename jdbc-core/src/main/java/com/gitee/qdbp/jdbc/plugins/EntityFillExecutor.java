@@ -70,14 +70,15 @@ public class EntityFillExecutor {
         entityFillHandler.fillTableCreateDataStatus(condition, allFields);
     }
 
-    /**
-     * 填充单表修改时的数据状态标记(此方法一般为空)
-     * 
-     * @param ud 更新对象
-     */
-    public void fillTableUpdateDataStatus(DbUpdate ud) {
-        entityFillHandler.fillTableUpdateDataStatus(ud, allFields);
-    }
+    // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
+    // /**
+    //  * 填充单表修改时的数据状态标记
+    //  * 
+    //  * @param ud 更新对象
+    //  */
+    // public void fillTableUpdateDataStatus(DbUpdate ud) {
+    //     entityFillHandler.fillTableUpdateDataStatus(ud, allFields);
+    // }
 
     /**
      * 填充单表逻辑删除时的数据状态标记(应将数据状态设置为无效)
@@ -93,8 +94,8 @@ public class EntityFillExecutor {
      * 
      * @param model 实体对象
      */
-    public void fillTableCreteParams(Map<String, Object> model) {
-        entityFillHandler.fillTableCreteParams(model, allFields);
+    public void fillTableCreateParams(Map<String, Object> model) {
+        entityFillHandler.fillTableCreateParams(model, allFields);
     }
 
     /**

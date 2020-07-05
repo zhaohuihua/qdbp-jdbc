@@ -54,13 +54,14 @@ public interface EntityFillHandler {
      */
     void fillTableCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields);
 
-    /**
-     * 填充单表修改时的数据状态标记(此方法一般为空)
-     * 
-     * @param ud 更新对象
-     * @param allFields 全字段
-     */
-    void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
+    // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
+    // /**
+    //  * 填充单表修改时的数据状态标记
+    //  * 
+    //  * @param ud 更新对象
+    //  * @param allFields 全字段
+    //  */
+    // void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表逻辑删除时的数据状态标记(应将数据状态设置为无效)
@@ -76,7 +77,7 @@ public interface EntityFillHandler {
      * @param model 实体对象
      * @param allFields 全字段
      */
-    void fillTableCreteParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+    void fillTableCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
 
     /**
      * 填充单表修改参数(如修改人修改时间等)
