@@ -53,9 +53,24 @@
 
 		<!-- 合并多个DruidDataSource的监控数据 -->
 		<property name="useGlobalDataSourceStat" value="true" />
-		<!-- 配置filters -->
+		<!-- 配置filters, proxyFilters一定要放在filters前面, 否则filters初始化时就会生成默认的 -->
+        <property name="proxyFilters">
+			<list>
+				<bean class="com.alibaba.druid.filter.stat.StatFilter">
+					<property name="slowSqlMillis" value="30000" />
+					<property name="logSlowSql" value="true" />
+					<property name="mergeSql" value="true" />
+				</bean>
+				<bean class="com.alibaba.druid.wall.WallFilter">
+					<property name="config">
+						<bean id="wall-config" class="com.alibaba.druid.wall.WallConfig">
+							<property name="multiStatementAllow" value="true" />
+						</bean>
+					</property>
+				</bean>
+			</list>
+		</property>
 		<property name="filters" value="config,stat,wall" />
-		<property name="connectionProperties" value="druid.stat.mergeSql=true;druid.stat.slowSqlMillis=10000" />
 	</bean>
 
 	<!-- 对dataSource数据源进行事务管理 -->
@@ -73,11 +88,10 @@
 			</bean>
 		</property>
 	</bean>
-	
+
 	<bean id="sysQdbcBoot" class="com.gitee.qdbp.jdbc.support.QdbcBootFactoryBean">
 		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
 		<property name="pluginContainer" ref="dbPluginContainer" />
-		<property name="conversionService" ref="conversionService" />
 	</bean>
 
 	<import resource="qdbc.xml"/>

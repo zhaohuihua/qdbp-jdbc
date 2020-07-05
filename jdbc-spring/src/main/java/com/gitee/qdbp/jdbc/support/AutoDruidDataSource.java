@@ -139,7 +139,7 @@ public class AutoDruidDataSource extends DruidDataSource {
      */
     public void setConfig(String config) {
         if (inited) {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Initialization is complete");
         }
         this.dbconfig = config;
 
