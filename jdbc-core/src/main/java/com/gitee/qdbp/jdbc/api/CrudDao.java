@@ -322,23 +322,6 @@ public interface CrudDao<T> {
     String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException;
 
     /**
-     * 批量保存实体对象<br>
-     * 注意: 如果主键编号为空将会自动生成<br>
-     * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
-     * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
-     * -- 大部分的实现类要求实体列表字段对齐<br>
-     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被设置为NULL<br>
-     * ---- 这将会导致数据库设置的默认值不会生效<br>
-     * 
-     * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)
-     * @param fillCreateParams 是否自动填充创建参数
-     * @return 返回主键编号
-     * @throws ServiceException 操作失败
-     * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
-     */
-    List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
-
-    /**
      * 根据主键编号更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
@@ -398,6 +381,23 @@ public interface CrudDao<T> {
      */
     int update(DbUpdate entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException;
+
+    /**
+     * 批量保存实体对象<br>
+     * 注意: 如果主键编号为空将会自动生成<br>
+     * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
+     * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
+     * -- 大部分的实现类要求实体列表字段对齐<br>
+     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被设置为NULL<br>
+     * ---- 这将会导致数据库设置的默认值不会生效<br>
+     * 
+     * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)
+     * @param fillCreateParams 是否自动填充创建参数
+     * @return 返回主键编号
+     * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
+     */
+    List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
     /**
      * 根据主键编号批量更新实体对象<br>
