@@ -123,7 +123,7 @@ public abstract class BaseQueryerImpl<T> {
         return jdbc.query(buffer, rowToBeanMapper);
     }
 
-    private PageList<T> doList(Fields fields, SqlBuffer wsb, OrderPaging odpg) {
+    protected PageList<T> doList(Fields fields, SqlBuffer wsb, OrderPaging odpg) {
         SqlBuffer qsb = sqlBuilder.buildListSql(fields, wsb, odpg.getOrderings());
         SqlBuffer csb = null;
         if (odpg.isPaging() && odpg.isNeedCount()) {
@@ -156,7 +156,7 @@ public abstract class BaseQueryerImpl<T> {
         return doListFieldValues(fieldName, distinct, readyWhere, odpg, valueClazz);
     }
 
-    private <V> PageList<V> doListFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
+    protected <V> PageList<V> doListFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException {
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(where, true);
         SqlBuffer qsb = sqlBuilder.buildListFieldValuesSql(fieldName, distinct, wsb, odpg.getOrderings());
@@ -174,7 +174,7 @@ public abstract class BaseQueryerImpl<T> {
         return doCount(readyWhere);
     }
 
-    private int doCount(DbWhere readyWhere) throws ServiceException {
+    protected int doCount(DbWhere readyWhere) throws ServiceException {
         SqlBuffer buffer = sqlBuilder.buildCountSql(readyWhere);
         return jdbc.queryForObject(buffer, Integer.class);
     }
@@ -186,13 +186,13 @@ public abstract class BaseQueryerImpl<T> {
         return this.doGroupCount(groupBy, readyWhere);
     }
 
-    private Map<String, Integer> doGroupCount(String groupBy, DbWhere readyWhere) throws ServiceException {
+    protected Map<String, Integer> doGroupCount(String groupBy, DbWhere readyWhere) throws ServiceException {
         SqlBuffer buffer = sqlBuilder.buildGroupCountSql(groupBy, readyWhere);
         List<KeyValue<Integer>> list = jdbc.query(buffer, KEY_INTEGER_MAPPER);
         return KeyValue.toMap(list);
     }
 
-    private static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
+    protected static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
 
     protected DbWhere checkWhere(DbWhere where) {
         if (where == null || (where.isEmpty() && !(where instanceof EmptiableWhere))) {

@@ -30,7 +30,36 @@ public interface EntityFillHandler {
     boolean supportedTableLogicalDelete(AllFieldColumn<?> allFields);
 
     /**
-     * 填充查询条件的数据状态标记
+     * 填充查询时WHERE条件参数(如数据权限)<br>
+     * SELECT * FROM table WHERE ... {在这里增加限制数条件}
+     * 
+     * @param tableAlias 表别名
+     * @param where 条件
+     * @param allFields 全字段
+     */
+    void fillQueryWhereParams(DbWhere where, String tableAlias, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充更新时WHERE条件参数<br>
+     * UPDATE table SET ... WHERE ... {在这里增加限制数条件}
+     * 
+     * @param where 条件
+     * @param allFields 全字段
+     */
+    void fillUpdateWhereParams(DbWhere where, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充删除时WHERE条件参数<br>
+     * DELETE FOM table WHERE ... {在这里增加限制数条件}
+     * 
+     * @param where 条件
+     * @param allFields 全字段
+     */
+    void fillDeleteWhereParams(DbWhere where, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充查询时WHERE条件的数据状态标记<br>
+     * SELECT * FROM table WHERE ... {在这里限制数据状态为有效}
      * 
      * @param tableAlias 表别名
      * @param where 条件
@@ -39,59 +68,100 @@ public interface EntityFillHandler {
     void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields);
 
     /**
-     * 填充单表Where条件的数据状态标记
+     * 填充更新时WHERE条件的数据状态标记<br>
+     * UPDATE table SET ... WHERE ... {在这里限制数据状态为有效}
      * 
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillTableWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
+    void fillUpdateWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
 
     /**
-     * 填充单表新增时的数据状态标记
+     * 填充删除时WHERE条件的数据状态标记<br>
+     * DELETE FOM table WHERE ... {在这里限制数据状态为有效}
+     * 
+     * @param where 条件
+     * @param allFields 全字段
+     */
+    void fillDeleteWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充新增时的数据状态标记<br>
+     * 增加INSERT时的数据状态字段的默认值设置为有效
      * 
      * @param condition 条件
      * @param allFields 全字段
      */
-    void fillTableCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields);
+    void fillEntityCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充创建参数(如创建人创建时间等)
+     * 
+     * @param model 实体对象
+     * @param allFields 全字段
+     */
+    void fillEntityCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充修改参数(如修改人修改时间等)<br>
+     * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
+     * 
+     * @param model 实体对象
+     * @param allFields 全字段
+     */
+    void fillEntityUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充修改参数(如修改人修改时间等)<br>
+     * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
+     * 
+     * @param ud 更新对象
+     * @param allFields 全字段
+     */
+    void fillEntityUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields);
 
     // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
     // /**
-    //  * 填充单表修改时的数据状态标记
+    //  * 填充修改时的数据状态标记
     //  * 
     //  * @param ud 更新对象
     //  * @param allFields 全字段
     //  */
-    // void fillTableUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
+    // void fillEntityUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
-     * 填充单表逻辑删除时的数据状态标记(应将数据状态设置为无效)
-     * 
-     * @param ud 更新对象
-     * @param allFields 全字段
-     */
-    void fillTableLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
-
-    /**
-     * 填充单表创建参数(如创建人创建时间等)
+     * 填充逻辑删除时的参数(如修改人修改时间等)<br>
+     * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
      * 
      * @param model 实体对象
      * @param allFields 全字段
      */
-    void fillTableCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+    void fillLogicalDeleteParams(Map<String, Object> model, AllFieldColumn<?> allFields);
 
     /**
-     * 填充单表修改参数(如修改人修改时间等)
-     * 
-     * @param model 实体对象
-     * @param allFields 全字段
-     */
-    void fillTableUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
-
-    /**
-     * 填充单表修改参数(如修改人修改时间等)
+     * 填充逻辑删除时的参数(如修改人修改时间等)<br>
+     * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
      * 
      * @param ud 更新对象
      * @param allFields 全字段
      */
-    void fillTableUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields);
+    void fillLogicalDeleteParams(DbUpdate ud, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充逻辑删除时的数据状态标记<br>
+     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...
+     * 
+     * @param model 实体对象
+     * @param allFields 全字段
+     */
+    void fillLogicalDeleteDataStatus(Map<String, Object> model, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充逻辑删除时的数据状态标记<br>
+     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...
+     * 
+     * @param ud 更新对象
+     * @param allFields 全字段
+     */
+    void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 }
