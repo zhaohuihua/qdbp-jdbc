@@ -9,6 +9,7 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
 /**
@@ -302,6 +303,7 @@ public interface CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      * @return 返回主键编号
      * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      */
     String insert(T entity, boolean fillCreateParams) throws ServiceException;
 
@@ -315,6 +317,7 @@ public interface CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      * @return 返回主键编号
      * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      */
     String insert(Map<String, Object> entity, boolean fillCreateParams) throws ServiceException;
 
@@ -322,28 +325,50 @@ public interface CrudDao<T> {
      * 批量保存实体对象<br>
      * 注意: 如果主键编号为空将会自动生成<br>
      * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
-     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
+     * 生成多条SQL语句一起执行:<br>
+     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
+     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
+     * ...<br>
+     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
+     * <b>注意</b>: druid需要配置multiStatementAllow; 如果是mysql需要配置allowMultiQueries参数!
      * 
-     * @param entities 实体对象列表
+     * @param entities 实体对象列表(只能是entity或map列表, 其他参数将会报错)
      * @param fillCreateParams 是否自动填充创建参数
      * @return 返回主键编号
      * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      */
-    List<String> insert(List<?> entities, boolean fillCreateParams) throws ServiceException;
+    List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
     /**
      * 根据主键编号更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
      * 
      * @param entity 实体对象
      * @param fillUpdateParams 是否自动填充更新参数
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToDbUpdate(Object) 参数转换说明
      */
     int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException;
+
+    /**
+     * 根据主键编号更新实体对象<br>
+     * 注意: 如果主键编号为空将会报错<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
+     * 
+     * @param entity 实体对象(<b>注意:</b> 如果存在
+     * @param fillUpdateParams 是否自动填充更新参数
+     * @param errorOnUnaffected 受影响行数为0时是否抛异常
+     * @return 受影响行数
+     * @throws ServiceException 操作失败
+     * @see DbConditionConverter#parseMapToDbUpdate(Map) 参数转换说明
+     */
+    int update(Map<String, Object> entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException;
 
     /**
      * 根据条件批量更新实体对象<br>
@@ -356,6 +381,8 @@ public interface CrudDao<T> {
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
+     * @see DbWhere where条件参数转换说明
      */
     int update(T entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException;
 
@@ -373,6 +400,25 @@ public interface CrudDao<T> {
      */
     int update(DbUpdate entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException;
+
+    /**
+     * 根据主键编号批量更新实体对象<br>
+     * 注意: 如果主键编号为空将会报错<br>
+     * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
+     * 注意: 批量操作无法准确获取受影响行数<br>
+     * 生成多条SQL语句一起执行:<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
+     * ...<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
+     * <b>注意</b>: druid需要配置multiStatementAllow; 如果是mysql需要配置allowMultiQueries参数!
+     * 
+     * @param entities 实体对象列表(只能是entity或map列表, 其他参数将会报错)
+     * @param fillUpdateParams 是否自动填充更新参数
+     * @throws ServiceException 操作失败
+     * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
+     */
+    void updates(List<?> entities, boolean fillUpdateParams) throws ServiceException;
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>

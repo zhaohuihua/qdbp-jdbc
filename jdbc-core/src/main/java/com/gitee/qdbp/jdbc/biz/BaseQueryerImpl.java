@@ -13,6 +13,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
@@ -195,8 +196,8 @@ public abstract class BaseQueryerImpl<T> {
 
     protected DbWhere checkWhere(DbWhere where) {
         if (where == null || (where.isEmpty() && !(where instanceof EmptiableWhere))) {
-            String m = "where must not be " + (where == null ? "null" : "empty") + ", please use DbWhere.NONE";
-            throw new IllegalArgumentException(m);
+            String details = "If you want to find all records, please use DbWhere.NONE";
+            throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
         } else if (where == DbWhere.NONE) {
             return new DbWhere();
         } else {
