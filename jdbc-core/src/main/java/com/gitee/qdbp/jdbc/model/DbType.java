@@ -6,27 +6,7 @@ package com.gitee.qdbp.jdbc.model;
  * @author zhaohuihua
  * @version 190601
  */
-public enum DbType {
-    /** 未知 **/
-    Unknown,
-    /** Oracle **/
-    Oracle,
-    /** MySQL **/
-    MySQL,
-    /** DB2 **/
-    DB2,
-    /** H2 **/
-    H2,
-    /** PostgreSQL **/
-    PostgreSQL,
-    /** SqlServer **/
-    SqlServer,
-    /** Derby **/
-    Derby,
-    /** HyperSQL **/
-    HyperSQL,
-    /** Informix **/
-    Informix,
-    /** Sybase **/
-    Sybase
+public interface DbType {
+
+    String name();
 }

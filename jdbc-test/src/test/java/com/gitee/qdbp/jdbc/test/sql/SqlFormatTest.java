@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
-import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
@@ -25,7 +25,7 @@ public class SqlFormatTest {
     }
 
     private static void test0() {
-        SqlDialect dialect = DbTools.buildSqlDialect(DbType.Oracle);
+        SqlDialect dialect = DbTools.buildSqlDialect(MainDbType.Oracle);
         // @formatter:off
         String sqlTemplate = "SELECT * FROM ACCT_DEALPOSITION WHERE EFTFLAG IN ( #{eftflag} ) ";
         // @formatter:on

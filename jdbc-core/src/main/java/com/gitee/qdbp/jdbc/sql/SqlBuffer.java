@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
-import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -458,7 +458,7 @@ public class SqlBuffer implements Serializable {
     }
 
     public String toString() {
-        SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(DbType.Oracle));
+        SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(MainDbType.Oracle));
         return getLoggingSqlString(dialect);
     }
 

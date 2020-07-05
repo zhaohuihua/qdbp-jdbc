@@ -5,6 +5,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 
 /**
@@ -35,16 +36,16 @@ public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
     // DATABASE_ORACLE, DATABASE_MYSQL, DATABASE_DB2
     protected DbType parseDbType(String productName) {
         if (productName == null) {
-            return DbType.Unknown;
+            return MainDbType.Unknown;
         }
-        for (DbType dbType : DbType.values()) {
-            if (dbType == DbType.Unknown) {
+        for (DbType dbType : MainDbType.values()) {
+            if (dbType == MainDbType.Unknown) {
                 continue;
             }
             if (productName.toUpperCase().contains(dbType.name().toUpperCase())) {
                 return dbType;
             }
         }
-        return DbType.Unknown;
+        return MainDbType.Unknown;
     }
 }

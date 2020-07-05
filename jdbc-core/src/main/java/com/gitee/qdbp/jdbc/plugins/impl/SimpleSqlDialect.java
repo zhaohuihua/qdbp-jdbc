@@ -10,6 +10,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
@@ -48,23 +49,17 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public void processPagingSql(SqlBuffer buffer, Paging paging) {
         DbType dbType = dbVersion.getDbType();
-        switch (dbType) {
-        case Oracle:
+        if (dbType == MainDbType.Oracle) {
             processPagingForOracle(buffer, paging);
-            break;
-        case MySQL:
+        } else if (dbType == MainDbType.MySQL) {
             processPagingForMySql(buffer, paging);
-            break;
-        case DB2:
+        } else if (dbType == MainDbType.DB2) {
             processPagingForDb2(buffer, paging);
-            break;
-        case H2:
+        } else if (dbType == MainDbType.H2) {
             processPagingForH2(buffer, paging);
-            break;
-        case PostgreSQL:
+        } else if (dbType == MainDbType.PostgreSQL) {
             processPagingForPostgreSql(buffer, paging);
-            break;
-        default:
+        } else {
             throw new UnsupportedOperationException("Unsupported db type: " + dbType);
         }
     }
@@ -158,12 +153,11 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public String toPinyinOrderByExpression(String columnName) {
         DbType dbType = dbVersion.getDbType();
-        switch (dbType) {
-        case Oracle:
+        if (dbType == MainDbType.Oracle) {
             return columnName; // 系统默认排序方式就是拼音: "NLSSORT(" + columnName + ",'NLS_SORT=SCHINESE_PINYIN_M')";
-        case MySQL:
+        } else if (dbType == MainDbType.MySQL) {
             return "CONVERT(" + columnName + " USING GBK)";
-        default:
+        } else {
             return columnName;
         }
     }
@@ -185,23 +179,21 @@ public class SimpleSqlDialect implements SqlDialect {
     public String variableToString(Date date) {
         StringBuilder sb = new StringBuilder();
         DbType dbType = dbVersion.getDbType();
-        switch (dbType) {
-        case DB2:
-        case Oracle:
+        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2) {
             sb.append("TO_TIMESTAMP").append('(');
             sb.append("'").append(DateTools.toNormativeString(date)).append("'");
             sb.append(',');
             sb.append("'YYYY-MM-DD HH24:MI:SS.FF'");
             sb.append(')');
             return sb.toString();
-        case H2:
+        } else if (dbType == MainDbType.H2) {
             sb.append("PARSEDATETIME").append('(');
             sb.append("'").append(DateTools.toNormativeString(date)).append("'");
             sb.append(',');
             sb.append("'yyyy-MM-dd HH:mm:ss.SSS'");
             sb.append(')');
             return sb.toString();
-        default:
+        } else {
             sb.append("'").append(DateTools.toNormativeString(date)).append("'");
             return sb.toString();
         }
@@ -214,21 +206,14 @@ public class SimpleSqlDialect implements SqlDialect {
         // TODO chooseEscapeChar
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
-        switch (dbType) {
-        case Oracle:
+        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
-        case DB2:
-            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
-        case PostgreSQL:
-            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
-        case MySQL:
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
             return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
-        case H2:
-            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
-        case SqlServer:
+        } else if (dbType == MainDbType.SqlServer) {
             return buffer.append("('%'+").addVariable(fieldValue).append("+'%')");
-        default:
-            throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+        } else {
+            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
         }
     }
 
@@ -238,21 +223,14 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
-        switch (dbType) {
-        case Oracle:
+        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append('(').addVariable(fieldValue).append("||'%')");
-        case DB2:
-            return buffer.append('(').addVariable(fieldValue).append("||'%')");
-        case PostgreSQL:
-            return buffer.append('(').addVariable(fieldValue).append("||'%')");
-        case MySQL:
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
             return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
-        case H2:
-            return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
-        case SqlServer:
+        } else if (dbType == MainDbType.SqlServer) {
             return buffer.append('(').addVariable(fieldValue).append("+'%')");
-        default:
-            throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+        } else {
+            return buffer.append('(').addVariable(fieldValue).append("||'%')");
         }
     }
 
@@ -262,21 +240,14 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         SqlBuffer buffer = new SqlBuffer();
         buffer.append("LIKE", ' ');
-        switch (dbType) {
-        case Oracle:
+        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append("('%'||").addVariable(fieldValue).append(")");
-        case DB2:
-            return buffer.append("('%'||").addVariable(fieldValue).append(")");
-        case PostgreSQL:
-            return buffer.append("('%'||").addVariable(fieldValue).append(")");
-        case MySQL:
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
             return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
-        case H2:
-            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
-        case SqlServer:
+        } else if (dbType == MainDbType.SqlServer) {
             return buffer.append("('%'+").addVariable(fieldValue).append(")");
-        default:
-            throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+        } else {
+            return buffer.append("('%'||").addVariable(fieldValue).append(")");
         }
     }
 
@@ -287,23 +258,26 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         VerifyTools.requireNotBlank(startCodes, "startCodes");
 
-        if (dbType == DbType.Oracle) {
-            return oracleRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings, builder);
-        } else if (dbType == DbType.MySQL && dbVersion.getMajorVersion() < 8) {
-            return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings, builder);
+        if (dbType == MainDbType.Oracle) {
+            return oracleRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
+                builder);
+        } else if (dbType == MainDbType.MySQL && dbVersion.getMajorVersion() < 8) {
+            return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
+                builder);
         } else { // 标准递归语法
             // MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可
             String key;
-            if (dbType == DbType.PostgreSQL || dbType == DbType.MySQL) {
+            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL) {
                 key = "WITH RECURSIVE";
-            } else if (dbType == DbType.DB2) {
+            } else if (dbType == MainDbType.DB2) {
                 key = "WITH";
-            } else if (dbType == DbType.SqlServer) {
+            } else if (dbType == MainDbType.SqlServer) {
                 key = "WITH";
             } else {
                 throw new UnsupportedOperationException("Unsupported db type: " + dbType);
             }
-            return normalRecursiveFindChildren(key, startCodes, codeField, parentField, selectFields, where, orderings, builder);
+            return normalRecursiveFindChildren(key, startCodes, codeField, parentField, selectFields, where, orderings,
+                builder);
         }
     }
 
@@ -367,8 +341,7 @@ public class SimpleSqlDialect implements SqlDialect {
     )
     WHERE ...
     ORDER BY ...
-     * </pre>
-     * <pre>
+     * </pre> <pre>
     -- 实测发现DB2不支持_开头的字段名, 不支持field AS alias, WITH AS中不支持INNER JOIN
     WITH recursive_temp_table(temp_parent) AS (
         SELECT {codeField} temp_parent FROM {tableName} WHERE {codeField} IN ( {startCodes} ) 
@@ -401,11 +374,8 @@ public class SimpleSqlDialect implements SqlDialect {
                 + "    SELECT #{codeField} temp_parent FROM #{tableName} WHERE ${startCodeCondition}\n"
                 + "    UNION ALL\n"
                 + "    SELECT #{codeField} FROM #{tableName} A, recursive_temp_table B ON A.#{parentField} = B.temp_parent\n"
-                + ")\n"
-                + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
-                + "    SELECT temp_parent FROM recursive_temp_table\n"
-                + ")\n"
-                + "${whereCondition}\n"
+                + ")\n" + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
+                + "    SELECT temp_parent FROM recursive_temp_table\n" + ")\n" + "${whereCondition}\n"
                 + "#{orderByCondition} ";
         // @formatter:on
 

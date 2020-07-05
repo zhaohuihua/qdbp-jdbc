@@ -25,7 +25,7 @@ public class DbVersion implements Serializable {
 
     /** 构造函数 **/
     public DbVersion() {
-        this.dbType = DbType.Unknown;
+        this.dbType = MainDbType.Unknown;
     }
 
     /** 构造函数 **/

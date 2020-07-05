@@ -1,6 +1,6 @@
 package com.gitee.qdbp.jdbc.test.sql;
 
-import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -9,7 +9,7 @@ import com.gitee.qdbp.tools.utils.DateTools;
 public class SqlBufferTest {
 
     public static void main(String[] args) {
-        SqlDialect dialect = DbTools.buildSqlDialect(DbType.Oracle);
+        SqlDialect dialect = DbTools.buildSqlDialect(MainDbType.Oracle);
 
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(" AND CREATE_USER = ").addVariable("zhh");
