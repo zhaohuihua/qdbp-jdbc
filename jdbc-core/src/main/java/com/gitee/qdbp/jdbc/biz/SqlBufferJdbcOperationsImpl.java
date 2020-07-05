@@ -28,7 +28,9 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -341,28 +343,48 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     @Override
+    public int insert(SqlBuffer sb) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doUpdate(sb, "insert");
+    }
+
+    @Override
+    public int insert(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doUpdate(sb, generatedKeyHolder, "insert");
+    }
+
+    @Override
     public int update(SqlBuffer sb) throws DataAccessException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doUpdate(sb, "update");
+    }
+
+    @Override
+    public int delete(SqlBuffer sb) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doUpdate(sb, "delete");
+    }
+
+    protected int doUpdate(SqlBuffer sb, String desc) throws DataAccessException {
         long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL update:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = sb.getPreparedVariables();
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL update affected " + rows + " rows, elapsed time {}ms", time);
+            log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
         }
         return rows;
     }
 
-    @Override
-    public int update(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException {
-        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+    protected int doUpdate(SqlBuffer sb, KeyHolder generatedKeyHolder, String desc) throws DataAccessException {
         long startTime = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL update:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString();
         Map<String, Object> params = sb.getPreparedVariables();
@@ -370,9 +392,59 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL update affected {} rows, elapsed time {}ms.", rows, time);
+            log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
         }
         return rows;
+    }
+
+    @Override
+    public int batchInsert(SqlBuffer sb) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doBatchUpdate(sb, "insert");
+    }
+
+    @Override
+    public int batchUpdate(SqlBuffer sb) throws DataAccessException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        return doBatchUpdate(sb, "update");
+    }
+
+    protected int doBatchUpdate(SqlBuffer sb, String desc) throws DataAccessException {
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL batch {}:\n{}", desc, getCompressedSqlString(sb, 1));
+        }
+        String sql = sb.getPreparedSqlString();
+        Map<String, Object> params = sb.getPreparedVariables();
+        int rows = namedParameterJdbcOperations.update(sql, params);
+        if (log.isDebugEnabled()) {
+            long time = System.currentTimeMillis() - startTime;
+            log.debug("SQL {} affected batch {} rows, elapsed time {}ms.", desc, rows, time);
+        }
+        return rows;
+    }
+
+    protected String getCompressedSqlString(SqlBuffer sb, int indent) {
+        String sqlString = getFormattedSqlString(sb, indent);
+        if (sqlString.trim().indexOf('\n') < 0) {
+            return StringTools.ellipsis(sqlString, 200);
+        } else {
+            List<String> temp = ConvertTools.toList(StringTools.split(sqlString, false, '\n'));
+            int size = temp.size();
+            if (size <= 7) {
+                return sqlString;
+            } else { // 取前3行+后3行
+                StringBuilder buffer = new StringBuilder();
+                buffer.append(temp.get(0)).append('\n');
+                buffer.append(temp.get(1)).append('\n');
+                buffer.append(temp.get(2)).append('\n');
+                buffer.append('\t').append("...").append('(').append(size - 6).append(')').append('\n');
+                buffer.append(temp.get(size - 3)).append('\n');
+                buffer.append(temp.get(size - 2)).append('\n');
+                buffer.append(temp.get(size - 1));
+                return buffer.toString();
+            }
+        }
     }
 
     @Override

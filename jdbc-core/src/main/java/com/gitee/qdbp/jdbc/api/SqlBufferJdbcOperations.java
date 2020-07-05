@@ -181,6 +181,26 @@ public interface SqlBufferJdbcOperations {
     SqlRowSet queryForRowSet(SqlBuffer sb) throws DataAccessException;
 
     /**
+     * Issue an insert via a prepared statement, binding the given arguments.
+     * @param sb SqlBuffer
+     * @return the number of rows affected
+     * @throws org.springframework.dao.DataAccessException if there is any problem issuing the insert
+     */
+    int insert(SqlBuffer sb) throws DataAccessException;
+
+    /**
+     * Issue an insert via a prepared statement, binding the given arguments,
+     * returning generated keys.
+     * @param sb SqlBuffer
+     * @param generatedKeyHolder KeyHolder that will hold the generated keys
+     * @return the number of rows affected
+     * @throws org.springframework.dao.DataAccessException if there is any problem issuing the insert
+     * @see MapSqlParameterSource
+     * @see org.springframework.jdbc.support.GeneratedKeyHolder
+     */
+    int insert(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException;
+
+    /**
      * Issue an update via a prepared statement, binding the given arguments.
      * @param sb SqlBuffer
      * @return the number of rows affected
@@ -189,16 +209,28 @@ public interface SqlBufferJdbcOperations {
     int update(SqlBuffer sb) throws DataAccessException;
 
     /**
-     * Issue an update via a prepared statement, binding the given arguments,
-     * returning generated keys.
+     * Issue an delete via a prepared statement, binding the given arguments.
      * @param sb SqlBuffer
-     * @param generatedKeyHolder KeyHolder that will hold the generated keys
      * @return the number of rows affected
      * @throws org.springframework.dao.DataAccessException if there is any problem issuing the update
-     * @see MapSqlParameterSource
-     * @see org.springframework.jdbc.support.GeneratedKeyHolder
      */
-    int update(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException;
+    int delete(SqlBuffer sb) throws DataAccessException;
+
+    /**
+     * Issue an batch insert via a prepared statement, binding the given arguments.
+     * @param sb SqlBuffer
+     * @return the number of rows affected
+     * @throws org.springframework.dao.DataAccessException if there is any problem issuing the insert
+     */
+    int batchInsert(SqlBuffer sb) throws DataAccessException;
+
+    /**
+     * Issue an batch update via a prepared statement, binding the given arguments.
+     * @param sb SqlBuffer
+     * @return the number of rows affected
+     * @throws org.springframework.dao.DataAccessException if there is any problem issuing the update
+     */
+    int batchUpdate(SqlBuffer sb) throws DataAccessException;
 
     /**
      * Expose the classic Spring JdbcTemplate to allow invocation of
