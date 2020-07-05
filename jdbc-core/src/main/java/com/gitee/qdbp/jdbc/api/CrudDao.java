@@ -325,14 +325,12 @@ public interface CrudDao<T> {
      * 批量保存实体对象<br>
      * 注意: 如果主键编号为空将会自动生成<br>
      * 注意: 默认创建参数由entityFillExecutor添加, 如dataState=DataState.NORMAL<br>
-     * 生成多条SQL语句一起执行:<br>
-     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
-     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
-     * ...<br>
-     * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
-     * <b>注意</b>: druid需要配置multiStatementAllow; 如果是mysql需要配置allowMultiQueries参数!
+     * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
+     * -- 大部分的实现类要求实体列表字段对齐<br>
+     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被设置为NULL<br>
+     * ---- 这将会导致数据库设置的默认值不会生效<br>
      * 
-     * @param entities 实体对象列表(只能是entity或map列表, 其他参数将会报错)
+     * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)
      * @param fillCreateParams 是否自动填充创建参数
      * @return 返回主键编号
      * @throws ServiceException 操作失败
@@ -405,20 +403,19 @@ public interface CrudDao<T> {
      * 根据主键编号批量更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
      * 注意: 默认查询条件由entityFillExecutor添加, 只处理有效项<br>
-     * 注意: 批量操作无法准确获取受影响行数<br>
-     * 生成多条SQL语句一起执行:<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
-     * ...<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
-     * <b>注意</b>: druid需要配置multiStatementAllow; 如果是mysql需要配置allowMultiQueries参数!
+     * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
+     * -- 1.某些实现类可能无法获取到准确的受影响行数<br>
+     * -- 2.大部分的实现类要求实体列表字段对齐<br>
+     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被更新为NULL
      * 
-     * @param entities 实体对象列表(只能是entity或map列表, 其他参数将会报错)
+     * @param entities 实体对象列表(只能是entity或map或IdUpdate列表, 其他参数将会报错)<br>
+     *            如果实体对象是map, map下不能有where, 否则将会报错
+     * @param where 除ID外的其他查询条件
      * @param fillUpdateParams 是否自动填充更新参数
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      */
-    void updates(List<?> entities, boolean fillUpdateParams) throws ServiceException;
+    int updates(List<?> entities, DbWhere where, boolean fillUpdateParams) throws ServiceException;
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>

@@ -10,8 +10,10 @@ import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
+import com.gitee.qdbp.able.jdbc.model.PkEntity;
+import com.gitee.qdbp.able.jdbc.model.PkUpdate;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
+import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
@@ -176,9 +178,9 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     protected String executeInsert(Object object, boolean fillCreateParams) throws ServiceException {
         // 将实体类转换为map, 并执行实体业务数据填充
-        IdMap<String, Object> idmap = convertAndFillCreateParams(object, fillCreateParams);
-        String id = idmap.getId();
-        Map<String, Object> readyEntity = idmap.getMap();
+        PkEntity pe = convertAndFillCreateParams(object, fillCreateParams);
+        String id = pe.getPrimaryKey();
+        Map<String, Object> readyEntity = pe.getEntity();
         // 执行数据库插入
         SqlBuffer buffer = getSqlBuilder().buildInsertSql(readyEntity);
         jdbc.insert(buffer);
@@ -216,9 +218,9 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         List<String> ids = new ArrayList<>();
         for (Object item : entities) {
             // 将实体类转换为map, 并执行实体业务数据填充
-            IdMap<String, Object> idmap = convertAndFillCreateParams(item, fillCreateParams);
-            String id = idmap.getId();
-            Map<String, Object> entity = idmap.getMap();
+            PkEntity pe = convertAndFillCreateParams(item, fillCreateParams);
+            String id = pe.getPrimaryKey();
+            Map<String, Object> entity = pe.getEntity();
             ids.add(id);
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildInsertSql(entity);
@@ -239,22 +241,88 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             String details = "UnsupportedUpdateById, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
-        return executeUpdate(entity, fillUpdateParams, errorOnUnaffected);
+        PkUpdate pkud = convertAndFillUpdateParams(entity, fillUpdateParams);
+        String pkValue = pkud.getPrimaryKey();
+        if (VerifyTools.isBlank(pkValue)) { // 主键值为空
+            String details = "CanNotExecuteUpdateById, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
+        }
+        // 生成主键查询条件
+        DbUpdate readyEntity = pkud.getUpdate();
+        DbWhere where = new DbWhere();
+        where.on(pk.getFieldName(), "=", pkValue);
+        entityFillExecutor.fillUpdateWhereDataStatus(where);
+        entityFillExecutor.fillUpdateWhereParams(where);
+        return this.doUpdate(readyEntity, where, errorOnUnaffected);
     }
 
     @Override
     public int update(Map<String, Object> entity, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
-        return executeUpdate(entity, fillUpdateParams, errorOnUnaffected);
-    }
-
-    protected int executeUpdate(Object entity, boolean fillUpdateParams, boolean errorOnUnaffected)
-            throws ServiceException {
-        Updhere updhere = convertAndFillUpdateParams(entity, fillUpdateParams);
-        DbUpdate readyEntity = updhere.getUpdate();
-        DbWhere where = updhere.getWhere();
-        return this.doUpdate(readyEntity, where, errorOnUnaffected);
+        if (!entity.containsKey("where")) { // 没有where条件, 必须要有主键
+            if (entity.isEmpty()) {
+                String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
+            }
+            // 查找主键
+            PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+            if (pk == null) { // 没有找到主键字段
+                String details = "UnsupportedUpdateById, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
+            }
+            // 填充实体的修改参数(如修改人修改时间等)
+            fillEntityUpdateParams(entity, fillUpdateParams);
+            PkUpdate pkud = parseMapToPkUpdate(entity);
+            String pkValue = pkud.getPrimaryKey();
+            if (VerifyTools.isBlank(pkValue)) { // 主键值为空
+                String details = "CanNotExecuteUpdateById, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
+            }
+            // 生成主键查询条件
+            DbUpdate readyEntity = pkud.getUpdate();
+            DbWhere where = new DbWhere();
+            where.on(pk.getFieldName(), "=", pkValue);
+            entityFillExecutor.fillUpdateWhereDataStatus(where);
+            entityFillExecutor.fillUpdateWhereParams(where);
+            return this.doUpdate(readyEntity, where, errorOnUnaffected);
+        } else { // 如果Update对象中带有where字段, 将where字段值转换为DbWhere对象
+            Object whereValue = entity.remove("where");
+            DbWhere where;
+            if (whereValue == null) {
+                where = null;
+            } else if (whereValue instanceof DbWhere) {
+                where = (DbWhere) whereValue;
+            } else if (whereValue instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> mapValue = (Map<String, Object>) whereValue;
+                DbConditionConverter converter = DbTools.getDbConditionConverter();
+                where = converter.parseMapToDbWhere(mapValue);
+            } else if (beanClass.isAssignableFrom(whereValue.getClass())) {
+                @SuppressWarnings("unchecked")
+                T entityValue = (T) whereValue;
+                DbConditionConverter converter = DbTools.getDbConditionConverter();
+                where = converter.convertBeanToDbWhere(entityValue);
+            } else {
+                // whereValue只支持DbWhere/map/T
+                String details = "CanNotExecuteUpdate, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_WHERE_TYPE, details);
+            }
+            if (entity.isEmpty()) {
+                String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
+            }
+            // 填充实体的修改参数(如修改人修改时间等)
+            fillEntityUpdateParams(entity, fillUpdateParams);
+            // 解析为PkUpdate对象
+            PkUpdate pkud = parseMapToPkUpdate(entity);
+            DbUpdate readyEntity = pkud.getUpdate();
+            // 填充Where条件
+            DbWhere readyWhere = checkWhere(where);
+            entityFillExecutor.fillUpdateWhereDataStatus(where);
+            entityFillExecutor.fillUpdateWhereParams(where);
+            return this.doUpdate(readyEntity, readyWhere, errorOnUnaffected);
+        }
     }
 
     @Override
@@ -301,36 +369,59 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
-    public void updates(List<?> entities, boolean fillUpdateParams) throws ServiceException {
+    public int updates(List<?> entities, DbWhere where, boolean fillUpdateParams) throws ServiceException {
         VerifyTools.requireNotBlank(entities, "entities");
+        // 查找主键(批量更新必须要有主键)
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        if (pk == null) { // 没有找到主键字段
+            String details = "UnsupportedBatchUpdate, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
+        }
+        DbWhere readyWhere = checkWhere(where);
+        entityFillExecutor.fillUpdateWhereDataStatus(readyWhere);
+        entityFillExecutor.fillUpdateWhereParams(readyWhere);
         int batchSize = this.batchSize; // 防止执行过程中this.batchSize被人修改
         if (entities.size() == 1) {
             Object first = entities.get(0);
-            executeUpdate(first, fillUpdateParams, false);
-            return;
+            // 将实体类转换为map, 并执行实体业务数据填充
+            PkUpdate pkud = convertAndFillUpdateParams(first, fillUpdateParams);
+            String pkValue = pkud.getPrimaryKey();
+            if (VerifyTools.isBlank(pkValue)) { // 主键值为空
+                String details = "UnsupportedBatchUpdate, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
+            }
+            // 将主键加入到查询条件中
+            DbUpdate readyEntity = pkud.getUpdate();
+            readyWhere.on(pk.getFieldName(), "=", pkValue);
+            return this.doUpdate(readyEntity, readyWhere, false);
         } else if (batchSize <= 0 || entities.size() <= batchSize) {
-            doBatchUpdates(entities, fillUpdateParams);
-            return;
+            return doBatchUpdates(entities, readyWhere, fillUpdateParams);
         } else { // 分批导入
             List<Object> buffer = new ArrayList<>();
+            int rows = 0;
             for (int i = 1, size = entities.size(); i <= size; i++) {
                 buffer.add(entities.get(i - 1));
                 if (i % batchSize == 0 || i == size) {
-                    doBatchUpdates(buffer, fillUpdateParams);
+                    rows += doBatchUpdates(buffer, readyWhere, fillUpdateParams);
                     buffer.clear();
                 }
             }
+            return rows;
         }
     }
 
-    protected void doBatchUpdates(List<?> entities, boolean fillUpdateParams) throws ServiceException {
+    protected int doBatchUpdates(List<?> entities, DbWhere where, boolean fillUpdateParams) throws ServiceException {
+        // 查找主键(批量更新必须要有主键)
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         CrudSqlBuilder sqlBuilder = getSqlBuilder();
         SqlBuffer buffer = new SqlBuffer();
         for (Object item : entities) {
             // 将实体类转换为map, 并执行实体业务数据填充
-            Updhere updhere = convertAndFillUpdateParams(item, fillUpdateParams);
-            DbUpdate entity = updhere.getUpdate();
-            DbWhere where = updhere.getWhere();
+            PkUpdate pkud = convertAndFillUpdateParams(item, fillUpdateParams);
+            String pkValue = pkud.getPrimaryKey();
+            DbUpdate entity = pkud.getUpdate();
+            // 将主键加入到查询条件中
+            where.replace(pk.getFieldName(), "=", pkValue);
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildUpdateSql(entity, where);
             if (!buffer.isEmpty()) {
@@ -340,7 +431,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         }
 
         // 执行批量数据库插入
-        jdbc.batchUpdate(buffer);
+        return jdbc.batchUpdate(buffer);
     }
 
     @Override
@@ -364,15 +455,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     @Override
     public int logicalDelete(T where, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         if (where == null) {
-            String details = "If you want to delete all records, please use logicalDeleteAll()";
+            String details = "If you want to delete all records, please use DbWhere.NONE";
             throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
         }
         DbConditionConverter converter = DbTools.getDbConditionConverter();
-        DbWhere readyWhere = converter.convertBeanToDbWhere(where);
-        if (VerifyTools.isBlank(readyWhere)) {
-            String details = "If you want to delete all records, please use logicalDeleteAll()";
-            throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
-        }
+        DbWhere beanWhere = converter.convertBeanToDbWhere(where);
+        DbWhere readyWhere = checkWhere(beanWhere);
         entityFillExecutor.fillDeleteWhereDataStatus(readyWhere);
         entityFillExecutor.fillDeleteWhereParams(readyWhere);
         return this.doDelete(readyWhere, false, fillUpdateParams, errorOnUnaffected);
@@ -405,15 +493,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     @Override
     public int physicalDelete(T where, boolean errorOnUnaffected) throws ServiceException {
         if (where == null) {
-            String details = "If you want to delete all records, please use physicalDeleteAll()";
+            String details = "If you want to delete all records, please use DbWhere.NONE";
             throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
         }
         DbConditionConverter converter = DbTools.getDbConditionConverter();
-        DbWhere readyWhere = converter.convertBeanToDbWhere(where);
-        if (VerifyTools.isBlank(readyWhere)) {
-            String details = "If you want to delete all records, please use physicalDeleteAll()";
-            throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
-        }
+        DbWhere beanWhere = converter.convertBeanToDbWhere(where);
+        DbWhere readyWhere = checkWhere(beanWhere);
         return this.doDelete(readyWhere, true, false, errorOnUnaffected);
     }
 
@@ -479,12 +564,27 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      * @return 实体类转换后的map和自动填充的主键ID
      */
-    protected IdMap<String, Object> convertAndFillCreateParams(Object object, boolean fillCreateParams) {
+    protected PkEntity convertAndFillCreateParams(Object object, boolean fillCreateParams) {
         if (object == null) {
             String details = "CanNotExecuteCreate, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
-        if (object instanceof Map) {
+        if (object instanceof PkEntity) {
+            PkEntity pe = (PkEntity) object;
+            Map<String, Object> entity = pe.getEntity();
+            PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+            // 如果PkEntity里面的id不为空, 设置到entity中
+            if (pk != null && VerifyTools.isNotBlank(pe.getPrimaryKey())) {
+                entity.put(pk.getFieldName(), pe.getPrimaryKey());
+            }
+            if (entity.isEmpty()) {
+                String details = "NoFieldsThatBeInsertedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
+            }
+            // 填充主键/数据状态/创建人/创建时间等信息
+            fillEntityCreateParams(entity, fillCreateParams);
+            return pe;
+        } else if (object instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> entity = (Map<String, Object>) object;
             if (entity.isEmpty()) {
@@ -492,7 +592,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
                 throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
             }
             String id = fillEntityCreateParams(entity, fillCreateParams);
-            return new IdMap<>(id, entity);
+            return new PkEntity(id, entity);
         } else if (beanClass.isAssignableFrom(object.getClass())) {
             @SuppressWarnings("unchecked")
             T entity = (T) object;
@@ -545,7 +645,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      * @return 实体类转换后的map和自动填充的主键ID
      */
-    protected IdMap<String, Object> convertEntityAndFillCreateParams(T entity, boolean fillCreateParams) {
+    protected PkEntity convertEntityAndFillCreateParams(T entity, boolean fillCreateParams) {
         // 将对象转换为map
         DbConditionConverter conditionConverter = DbTools.getDbConditionConverter();
         Map<String, Object> readyEntity = conditionConverter.convertBeanToInsertMap(entity);
@@ -562,43 +662,46 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         Map<String, Object> diff = copmareMapDifference(original, readyEntity);
         MapToBeanConverter mapToBeanConverter = DbTools.getMapToBeanConverter();
         mapToBeanConverter.fill(diff, entity);
-        return new IdMap<>(id, readyEntity);
+        return new PkEntity(id, readyEntity);
     }
 
     /**
-     * 执行实体业务数据转换及更新参数填充<br>
-     * 作为以下两个方法的入口, 参数只支持map和T两种:<br>
-     * fillEntityUpdateParams(Map, boolean)/convertEntityAndFillUpdateParams(T, boolean)<br>
+     * 执行实体业务数据转换及更新参数填充
      * 
-     * @param object 实体对象, 只支持map和T两种
+     * @param object 实体对象, 只支持map/T/PkUpdate, 其他类型将会报错
      * @param fillUpdateParams 是否自动填充更新参数
      * @return 转换后的update和where
      */
-    protected Updhere convertAndFillUpdateParams(Object object, boolean fillUpdateParams) {
+    protected PkUpdate convertAndFillUpdateParams(Object object, boolean fillUpdateParams) {
         if (object == null) {
             String details = "CanNotExecuteUpdate, EntityIsNull, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
-        if (object instanceof Map) {
+        if (object instanceof PkUpdate) {
+            PkUpdate pkud = (PkUpdate) object;
+            DbUpdate ud = pkud.getUpdate();
+            if (ud == null || ud.isEmpty()) {
+                String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
+            }
+            // 填充实体的修改参数(如修改人修改时间等)
+            fillEntityUpdateParams(ud, fillUpdateParams);
+            return pkud;
+        } else if (object instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) object;
             if (map.isEmpty()) {
                 String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
                 throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
             }
-            fillEntityUpdateParams(map, fillUpdateParams); // 填充单表修改参数(如修改人修改时间等)
-            Updhere updhere = parseMapToUpdateWhere(map); // 已经执行过checkWhere了
-            entityFillExecutor.fillUpdateWhereDataStatus(updhere.getWhere());
-            entityFillExecutor.fillUpdateWhereParams(updhere.getWhere());
-            return updhere;
+            // 填充实体的修改参数(如修改人修改时间等)
+            fillEntityUpdateParams(map, fillUpdateParams);
+            return parseMapToPkUpdate(map);
         } else if (beanClass.isAssignableFrom(object.getClass())) {
             @SuppressWarnings("unchecked")
             T entity = (T) object;
             Map<String, Object> map = convertEntityAndFillUpdateParams(entity, fillUpdateParams);
-            Updhere updhere = parseMapToUpdateWhere(map); // 已经执行过checkWhere了
-            entityFillExecutor.fillUpdateWhereDataStatus(updhere.getWhere());
-            entityFillExecutor.fillUpdateWhereParams(updhere.getWhere());
-            return updhere;
+            return parseMapToPkUpdate(map);
         } else {
             String details = "CanNotExecuteUpdate, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_ENTITY_TYPE, details);
@@ -614,6 +717,18 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     protected void fillEntityUpdateParams(Map<String, Object> entity, boolean fillUpdateParams) {
         if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
             entityFillExecutor.fillEntityUpdateParams(entity);
+        }
+    }
+
+    /**
+     * 执行实体业务数据更新参数填充
+     * 
+     * @param ud 待更新的内容
+     * @param fillCreateParams 是否自动填充创建参数
+     */
+    protected void fillEntityUpdateParams(DbUpdate ud, boolean fillUpdateParams) {
+        if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
+            entityFillExecutor.fillEntityUpdateParams(ud);
         }
     }
 
@@ -641,9 +756,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         Map<String, Object> original = new HashMap<>();
         original.putAll(readyEntity);
         // 填充主键/数据状态/创建人/创建时间等信息
-        if (fillUpdateParams) {
-            entityFillExecutor.fillEntityUpdateParams(readyEntity);
-        }
+        fillEntityUpdateParams(readyEntity, fillUpdateParams);
         // 比对修改后的字段值与原值的差异, 复制到原对象
         Map<String, Object> diff = copmareMapDifference(original, readyEntity);
         MapToBeanConverter mapToBeanConverter = DbTools.getMapToBeanConverter();
@@ -651,104 +764,34 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         return readyEntity;
     }
 
-    protected Updhere parseMapToUpdateWhere(Map<String, Object> mapEntity) {
-        DbConditionConverter converter = DbTools.getDbConditionConverter();
-        // 构造Update语句的where条件
-        DbWhere where;
-        Object whereValue = null;
+    protected PkUpdate parseMapToPkUpdate(Map<String, Object> mapEntity) {
         if (mapEntity.containsKey("where")) {
-            whereValue = mapEntity.get("where");
-            mapEntity.remove("where");
+            // mapEntity里面不能有where, 如果有,调这个方法之前要移除, 否则将会报错
+            // 因为批量更新的语法不支持每个ID带有不同的where条件
+            String details = "Unsupported entity.where";
+            throw new ServiceException(ResultCode.PARAMETER_VALUE_ERROR, details);
         }
-        if (whereValue == null) {
-            where = new DbWhere();
-        } else { // 如果Update对象中带有where字段, 将where字段值转换为DbWhere对象
-            if (whereValue instanceof DbWhere) {
-                where = (DbWhere) whereValue;
-            } else if (whereValue instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> mapValue = (Map<String, Object>) whereValue;
-                where = converter.parseMapToDbWhere(mapValue);
-            } else if (beanClass.isAssignableFrom(whereValue.getClass())) {
-                @SuppressWarnings("unchecked")
-                T entityValue = (T) whereValue;
-                where = converter.convertBeanToDbWhere(entityValue);
-            } else {
-                // whereValue只支持DbWhere/map/T
-                String details = "CanNotExecuteUpdate, class=" + beanClass.getName();
-                throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_WHERE_TYPE, details);
-            }
-        }
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
         // 从map中获取参数构建DbUpdate对象
         DbUpdate readyEntity = converter.parseMapToDbUpdate(mapEntity);
         // 查找主键
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        if (pk == null) { // 没有找到主键字段
+            String details = "UnsupportedBatchUpdate, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
+        }
         // 从更新条件中查找主键值并删除主键
-        String pkValue = pk == null ? null : getValueAndRemoveField(readyEntity, pk.getFieldName());
+        String pkValue = getValueAndRemoveField(readyEntity, pk.getFieldName());
         if (readyEntity.isEmpty()) {
             String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
-        if (where.isEmpty() && !(where instanceof EmptiableWhere)) {
-            // 当where条件为空, 自动查找主键作为where条件
-            if (pk == null) { // 没有找到主键字段
-                String details = "UnsupportedUpdateById, class=" + beanClass.getName();
-                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
-            }
-            // 主键不能为空
-            if (VerifyTools.isBlank(pkValue)) { // 主键值为空
-                String details = "CanNotExecuteUpdateById, class=" + beanClass.getName();
-                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
-            }
-            // 将主键从更新数据中移到查询条件中
-            where.on(pk.getFieldName(), "=", pkValue);
+        // 主键不能为空
+        if (VerifyTools.isBlank(pkValue)) { // 主键值为空
+            String details = "CanNotExecuteUpdateById, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
         }
-        DbWhere readyWhere = where != DbWhere.NONE ? where : new DbWhere();
-        return new Updhere(pkValue, readyEntity, readyWhere);
-    }
-
-    protected static class IdMap<K, V> {
-
-        private String id;
-        private Map<K, V> map;
-
-        public IdMap(String id, Map<K, V> map) {
-            this.id = id;
-            this.map = map;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public Map<K, V> getMap() {
-            return map;
-        }
-    }
-
-    protected static class Updhere {
-
-        private String id;
-        private DbUpdate update;
-        private DbWhere where;
-
-        public Updhere(String id, DbUpdate update, DbWhere where) {
-            this.id = id;
-            this.update = update;
-            this.where = where;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public DbUpdate getUpdate() {
-            return update;
-        }
-
-        public DbWhere getWhere() {
-            return where;
-        }
+        return new PkUpdate(pkValue, readyEntity);
     }
 
     /** 获取当前实例的Bean类型 **/
