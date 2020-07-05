@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.SqlParameterValue;
+import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
+import com.gitee.qdbp.able.jdbc.base.WhereCondition;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
@@ -29,7 +31,9 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
+import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
+import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -130,6 +134,22 @@ public abstract class DbTools {
 
     public static SqlParser buildSqlParser(SqlDialect dialect) {
         return new SqlParser(dialect);
+    }
+
+    public static <T extends WhereCondition> WhereSqlBuilder<T> getWhereSqlBuilder(T condition) {
+        Class<? extends WhereCondition> type = condition.getClass();
+        // JDK8+不用强转
+        @SuppressWarnings("unchecked")
+        WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.defaults().getWhereSqlBuilder(type);
+        return builder;
+    }
+
+    public static <T extends UpdateCondition> UpdateSqlBuilder<T> getUpdateSqlBuilder(T condition) {
+        Class<? extends UpdateCondition> type = condition.getClass();
+        // JDK8+不用强转
+        @SuppressWarnings("unchecked")
+        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.defaults().getUpdateSqlBuilder(type);
+        return builder;
     }
 
     /**
