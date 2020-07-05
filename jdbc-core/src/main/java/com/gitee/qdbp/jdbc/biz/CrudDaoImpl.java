@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
@@ -42,8 +40,6 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @version 190601
  */
 public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
-
-    private static Logger log = LoggerFactory.getLogger(CrudDaoImpl.class);
 
     protected Class<T> beanClass;
     /** 批量执行时的大小限制(0为无限制) **/
@@ -81,8 +77,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedFindById, class=" + beanClass.getName();
-            log.warn("PrimaryKeyFieldNotFound, {}", details);
-            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND, details);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
         String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
@@ -242,8 +237,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedUpdateById, class=" + beanClass.getName();
-            log.warn("PrimaryKeyFieldNotFound, {}", details);
-            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND, details);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
         return executeUpdate(entity, fillUpdateParams, errorOnUnaffected);
     }
@@ -271,7 +265,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         DbUpdate readyEntity = converter.parseMapToDbUpdate(mapEntity);
         if (readyEntity.isEmpty()) {
-            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+            String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
 
         DbWhere readyWhere = checkWhere(where);
@@ -299,18 +294,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
         int rows = jdbc.update(buffer);
 
-        if (rows == 0) {
-            String desc = "Failed to update, affected rows is 0. ";
-            if (errorOnUnaffected) {
-                if (log.isErrorEnabled()) {
-                    log.error(desc);
-                }
-                throw new ServiceException(DbErrorCode.DB_AFFECTED_ROWS_IS_ZERO);
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(desc);
-                }
-            }
+        if (rows == 0 && errorOnUnaffected) {
+            throw new ServiceException(DbErrorCode.DB_AFFECTED_ROWS_IS_ZERO);
         }
         return rows;
     }
@@ -365,8 +350,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedDeleteById, class=" + beanClass.getName();
-            log.warn("PrimaryKeyFieldNotFound, {}", details);
-            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND, details);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
 
         String primaryField = pk.getFieldName();
@@ -409,8 +393,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedDeleteById, class=" + beanClass.getName();
-            log.warn("PrimaryKeyFieldNotFound, {}", details);
-            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND, details);
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
 
         String primaryField = pk.getFieldName();
@@ -455,22 +438,13 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
                 SqlBuffer buffer = getSqlBuilder().buildUpdateSql(ud, readyWhere);
                 rows = jdbc.update(buffer);
             } else { // 不支持逻辑删除
-                throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_LOGICAL_DELETE);
+                String details = "UnsupportedLogicDelete, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_LOGICAL_DELETE, details);
             }
         }
 
-        if (rows == 0) {
-            String desc = "Failed to delete, affected rows is 0. ";
-            if (errorOnUnaffected) {
-                if (log.isErrorEnabled()) {
-                    log.error(desc);
-                }
-                throw new ServiceException(DbErrorCode.DB_AFFECTED_ROWS_IS_ZERO);
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(desc);
-                }
-            }
+        if (rows == 0 && errorOnUnaffected) {
+            throw new ServiceException(DbErrorCode.DB_AFFECTED_ROWS_IS_ZERO);
         }
         return rows;
     }
@@ -507,13 +481,15 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected IdMap<String, Object> convertAndFillCreateParams(Object object, boolean fillCreateParams) {
         if (object == null) {
-            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+            String details = "CanNotExecuteCreate, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         if (object instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> entity = (Map<String, Object>) object;
             if (entity.isEmpty()) {
-                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+                String details = "NoFieldsThatBeInsertedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
             }
             String id = fillEntityCreateParams(entity, fillCreateParams);
             return new IdMap<>(id, entity);
@@ -522,7 +498,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             T entity = (T) object;
             return convertEntityAndFillCreateParams(entity, fillCreateParams);
         } else {
-            throw new UnsupportedOperationException("Unsupported entity type: " + object.getClass());
+            String details = "CanNotExecuteCreate, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_ENTITY_TYPE, details);
         }
     }
 
@@ -538,11 +515,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected String fillEntityCreateParams(Map<String, Object> entity, boolean fillCreateParams) {
         String tableName = getSqlBuilder().helper().getTableName();
-        String id = null;
         // 查找主键
+        String id;
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
-            log.debug("PrimaryKeyInfoNotFound, class={}", beanClass);
+            id = null;
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
             id = entity.get(pk.getFieldName()).toString();
         } else {
@@ -573,7 +550,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbConditionConverter conditionConverter = DbTools.getDbConditionConverter();
         Map<String, Object> readyEntity = conditionConverter.convertBeanToInsertMap(entity);
         if (readyEntity.isEmpty()) {
-            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+            String details = "NoFieldsThatBeInsertedWereFound, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         // 记录下所有字段值原值, 用于比较差异
         Map<String, Object> original = new HashMap<>();
@@ -598,13 +576,15 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected Updhere convertAndFillUpdateParams(Object object, boolean fillUpdateParams) {
         if (object == null) {
-            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+            String details = "CanNotExecuteUpdate, EntityIsNull, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         if (object instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) object;
             if (map.isEmpty()) {
-                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+                String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
             }
             fillEntityUpdateParams(map, fillUpdateParams); // 填充单表修改参数(如修改人修改时间等)
             Updhere updhere = parseMapToUpdateWhere(map); // 已经执行过checkWhere了
@@ -620,7 +600,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             entityFillExecutor.fillUpdateWhereParams(updhere.getWhere());
             return updhere;
         } else {
-            throw new UnsupportedOperationException("Unsupported entity type: " + object.getClass());
+            String details = "CanNotExecuteUpdate, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_ENTITY_TYPE, details);
         }
     }
 
@@ -653,7 +634,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbConditionConverter conditionConverter = DbTools.getDbConditionConverter();
         Map<String, Object> readyEntity = conditionConverter.convertBeanToUpdateMap(entity);
         if (readyEntity.isEmpty()) {
-            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY);
+            String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         // 记录下所有字段值原值, 用于比较差异
         Map<String, Object> original = new HashMap<>();
@@ -693,7 +675,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
                 where = converter.convertBeanToDbWhere(entityValue);
             } else {
                 // whereValue只支持DbWhere/map/T
-                throw new UnsupportedOperationException("Unsupported where type: " + whereValue.getClass());
+                String details = "CanNotExecuteUpdate, class=" + beanClass.getName();
+                throw new ServiceException(DbErrorCode.DB_UNSUPPORTED_WHERE_TYPE, details);
             }
         }
         // 从map中获取参数构建DbUpdate对象
@@ -704,26 +687,23 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         String pkValue = pk == null ? null : getValueAndRemoveField(readyEntity, pk.getFieldName());
         if (readyEntity.isEmpty()) {
             String details = "NoFieldsThatBeUpdatedWereFound, class=" + beanClass.getName();
-            log.warn("CanNotExecuteUpdate, {}", details);
             throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         if (where.isEmpty() && !(where instanceof EmptiableWhere)) {
             // 当where条件为空, 自动查找主键作为where条件
             if (pk == null) { // 没有找到主键字段
                 String details = "UnsupportedUpdateById, class=" + beanClass.getName();
-                log.warn("PrimaryKeyFieldNotFound, {}", details);
-                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_NOT_FOUND, details);
+                throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
             }
             // 主键不能为空
             if (VerifyTools.isBlank(pkValue)) { // 主键值为空
                 String details = "CanNotExecuteUpdateById, class=" + beanClass.getName();
-                log.warn("PrimaryKeyValueIsBlank, {}", details);
                 throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_VALUE_IS_REQUIRED, details);
             }
             // 将主键从更新数据中移到查询条件中
             where.on(pk.getFieldName(), "=", pkValue);
         }
-        DbWhere readyWhere = checkWhere(where);
+        DbWhere readyWhere = where != DbWhere.NONE ? where : new DbWhere();
         return new Updhere(pkValue, readyEntity, readyWhere);
     }
 

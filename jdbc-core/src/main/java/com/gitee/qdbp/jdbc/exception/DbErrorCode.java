@@ -11,11 +11,15 @@ import com.gitee.qdbp.able.result.IResultMessage;
 public enum DbErrorCode implements IResultMessage {
 
     /** 主键字段未找到 **/
-    DB_PRIMARY_KEY_FIELD_NOT_FOUND("主键字段未找到"),
+    DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED("主键字段未找到"),
     /** 主键值不能为空 **/
     DB_PRIMARY_KEY_VALUE_IS_REQUIRED("主键值不能为空"),
     /** 实体类内容不能为空 **/
     DB_ENTITY_MUST_NOT_BE_EMPTY("实体类内容不能为空"),
+    /** 不支持的实体类型 **/
+    DB_UNSUPPORTED_ENTITY_TYPE("不支持的实体类型"),
+    /** 不支持的WHERE类型 **/
+    DB_UNSUPPORTED_WHERE_TYPE("不支持的WHERE类型"),
     /** WHERE条件内容不能为空 **/
     DB_WHERE_MUST_NOT_BE_EMPTY("WHERE条件内容不能为空"),
     /** 受影响记录数为0 **/
