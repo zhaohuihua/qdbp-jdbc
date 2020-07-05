@@ -91,7 +91,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             entity.setContent("BatchTest-Content-" + index);
             changed.add(entity);
         }
-        dao.updates(changed, true);
+        dao.updates(changed, DbWhere.NONE, true);
     }
 
     @Test(priority = 202)

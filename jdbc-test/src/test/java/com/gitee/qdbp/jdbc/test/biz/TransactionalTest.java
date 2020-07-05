@@ -34,7 +34,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
             SqlBuffer buffer = new SqlBuffer();
             buffer.append("CREATE TABLE IF NOT EXISTS TEST_SETTING (");
             buffer.append("ID VARCHAR(50) NOT NULL COMMENT '主键',");
-            buffer.append("NAME VARCHAR(20) NOT NULL COMMENT '名称',");
+            buffer.append("NAME VARCHAR(30) NOT NULL COMMENT '名称',");
             buffer.append("VALUE VARCHAR(50) NOT NULL COMMENT '文本',");
             buffer.append("VERSION INT(8) NOT NULL DEFAULT 1 COMMENT '版本号',");
             buffer.append("REMARK VARCHAR(200) COMMENT '备注',");
