@@ -25,7 +25,6 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
-@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
 

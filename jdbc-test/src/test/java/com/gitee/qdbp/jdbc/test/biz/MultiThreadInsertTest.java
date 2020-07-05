@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.test.biz;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService;
 
-@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
 
@@ -27,8 +27,8 @@ public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private SysSettingService sysSettingService;
 
-    @Test(priority = 0)
-    public void testCreateTable() {
+    @PostConstruct
+    public void init() {
         {
             SqlBuffer buffer = new SqlBuffer();
             buffer.append("CREATE TABLE IF NOT EXISTS TEST_SETTING (");

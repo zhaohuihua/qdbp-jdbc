@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 import com.gitee.qdbp.jdbc.test.enums.AccountType;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
 
-@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class ConvertTest extends AbstractTestNGSpringContextTests {
 

@@ -14,8 +14,8 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
-import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
+import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
@@ -23,7 +23,6 @@ import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.UserRole;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
-@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class SimpleJoinQueryTest extends AbstractTestNGSpringContextTests {
 

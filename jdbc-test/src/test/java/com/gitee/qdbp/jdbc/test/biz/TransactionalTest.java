@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.test.biz;
 
+import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,7 +20,6 @@ import com.gitee.qdbp.jdbc.test.service.SysSettingService.TestModel;
  * @author zhaohuihua
  * @version 20200212
  */
-@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class TransactionalTest extends AbstractTestNGSpringContextTests {
 
@@ -28,8 +28,8 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private SysSettingService sysSettingService;
 
-    @Test(priority = 0)
-    public void testCreateTable() {
+    @PostConstruct
+    public void init() {
         {
             SqlBuffer buffer = new SqlBuffer();
             buffer.append("CREATE TABLE IF NOT EXISTS TEST_SETTING (");
@@ -58,6 +58,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
             buffer.append("ID VARCHAR(50) NOT NULL COMMENT '主键',");
             buffer.append("NAME VARCHAR(20) COMMENT '名称',");
             buffer.append("CONTENT TEXT NOT NULL COMMENT '内容',");
+            buffer.append("SORT_INDEX INT(8) NOT NULL DEFAULT 1 COMMENT '排序号',");
             buffer.append("CREATE_TIME DATETIME NOT NULL COMMENT '创建时间',");
             buffer.append("DATA_STATE INT(10) NOT NULL COMMENT '数据状态:0为正常|其他为删除',");
             buffer.append("PRIMARY KEY (ID)");
