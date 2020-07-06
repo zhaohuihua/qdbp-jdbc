@@ -410,7 +410,18 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         }
     }
 
-    protected int doBatchUpdates(List<?> entities, DbWhere where, boolean fillUpdateParams) throws ServiceException {
+    /**
+     * 执行批量更新
+     * 
+     * @param entities 实体对象列表(只能是entity或map或IdUpdate列表, 其他参数将会报错)<br>
+     *            如果实体对象是map, map下不能有where, 否则将会报错
+     * @param commonWhere 除ID外的公共过滤条件, 如果没有公共过滤条件应传入DbWhere.NONE
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
+     * @return 受影响行数
+     * @throws ServiceException 操作失败
+     */
+    protected int doBatchUpdates(List<?> entities, DbWhere commonWhere, boolean fillUpdateParams)
+            throws ServiceException {
         // 查找主键(批量更新必须要有主键)
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         CrudSqlBuilder sqlBuilder = getSqlBuilder();
@@ -420,8 +431,10 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             PkUpdate pkud = convertAndFillUpdateParams(item, fillUpdateParams);
             String pkValue = pkud.getPrimaryKey();
             DbUpdate entity = pkud.getUpdate();
-            // 将主键加入到查询条件中
-            where.replace(pk.getFieldName(), "=", pkValue);
+            // 从公共条件中复制过滤条件
+            DbWhere where = commonWhere.copy();
+            // 将主键加入到过滤条件中
+            where.on(pk.getFieldName(), "=", pkValue);
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildUpdateSql(entity, where);
             if (!buffer.isEmpty()) {
