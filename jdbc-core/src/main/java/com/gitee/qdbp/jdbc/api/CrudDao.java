@@ -412,6 +412,7 @@ public interface CrudDao<T> {
      *            如果实体对象是map, map下不能有where, 否则将会报错
      * @param commonWhere 除ID外的公共过滤条件, 如果没有公共过滤条件应传入DbWhere.NONE
      * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
+     * @return 受影响行数(某些实现类可能无法获取到准确的受影响行数)
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      */
