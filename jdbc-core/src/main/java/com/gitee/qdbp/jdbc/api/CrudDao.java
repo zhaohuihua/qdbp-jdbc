@@ -300,7 +300,7 @@ public interface CrudDao<T> {
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entity 实体对象
-     * @param fillCreateParams 是否自动填充创建参数
+     * @param fillCreateParams 是否自动填充更新参数(创建人/创建时间等)
      * @return 返回主键编号
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
@@ -314,7 +314,7 @@ public interface CrudDao<T> {
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues})
      * 
      * @param entity 实体对象
-     * @param fillCreateParams 是否自动填充创建参数
+     * @param fillCreateParams 是否自动填充更新参数(创建人/创建时间等)
      * @return 返回主键编号
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
@@ -328,7 +328,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
      * 
      * @param entity 实体对象
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -343,7 +343,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id} AND DATA_STATE=0
      * 
      * @param entity 实体对象(<b>注意:</b> 如果存在
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -358,7 +358,7 @@ public interface CrudDao<T> {
      * 
      * @param entity 实体对象
      * @param where 匹配条件
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -374,7 +374,7 @@ public interface CrudDao<T> {
      * 
      * @param entity 实体对象
      * @param where 匹配条件
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -392,7 +392,7 @@ public interface CrudDao<T> {
      * ---- 这将会导致数据库设置的默认值不会生效<br>
      * 
      * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)
-     * @param fillCreateParams 是否自动填充创建参数
+     * @param fillCreateParams 是否自动填充更新参数(创建人/创建时间等)
      * @return 返回主键编号
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
@@ -410,12 +410,12 @@ public interface CrudDao<T> {
      * 
      * @param entities 实体对象列表(只能是entity或map或IdUpdate列表, 其他参数将会报错)<br>
      *            如果实体对象是map, map下不能有where, 否则将会报错
-     * @param where 除ID外的其他查询条件
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param commonWhere 除ID外的公共过滤条件, 如果没有公共过滤条件应传入DbWhere.NONE
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      */
-    int updates(List<?> entities, DbWhere where, boolean fillUpdateParams) throws ServiceException;
+    int updates(List<?> entities, DbWhere commonWhere, boolean fillUpdateParams) throws ServiceException;
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>
@@ -423,7 +423,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET DATA_STATE=1 WHERE ID IN ({ids}) DATA_STATE=0
      *
      * @param ids 待删除的主键编号
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 删除行数
      * @throws ServiceException 删除失败
@@ -437,7 +437,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -450,7 +450,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -475,7 +475,7 @@ public interface CrudDao<T> {
      * UPDATE {tableName} SET DATA_STATE=1 WHERE {whereConditions} AND DATA_STATE=0
      * 
      * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
@@ -489,9 +489,10 @@ public interface CrudDao<T> {
      * 
      * @param where 匹配条件, 如果要删除全部记录应传入DbWhere.NONE
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
-     * @param fillUpdateParams 是否自动填充更新参数
+     * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @return 受影响行数
      * @throws ServiceException 操作失败
      */
     int physicalDelete(DbWhere where, boolean errorOnUnaffected) throws ServiceException;
 }
+	
