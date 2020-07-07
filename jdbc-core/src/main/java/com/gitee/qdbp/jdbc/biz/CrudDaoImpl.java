@@ -422,9 +422,9 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected int doBatchUpdates(List<?> entities, DbWhere commonWhere, boolean fillUpdateParams)
             throws ServiceException {
-        // 查找主键(批量更新必须要有主键)
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         CrudSqlBuilder sqlBuilder = getSqlBuilder();
+        // 查找主键(批量更新必须要有主键)
+        PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         SqlBuffer buffer = new SqlBuffer();
         for (Object item : entities) {
             // 将实体类转换为map, 并执行实体业务数据填充
