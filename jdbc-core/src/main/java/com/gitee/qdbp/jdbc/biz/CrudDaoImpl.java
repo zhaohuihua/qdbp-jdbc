@@ -18,7 +18,9 @@ import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.BatchOperateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
@@ -213,23 +215,17 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     protected List<String> doBatchInserts(List<?> entities, boolean fillCreateParams) throws ServiceException {
-        CrudSqlBuilder sqlBuilder = getSqlBuilder();
-        SqlBuffer buffer = new SqlBuffer();
-        List<String> ids = new ArrayList<>();
+        List<PkEntity> contents = new ArrayList<>();
         for (Object item : entities) {
             // 将实体类转换为map, 并执行实体业务数据填充
             PkEntity pe = convertAndFillCreateParams(item, fillCreateParams);
-            String id = pe.getPrimaryKey();
-            Map<String, Object> entity = pe.getEntity();
-            ids.add(id);
-            // 拼接SQL
-            SqlBuffer temp = sqlBuilder.buildInsertSql(entity);
-            buffer.append(temp).append(';', '\n');
+            contents.add(pe);
         }
 
+        DbVersion version = jdbc.findDbVersion();
+        BatchOperateExecutor batchOperator = DbTools.getBatchOperateExecutor(version);
         // 执行批量数据库插入
-        jdbc.batchInsert(buffer);
-        return ids;
+        return batchOperator.inserts(contents, jdbc, getSqlBuilder());
     }
 
     @Override
@@ -422,29 +418,16 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected int doBatchUpdates(List<?> entities, DbWhere commonWhere, boolean fillUpdateParams)
             throws ServiceException {
-        CrudSqlBuilder sqlBuilder = getSqlBuilder();
-        // 查找主键(批量更新必须要有主键)
-        PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
-        SqlBuffer buffer = new SqlBuffer();
+        List<PkUpdate> contents = new ArrayList<>();
         for (Object item : entities) {
             // 将实体类转换为map, 并执行实体业务数据填充
             PkUpdate pkud = convertAndFillUpdateParams(item, fillUpdateParams);
-            String pkValue = pkud.getPrimaryKey();
-            DbUpdate entity = pkud.getUpdate();
-            // 从公共条件中复制过滤条件
-            DbWhere where = commonWhere.copy();
-            // 将主键加入到过滤条件中
-            where.on(pk.getFieldName(), "=", pkValue);
-            // 拼接SQL
-            SqlBuffer temp = sqlBuilder.buildUpdateSql(entity, where);
-            if (!buffer.isEmpty()) {
-                buffer.append(';', '\n');
-            }
-            buffer.append(temp);
+            contents.add(pkud);
         }
-
-        // 执行批量数据库插入
-        return jdbc.batchUpdate(buffer);
+        DbVersion version = jdbc.findDbVersion();
+        BatchOperateExecutor batchOperator = DbTools.getBatchOperateExecutor(version);
+        // 执行批量数据库更新
+        return batchOperator.updates(contents, commonWhere, jdbc, getSqlBuilder());
     }
 
     @Override

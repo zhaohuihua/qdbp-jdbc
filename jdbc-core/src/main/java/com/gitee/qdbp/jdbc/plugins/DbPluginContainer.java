@@ -5,6 +5,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
@@ -80,6 +81,9 @@ public class DbPluginContainer {
         }
         if (container.getDbVersionFinder() == null) {
             container.setDbVersionFinder(new DataSourceDbVersionFinder());
+        }
+        if (container.getDefaultBatchOperateExecutor() == null) {
+            container.setDefaultBatchOperateExecutor(new BatchOperateByForEachExecutor());
         }
     }
 
@@ -185,6 +189,36 @@ public class DbPluginContainer {
     /** 数据库版本信息查询接口 **/
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
+    }
+
+    /** 默认的批量操作处理类 **/
+    private BatchOperateExecutor defaultBatchOperateExecutor;
+    /** 批量操作处理类列表 **/
+    private List<BatchOperateExecutor> batchOperateExecutors = new ArrayList<>();
+
+    /** 获取默认的批量操作处理类 **/
+    public BatchOperateExecutor getDefaultBatchOperateExecutor() {
+        return defaultBatchOperateExecutor;
+    }
+
+    /** 设置默认的批量操作处理类 **/
+    public void setDefaultBatchOperateExecutor(BatchOperateExecutor batchOperateExecutor) {
+        this.defaultBatchOperateExecutor = batchOperateExecutor;
+    }
+
+    /** 获取批量操作处理类列表 **/
+    public List<BatchOperateExecutor> getBatchOperateExecutors() {
+        return this.batchOperateExecutors;
+    }
+
+    /** 设置批量操作处理类列表 **/
+    public void setBatchOperateExecutors(List<BatchOperateExecutor> batchOperateExecutors) {
+        this.batchOperateExecutors = batchOperateExecutors;
+    }
+
+    /** 增加操作处理类 **/
+    public void addBatchOperateExecutor(BatchOperateExecutor batchOperateExecutor) {
+        this.batchOperateExecutors.add(batchOperateExecutor);
     }
 
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();

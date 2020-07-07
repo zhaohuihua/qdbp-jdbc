@@ -7,6 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.able.jdbc.model.PkUpdate;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
@@ -19,6 +20,11 @@ import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
  * @version 20200706
  */
 public class BatchOperateByForEachExecutor extends BaseBatchOperateExecutor {
+
+    @Override
+    public boolean supports(DbVersion version) {
+        return true; // 所有数据库都支持
+    }
 
     @Override
     public List<String> inserts(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {

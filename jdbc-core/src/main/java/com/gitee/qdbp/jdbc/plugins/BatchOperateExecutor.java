@@ -6,6 +6,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.able.jdbc.model.PkUpdate;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
 /**
@@ -15,6 +16,14 @@ import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
  * @version 20200705
  */
 public interface BatchOperateExecutor {
+
+    /**
+     * 是否支持指定数据库
+     * 
+     * @param version 数据库类型及版本信息
+     * @return 是否支持
+     */
+    boolean supports(DbVersion version);
 
     /**
      * 批量保存实体对象

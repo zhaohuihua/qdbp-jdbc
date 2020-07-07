@@ -22,6 +22,7 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
+import com.gitee.qdbp.jdbc.plugins.BatchOperateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
@@ -195,6 +196,20 @@ public abstract class DbTools {
     public static DbVersion findDbVersion(DataSource datasource) {
         DbVersionFinder finder = DbPluginContainer.defaults().getDbVersionFinder();
         return finder.findDbVersion(datasource);
+    }
+
+    /** 根据数据库类型获取批量操作处理类 **/
+    public static BatchOperateExecutor getBatchOperateExecutor(DbVersion version) {
+        DbPluginContainer plugins = DbPluginContainer.defaults();
+        List<BatchOperateExecutor> batchOperateExecutors = plugins.getBatchOperateExecutors();
+        if (batchOperateExecutors != null && !batchOperateExecutors.isEmpty()) {
+            for (BatchOperateExecutor item : batchOperateExecutors) {
+                if (item.supports(version)) {
+                    return item;
+                }
+            }
+        }
+        return plugins.getDefaultBatchOperateExecutor();
     }
 
     /** Entity的表名缓存 **/
