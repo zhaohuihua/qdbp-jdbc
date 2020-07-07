@@ -20,7 +20,8 @@ import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
-import com.gitee.qdbp.jdbc.plugins.BatchOperateExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
@@ -223,7 +224,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         }
 
         DbVersion version = jdbc.findDbVersion();
-        BatchOperateExecutor batchOperator = DbTools.getBatchOperateExecutor(version);
+        BatchInsertExecutor batchOperator = DbTools.getBatchInsertExecutor(version);
         // 执行批量数据库插入
         return batchOperator.inserts(contents, jdbc, getSqlBuilder());
     }
@@ -425,7 +426,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             contents.add(pkud);
         }
         DbVersion version = jdbc.findDbVersion();
-        BatchOperateExecutor batchOperator = DbTools.getBatchOperateExecutor(version);
+        BatchUpdateExecutor batchOperator = DbTools.getBatchUpdateExecutor(version);
         // 执行批量数据库更新
         return batchOperator.updates(contents, commonWhere, jdbc, getSqlBuilder());
     }

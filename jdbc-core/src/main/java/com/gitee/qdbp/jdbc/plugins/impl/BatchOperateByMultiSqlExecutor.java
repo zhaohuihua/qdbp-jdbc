@@ -11,6 +11,8 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
@@ -45,7 +47,7 @@ import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
  * @author zhaohuihua
  * @version 20200707
  */
-public class BatchOperateByMultiSqlExecutor extends BaseBatchOperateExecutor {
+public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, BatchUpdateExecutor {
 
     /**
      * 是否支持指定数据库<br>

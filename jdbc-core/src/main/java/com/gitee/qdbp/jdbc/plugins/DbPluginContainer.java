@@ -82,8 +82,11 @@ public class DbPluginContainer {
         if (container.getDbVersionFinder() == null) {
             container.setDbVersionFinder(new DataSourceDbVersionFinder());
         }
-        if (container.getDefaultBatchOperateExecutor() == null) {
-            container.setDefaultBatchOperateExecutor(new BatchOperateByForEachExecutor());
+        if (container.getDefaultBatchInsertExecutor() == null) {
+            container.setDefaultBatchInsertExecutor(new BatchOperateByForEachExecutor());
+        }
+        if (container.getDefaultBatchUpdateExecutor() == null) {
+            container.setDefaultBatchUpdateExecutor(new BatchOperateByForEachExecutor());
         }
     }
 
@@ -191,34 +194,63 @@ public class DbPluginContainer {
         return dbVersionFinder;
     }
 
-    /** 默认的批量操作处理类 **/
-    private BatchOperateExecutor defaultBatchOperateExecutor;
-    /** 批量操作处理类列表 **/
-    private List<BatchOperateExecutor> batchOperateExecutors = new ArrayList<>();
+    /** 默认的批量新增处理类 **/
+    private BatchInsertExecutor defaultBatchInsertExecutor;
+    /** 默认的批量更新处理类 **/
+    private BatchUpdateExecutor defaultBatchUpdateExecutor;
+    /** 批量新增处理类列表 **/
+    private List<BatchInsertExecutor> batchInsertExecutors = new ArrayList<>();
+    /** 批量更新处理类列表 **/
+    private List<BatchUpdateExecutor> batchUpdateExecutors = new ArrayList<>();
 
-    /** 获取默认的批量操作处理类 **/
-    public BatchOperateExecutor getDefaultBatchOperateExecutor() {
-        return defaultBatchOperateExecutor;
+    /** 获取默认的批量新增处理类 **/
+    public BatchInsertExecutor getDefaultBatchInsertExecutor() {
+        return defaultBatchInsertExecutor;
     }
 
-    /** 设置默认的批量操作处理类 **/
-    public void setDefaultBatchOperateExecutor(BatchOperateExecutor batchOperateExecutor) {
-        this.defaultBatchOperateExecutor = batchOperateExecutor;
+    /** 设置默认的批量新增处理类 **/
+    public void setDefaultBatchInsertExecutor(BatchInsertExecutor batchInsertExecutor) {
+        this.defaultBatchInsertExecutor = batchInsertExecutor;
     }
 
-    /** 获取批量操作处理类列表 **/
-    public List<BatchOperateExecutor> getBatchOperateExecutors() {
-        return this.batchOperateExecutors;
+    /** 获取批量新增处理类列表 **/
+    public List<BatchInsertExecutor> getBatchInsertExecutors() {
+        return this.batchInsertExecutors;
     }
 
-    /** 设置批量操作处理类列表 **/
-    public void setBatchOperateExecutors(List<BatchOperateExecutor> batchOperateExecutors) {
-        this.batchOperateExecutors = batchOperateExecutors;
+    /** 设置批量新增处理类列表 **/
+    public void setBatchInsertExecutors(List<BatchInsertExecutor> batchInsertExecutors) {
+        this.batchInsertExecutors = batchInsertExecutors;
     }
 
-    /** 增加操作处理类 **/
-    public void addBatchOperateExecutor(BatchOperateExecutor batchOperateExecutor) {
-        this.batchOperateExecutors.add(batchOperateExecutor);
+    /** 增加新增处理类 **/
+    public void addBatchInsertExecutor(BatchInsertExecutor batchInsertExecutor) {
+        this.batchInsertExecutors.add(batchInsertExecutor);
+    }
+
+    /** 获取默认的批量更新处理类 **/
+    public BatchUpdateExecutor getDefaultBatchUpdateExecutor() {
+        return defaultBatchUpdateExecutor;
+    }
+
+    /** 设置默认的批量更新处理类 **/
+    public void setDefaultBatchUpdateExecutor(BatchUpdateExecutor batchUpdateExecutor) {
+        this.defaultBatchUpdateExecutor = batchUpdateExecutor;
+    }
+
+    /** 获取批量更新处理类列表 **/
+    public List<BatchUpdateExecutor> getBatchUpdateExecutors() {
+        return this.batchUpdateExecutors;
+    }
+
+    /** 设置批量更新处理类列表 **/
+    public void setBatchUpdateExecutors(List<BatchUpdateExecutor> batchUpdateExecutors) {
+        this.batchUpdateExecutors = batchUpdateExecutors;
+    }
+
+    /** 增加更新处理类 **/
+    public void addBatchUpdateExecutor(BatchUpdateExecutor batchUpdateExecutor) {
+        this.batchUpdateExecutors.add(batchUpdateExecutor);
     }
 
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();

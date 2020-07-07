@@ -22,7 +22,8 @@ import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
-import com.gitee.qdbp.jdbc.plugins.BatchOperateExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
@@ -198,18 +199,32 @@ public abstract class DbTools {
         return finder.findDbVersion(datasource);
     }
 
-    /** 根据数据库类型获取批量操作处理类 **/
-    public static BatchOperateExecutor getBatchOperateExecutor(DbVersion version) {
+    /** 根据数据库类型获取批量新增处理类 **/
+    public static BatchInsertExecutor getBatchInsertExecutor(DbVersion version) {
         DbPluginContainer plugins = DbPluginContainer.defaults();
-        List<BatchOperateExecutor> batchOperateExecutors = plugins.getBatchOperateExecutors();
+        List<BatchInsertExecutor> batchOperateExecutors = plugins.getBatchInsertExecutors();
         if (batchOperateExecutors != null && !batchOperateExecutors.isEmpty()) {
-            for (BatchOperateExecutor item : batchOperateExecutors) {
+            for (BatchInsertExecutor item : batchOperateExecutors) {
                 if (item.supports(version)) {
                     return item;
                 }
             }
         }
-        return plugins.getDefaultBatchOperateExecutor();
+        return plugins.getDefaultBatchInsertExecutor();
+    }
+
+    /** 根据数据库类型获取批量更新处理类 **/
+    public static BatchUpdateExecutor getBatchUpdateExecutor(DbVersion version) {
+        DbPluginContainer plugins = DbPluginContainer.defaults();
+        List<BatchUpdateExecutor> batchOperateExecutors = plugins.getBatchUpdateExecutors();
+        if (batchOperateExecutors != null && !batchOperateExecutors.isEmpty()) {
+            for (BatchUpdateExecutor item : batchOperateExecutors) {
+                if (item.supports(version)) {
+                    return item;
+                }
+            }
+        }
+        return plugins.getDefaultBatchUpdateExecutor();
     }
 
     /** Entity的表名缓存 **/
