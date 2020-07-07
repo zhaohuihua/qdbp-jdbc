@@ -91,10 +91,18 @@
 				<property name="conversionService" ref="conversionService" />
 			</bean>
 		</property>
-		<property name="defaultBatchOperateExecutor">
+		<property name="defaultBatchInsertExecutor">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor"/>
 		</property>
-		<property name="batchOperateExecutors">
+		<property name="defaultBatchUpdateExecutor">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor"/>
+		</property>
+		<property name="batchInsertExecutors">
+			<list>
+				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByMultiSqlExecutor"/>
+			</list>
+		</property>
+		<property name="batchUpdateExecutors">
 			<list>
 				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByMultiSqlExecutor"/>
 			</list>
