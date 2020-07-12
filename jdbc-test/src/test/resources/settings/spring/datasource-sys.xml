@@ -54,14 +54,16 @@
 		<!-- 合并多个DruidDataSource的监控数据 -->
 		<property name="useGlobalDataSourceStat" value="true" />
 		<!-- 配置filters, proxyFilters一定要放在filters前面, 否则filters初始化时就会生成默认的 -->
+		<!--
         <property name="proxyFilters">
 			<list>
 				<bean class="com.alibaba.druid.filter.stat.StatFilter">
-					<property name="slowSqlMillis" value="30000" />
+					<property name="slowSqlMillis" value="10000" />
 					<property name="logSlowSql" value="true" />
 					<property name="mergeSql" value="true" />
 				</bean>
 				<bean class="com.alibaba.druid.wall.WallFilter">
+					<property name="throwException" value="false" />
 					<property name="config">
 						<bean id="wall-config" class="com.alibaba.druid.wall.WallConfig">
 							<property name="multiStatementAllow" value="true" />
@@ -70,6 +72,8 @@
 				</bean>
 			</list>
 		</property>
+		-->
+		<property name="connectionProperties" value="druid.stat.mergeSql=true;druid.stat.slowSqlMillis=10000" />
 		<property name="filters" value="config,stat,wall" />
 	</bean>
 

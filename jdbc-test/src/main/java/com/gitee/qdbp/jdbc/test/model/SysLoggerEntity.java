@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.test.model;
 
+import com.gitee.qdbp.able.jdbc.annotations.ColumnDefault;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 
 /**
@@ -17,6 +18,7 @@ public class SysLoggerEntity extends CommEntity {
 
     private String name;
     private String content;
+    @ColumnDefault("1")
     private Integer sortIndex;
 
     public String getName() {

@@ -46,7 +46,10 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             entity.setContent("BatchTest-Content-" + index);
             if (i % 5 == 0) {
                 defaultIndex++;
-                entity.setSortIndex(null); // 测试默认值
+                // 测试默认值
+                // 由于数据库不允许为空, 所以必须使用@ColumnDefault注解在sortIndex字段上设置默认值
+                // 否则会报Column 'SORT_INDEX' cannot be null
+                entity.setSortIndex(null);
             } else {
                 entity.setSortIndex(i * 10);
             }
@@ -55,7 +58,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
         dao.inserts(entities, true);
     }
 
-    @Test(priority = 102)
+    @Test(priority = 102, dependsOnMethods = "testBatchInsert")
     public void testAllRecordTotal() {
         // 检查记录总数
         DbWhere where = new DbWhere();
@@ -64,7 +67,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
         Assert.assertEquals(count, total, "TotalRecord");
     }
 
-    @Test(priority = 103)
+    @Test(priority = 103, dependsOnMethods = "testBatchInsert")
     public void testDefaultIndexTotal() {
         // 检查序号为默认值的记录数
         DbWhere where = new DbWhere();
@@ -74,7 +77,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
         Assert.assertEquals(count, defaultIndex, "DefaultIndexRecord");
     }
 
-    @Test(priority = 201)
+    @Test(priority = 201, dependsOnMethods = "testBatchInsert")
     public void testBatchUpdate() {
         DbWhere where = new DbWhere();
         where.on("name", "starts", "BatchTest-Insert");
@@ -91,10 +94,10 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             entity.setContent("BatchTest-Content-" + index);
             changed.add(entity);
         }
-        dao.updates(changed, DbWhere.NONE, true);
+        dao.updates(changed, true);
     }
 
-    @Test(priority = 202)
+    @Test(priority = 202, dependsOnMethods = { "testBatchInsert", "testBatchUpdate" })
     public void testUpdateTotal() {
         // 检查更新成功的记录数
         DbWhere where = new DbWhere();

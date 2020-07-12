@@ -34,7 +34,7 @@ public class SqlFormatTest {
         SqlBuffer buffer = new SqlParser(dialect).parse(sqlTemplate, params);
         SqlBuffer paging1 = dialect.buildPagingSql(buffer, new Paging(1, 10));
         SqlBuffer paging2 = dialect.buildPagingSql(buffer, new Paging(2, 10));
-        System.out.println(buffer.getPreparedSqlString());
+        System.out.println(buffer.getPreparedSqlString(dialect));
         System.out.println("------------------------------");
         System.out.println(DbTools.formatSql(paging1.getExecutableSqlString(dialect), 1));
         System.out.println("------------------------------");
