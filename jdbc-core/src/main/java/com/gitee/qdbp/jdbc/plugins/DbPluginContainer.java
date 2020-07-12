@@ -5,12 +5,15 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiValuesExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
@@ -64,6 +67,9 @@ public class DbPluginContainer {
         if (container.getEntityFillHandler() == null) {
             container.setEntityFillHandler(new SimpleEntityFillHandler<>());
         }
+        if (container.getRawValueConverter() == null) {
+            container.setRawValueConverter(new SimpleRawValueConverter());
+        }
         if (container.getToDbValueConverter() == null) {
             container.setToDbValueConverter(new SimpleVarToDbValueConverter());
         }
@@ -87,6 +93,13 @@ public class DbPluginContainer {
         }
         if (container.getDefaultBatchUpdateExecutor() == null) {
             container.setDefaultBatchUpdateExecutor(new BatchOperateByForEachExecutor());
+        }
+        // 初始化公共的批量操作处理器
+        if (container.getBatchInsertExecutors().isEmpty()) {
+            container.addBatchInsertExecutor(new BatchInsertByMultiValuesExecutor());
+        }
+        if (container.getBatchUpdateExecutors().isEmpty()) {
+            container.addBatchUpdateExecutor(new BatchUpdateByJoinUsingExecutor());
         }
     }
 
@@ -114,6 +127,19 @@ public class DbPluginContainer {
     /** 实体数据填充处理类 **/
     public EntityFillHandler getEntityFillHandler() {
         return entityFillHandler;
+    }
+
+    /** 数据库原生值的转换处理类(sysdate, CURRENT_TIMESTAMP等) **/
+    private RawValueConverter rawValueConverter;
+
+    /** 数据库原生值的转换处理类(sysdate, CURRENT_TIMESTAMP等) **/
+    public RawValueConverter getRawValueConverter() {
+        return rawValueConverter;
+    }
+
+    /** 数据库原生值的转换处理类(sysdate, CURRENT_TIMESTAMP等) **/
+    public void setRawValueConverter(RawValueConverter rawValueConverter) {
+        this.rawValueConverter = rawValueConverter;
     }
 
     /** 数据转换处理类 **/
