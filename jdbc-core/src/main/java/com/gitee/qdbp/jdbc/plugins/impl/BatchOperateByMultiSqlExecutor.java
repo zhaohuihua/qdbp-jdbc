@@ -74,13 +74,19 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     public List<String> inserts(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         SqlBuffer buffer = new SqlBuffer();
         List<String> ids = new ArrayList<>();
-        for (PkEntity item : entities) {
+        int size = entities.size();
+        for (int i = 0; i < size; i++) {
+            PkEntity item = entities.get(i);
             String id = item.getPrimaryKey();
             Map<String, Object> entity = item.getEntity();
             ids.add(id);
+            if (i > 0) {
+                buffer.append('\n');
+                buffer.tryOmit(i, size); // 插入省略标记
+            }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildInsertSql(entity);
-            buffer.append(temp).append(';', '\n');
+            buffer.append(temp).append(';');
         }
 
         // 执行批量数据库插入
@@ -97,13 +103,14 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>
      */
     @Override
-    public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc,
-            CrudSqlBuilder sqlBuilder) {
+    public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         // 查找主键(批量更新必须要有主键)
         PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         SqlBuffer buffer = new SqlBuffer();
-        for (PkEntity item : entities) {
+        int size = entities.size();
+        for (int i = 0; i < size; i++) {
+            PkEntity item = entities.get(i);
             String pkValue = item.getPrimaryKey();
             Map<String, Object> entity = item.getEntity();
             // 生成主键过滤条件
@@ -111,12 +118,13 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
             where.on(pk.getFieldName(), "=", pkValue);
             // entity转换为DbUpdate
             DbUpdate ud = converter.parseMapToDbUpdate(entity);
+            if (i > 0) {
+                buffer.append('\n');
+                buffer.tryOmit(i, size); // 插入省略标记
+            }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildUpdateSql(ud, where);
-            if (!buffer.isEmpty()) {
-                buffer.append(';', '\n');
-            }
-            buffer.append(temp);
+            buffer.append(temp).append(';');
         }
 
         // 执行批量数据库插入

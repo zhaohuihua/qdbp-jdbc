@@ -28,9 +28,7 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -419,32 +417,13 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL {} affected batch {} rows, elapsed time {}ms.", desc, rows, time);
+            log.debug("SQL batch {} affected {} rows, elapsed time {}ms.", desc, rows, time);
         }
         return rows;
     }
 
     protected String getCompressedSqlString(SqlBuffer sb, int indent) {
-        String sqlString = getFormattedSqlString(sb, indent);
-        if (sqlString.trim().indexOf('\n') < 0) {
-            return StringTools.ellipsis(sqlString, 200);
-        } else {
-            List<String> temp = ConvertTools.toList(StringTools.split(sqlString, false, '\n'));
-            int size = temp.size();
-            if (size <= 7) {
-                return sqlString;
-            } else { // 取前3行+后3行
-                StringBuilder buffer = new StringBuilder();
-                buffer.append(temp.get(0)).append('\n');
-                buffer.append(temp.get(1)).append('\n');
-                buffer.append(temp.get(2)).append('\n');
-                buffer.append('\t').append("...").append('(').append(size - 6).append(')').append('\n');
-                buffer.append(temp.get(size - 3)).append('\n');
-                buffer.append(temp.get(size - 2)).append('\n');
-                buffer.append(temp.get(size - 1));
-                return buffer.toString();
-            }
-        }
+        return getFormattedSqlString(sb, indent);
     }
 
     @Override

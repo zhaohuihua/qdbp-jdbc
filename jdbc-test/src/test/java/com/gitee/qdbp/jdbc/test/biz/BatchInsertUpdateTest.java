@@ -38,23 +38,16 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
 
     @Test(priority = 101)
     public void testBatchInsert() {
+        // 构造实体数据
         List<SysLoggerEntity> entities = new ArrayList<>();
         for (int i = 1; i <= total; i++) {
             SysLoggerEntity entity = new SysLoggerEntity();
             String index = StringTools.pad(i, 4);
             entity.setName("BatchTest-Insert-" + index);
             entity.setContent("BatchTest-Content-" + index);
-            if (i % 5 == 0) {
-                defaultIndex++;
-                // 测试默认值
-                // 由于数据库不允许为空, 所以必须使用@ColumnDefault注解在sortIndex字段上设置默认值
-                // 否则会报Column 'SORT_INDEX' cannot be null
-                entity.setSortIndex(null);
-            } else {
-                entity.setSortIndex(i * 10);
-            }
             entities.add(entity);
         }
+        // 执行批量新增
         dao.inserts(entities, true);
     }
 
@@ -79,11 +72,13 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
 
     @Test(priority = 201, dependsOnMethods = "testBatchInsert")
     public void testBatchUpdate() {
+        // 查询一些数据的ID, 用来执行批量更新
         DbWhere where = new DbWhere();
         where.on("name", "starts", "BatchTest-Insert");
         where.on("sortIndex", ">", 1);
         OrderPaging odpg = OrderPaging.of(new Paging(3, updateTotal), "sortIndex");
         PageList<String> ids = dao.listFieldValues("id", false, where, odpg, String.class);
+        // 构造批量更新的实体数据
         List<SysLoggerEntity> changed = new ArrayList<>();
         for (int i = 0; i < ids.size(); i++) {
             String id = ids.get(i);
@@ -94,6 +89,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             entity.setContent("BatchTest-Content-" + index);
             changed.add(entity);
         }
+        // 执行批量更新
         dao.updates(changed, true);
     }
 

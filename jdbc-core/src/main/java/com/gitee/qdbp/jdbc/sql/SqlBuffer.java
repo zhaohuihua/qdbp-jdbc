@@ -304,13 +304,41 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 超级长的SQL在输出日志时可以省略掉一部分<br>
-     * 省略哪一部分, 用ellipsis(true/false)来标识起止位置
-     *
-     * @author zhaohuihua
-     * @version 20200712
+     * 省略哪一部分, 用startOmit()/endOmit()来标识起止位置
+     * 
+     * @return 返回当前SQL容器用于连写
      */
-    public SqlBuffer ellipsis(boolean enabled) {
-        this.buffer.add(new EllipsisItem(enabled));
+    public SqlBuffer startOmit() {
+        this.buffer.add(new OmitItem(true));
+        return this;
+    }
+
+    /**
+     * 超级长的SQL在输出日志时可以省略掉一部分<br>
+     * 省略哪一部分, 用startOmit()/endOmit()来标识起止位置
+     * 
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuffer endOmit() {
+        this.buffer.add(new OmitItem(true));
+        return this;
+    }
+
+    /**
+     * 传入size和当前index, 自动计算, 插入省略标记<br>
+     * 日志只取前3行+后3行; 因此在第3行后面开始省略, 在后3行之前结束省略<br>
+     * 注意: 如果有换行符, 最好放在换行符后面
+     * 
+     * @param index 当前行数
+     * @param count 总行数
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuffer tryOmit(int index, int count) {
+        if (count >= 7 && index == 3) {
+            this.startOmit(); // 开始省略
+        } else if (count >= 7 && index == count - 3) {
+            this.endOmit(); // 结束省略
+        }
         return this;
     }
 
@@ -408,7 +436,7 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
                 sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
-            } else if (item instanceof EllipsisItem) {
+            } else if (item instanceof OmitItem) {
                 continue;
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
@@ -453,7 +481,7 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
                 sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
-            } else if (item instanceof EllipsisItem) {
+            } else if (item instanceof OmitItem) {
                 continue;
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
@@ -471,25 +499,25 @@ public class SqlBuffer implements Serializable {
     public String getLoggingSqlString(SqlDialect dialect) {
         int valueLimit = 100;
         StringBuilder sql = new StringBuilder();
-        boolean enableEllipsis = false;
-        int lineCount = 0;
+        boolean omitEnabled = false;
         int charCount = 0;
+        int lineCount = 0;
         for (Object item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 String stringValue = stringItem.getValue().toString();
-                if (enableEllipsis) {
+                if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
                 } else {
                     sql.append(stringValue);
                 }
             } else if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
                 String stringValue = DbTools.variableToString(variable.value, dialect);
-                if (enableEllipsis) {
+                if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
                 } else {
                     sql.append(tryCutStringOverlength(stringValue, valueLimit));
                     sql.append("/*").append(variable.getKey()).append("*/");
@@ -497,33 +525,34 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
                 String stringValue = DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect);
-                if (enableEllipsis) {
+                if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
                 } else {
                     sql.append(stringValue);
                 }
-            } else if (item instanceof EllipsisItem) {
-                EllipsisItem ellipsisItem = (EllipsisItem) item;
-                if (ellipsisItem.enabled() != enableEllipsis) {
-                    if (!ellipsisItem.enabled() && (charCount > 0 || lineCount > 1)) {
+            } else if (item instanceof OmitItem) {
+                OmitItem omitItem = (OmitItem) item;
+                if (omitItem.enabled() != omitEnabled) {
+                    if (!omitItem.enabled() && charCount > 0) {
                         // 输出省略掉的行数和字符数
-                        StringBuffer msg = new StringBuffer();
-                        if (lineCount > 1) {
-                            msg.append("line: ").append(lineCount);
-                        }
-                        if (charCount > 0) {
-                            if (msg.length() > 0) {
-                                msg.append(',').append(' ');
+                        // /* 10000 chars, 100 lines are omitted here ... */
+                        StringBuffer msg = generateEllipsisDetails(charCount, lineCount);
+                        int whitespaceIndex = findAfterTextFirstWhitespaceIndex(sql);
+                        if (whitespaceIndex < 0 || whitespaceIndex >= sql.length()) {
+                            sql.append('\n').append(msg).append('\n');
+                        } else {
+                            char c = sql.charAt(whitespaceIndex);
+                            msg.insert(0, '\n');
+                            if (c != '\r' && c != '\n') {
+                                msg.append('\n');
                             }
-                            msg.append("chars: ").append(charCount);
+                            sql.insert(whitespaceIndex, msg);
                         }
-                        sql.append('\n').append('\t').append('\t').append(' ');
-                        sql.append("...").append(' ').append('(').append(msg).append(')').append('\n');
                     }
                     lineCount = 0;
                     charCount = 0;
-                    enableEllipsis = ellipsisItem.enabled();
+                    omitEnabled = omitItem.enabled();
                 }
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
@@ -532,8 +561,21 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
+    // 生成省略掉的行数和字符数详细描述
+    // /* 10000 chars, 100 lines are omitted here ... */
+    protected StringBuffer generateEllipsisDetails(int charCount, int lineCount) {
+        StringBuffer msg = new StringBuffer();
+        msg.append("/*").append(' ');
+        msg.append(charCount).append(' ').append("chars");
+        if (lineCount > 0) {
+            msg.append(',').append(' ').append(lineCount).append(' ').append("lines");
+        }
+        msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
+        return msg;
+    }
+
     /** 统计文本中有多少个换行符 **/
-    private int countNewLineChars(String string) {
+    private int countNewlineChars(String string) {
         int count = 0;
         int size = string == null ? 0 : string.length();
         for (int i = 0; i < size; i++) {
@@ -542,6 +584,25 @@ public class SqlBuffer implements Serializable {
             }
         }
         return count;
+    }
+
+    /**
+     * 查找文本后面最先前的一个空白字符的位置
+     * 
+     * @param string 字符串
+     * @return 空白字符的位置
+     */
+    protected int findAfterTextFirstWhitespaceIndex(StringBuilder string) {
+        int last = string.length() - 1;
+        for (int i = last; i >= 0; i--) {
+            char c = string.charAt(i);
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
+                continue;
+            } else {
+                return i == last ? -1 : i + 1;
+            }
+        }
+        return -1;
     }
 
     /** 尝试截短字符串 **/
@@ -576,13 +637,13 @@ public class SqlBuffer implements Serializable {
      * @author zhaohuihua
      * @version 20200712
      */
-    protected static class EllipsisItem implements Item, Serializable {
+    protected static class OmitItem implements Item, Serializable {
 
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
         private final boolean enabled;
 
-        public EllipsisItem(boolean enabled) {
+        public OmitItem(boolean enabled) {
             this.enabled = enabled;
         }
 

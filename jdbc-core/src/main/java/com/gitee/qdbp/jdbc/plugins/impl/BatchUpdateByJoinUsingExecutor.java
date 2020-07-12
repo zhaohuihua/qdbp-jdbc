@@ -44,11 +44,11 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
     }
 
     @Override
-    public int updates(List<PkEntity> contents, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
+    public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         CrudFragmentHelper sqlHelper = sqlBuilder.helper();
         String tableName = sqlHelper.getTableName();
         PrimaryKeyFieldColumn pk = sqlHelper.getPrimaryKey();
-        Set<String> fieldNames = mergeFields(contents);
+        Set<String> fieldNames = mergeFields(entities);
 
         // 检查字段名
         sqlHelper.checkSupportedFields(fieldNames, "build batch update sql");
@@ -68,15 +68,15 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
         // UPDATE {tableName} A JOIN (
         buffer.append("UPDATE").append(' ', tableName).append(' ', 'A').append(' ', "JOIN").append(' ', '(');
         // 根据列顺序生成SQL
-        boolean firstRow = true;
-        for (PkEntity item : contents) {
-            if (firstRow) {
-                firstRow = false;
-            } else {
+        int size = entities.size();
+        for (int i = 0; i < size; i++) {
+            PkEntity item = entities.get(i);
+            if (i > 0) {
                 buffer.append('\n', '\t').append("UNION");
             }
             // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
             buffer.append('\n', '\t');
+            buffer.tryOmit(i, size); // 插入省略标记
             buffer.append("SELECT", ' ').addVariable(item.getPrimaryKey()).append(' ', pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
             for (SimpleFieldColumn column : columns.items()) {

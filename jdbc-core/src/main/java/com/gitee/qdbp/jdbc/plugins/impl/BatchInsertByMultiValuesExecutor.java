@@ -53,18 +53,19 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
         // VALUES (...) (...)
         buffer.append('\n', "VALUES");
         List<String> ids = new ArrayList<>();
-        boolean first = true;
-        for (PkEntity item : entities) {
+        int size = entities.size();
+        for (int i = 0; i < size; i++) {
+            PkEntity item = entities.get(i);
             String id = item.getPrimaryKey();
             ids.add(id);
             Map<String, Object> entity = item.getEntity();
             SqlBuffer valuesSqlBuffer = sqlHelper.buildInsertValuesSql(fieldNames, entity);
-            if (first) {
-                first = false;
-            } else {
+            if (i > 0) {
                 buffer.append(',');
             }
-            buffer.append('\n').append('(').append(valuesSqlBuffer).append(')');
+            buffer.append('\n');
+            buffer.tryOmit(i, size); // 插入省略标记
+            buffer.append('(').append(valuesSqlBuffer).append(')');
         }
 
         // 执行批量数据库插入
