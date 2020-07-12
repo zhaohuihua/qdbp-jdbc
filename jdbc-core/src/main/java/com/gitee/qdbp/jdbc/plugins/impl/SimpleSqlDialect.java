@@ -118,14 +118,14 @@ public class SimpleSqlDialect implements SqlDialect {
     protected void processPagingForOracle(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.OracleDialect
         if (paging.getStart() <= 0) {
-            buffer.indent(1, true);
+            buffer.indentAll(1, true);
             // SELECT T_T.* FROM (
             //     {sql}
             // ) T_T WHERE ROWNUM <= {end}
             buffer.prepend("SELECT T_T.* FROM (\n");
             buffer.append("\n) T_T\nWHERE ROWNUM <= ").addVariable(paging.getEnd());
         } else {
-            buffer.indent(2, true);
+            buffer.indentAll(2, true);
             // SELECT * FROM (
             //     SELECT ROWNUM R_N, T_T.* FROM (
             //         {sql}
@@ -145,7 +145,7 @@ public class SimpleSqlDialect implements SqlDialect {
             String end = String.valueOf(paging.getEnd());
             buffer.append('\n').append("FETCH FIRST").append(' ', end, ' ').append("ROWS ONLY");
         } else {
-            buffer.indent(2, true);
+            buffer.indentAll(2, true);
             // SELECT * FROM (
             //     SELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N 
             //     FROM (

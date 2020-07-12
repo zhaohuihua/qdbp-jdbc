@@ -302,19 +302,19 @@ public class SqlBuffer implements Serializable {
         return buffer.isEmpty();
     }
 
-    /** 缩进1个TAB **/
-    public SqlBuffer indent() {
-        return indent(1, true);
+    /** 所有内容缩进1个TAB **/
+    public SqlBuffer indentAll() {
+        return indentAll(1, true);
     }
 
     /**
-     * 缩进n个TAB
+     * 所有内容缩进n个TAB
      * 
      * @param size 缩进多少个TAB
      * @param leading 开头要不要缩进
      * @return 返回当前SQL容器用于连写
      */
-    public SqlBuffer indent(int size, boolean leading) {
+    public SqlBuffer indentAll(int size, boolean leading) {
         if (size <= 0 || this.buffer.isEmpty()) {
             return this;
         }
