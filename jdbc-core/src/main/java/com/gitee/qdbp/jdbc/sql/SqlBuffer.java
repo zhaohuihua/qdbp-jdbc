@@ -422,32 +422,42 @@ public class SqlBuffer implements Serializable {
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(DbVersion version) {
-        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 0);
+        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 0, false);
     }
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(SqlDialect dialect) {
-        return generateExecutableSqlString(dialect, 0);
+        return generateExecutableSqlString(dialect, 0, false);
     }
 
     /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
     public String getLoggingSqlString(DbVersion version) {
-        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 100);
+        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 100, true);
     }
 
     /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
     public String getLoggingSqlString(SqlDialect dialect) {
-        return generateExecutableSqlString(dialect, 100);
+        return generateExecutableSqlString(dialect, 100, true);
     }
 
-    /** 生成完整的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
-    protected String generateExecutableSqlString(SqlDialect dialect, int stringLimit) {
+    /**
+     * 生成可执行SQL语句(预编译参数替换为拼写式参数)
+     * 
+     * @param dialect
+     * @param valueLimit 参数值长度超过多少需要截断, 0为无限制
+     * @param commentPreparedVariable 是否使用注释标记预编译参数位置
+     * @return SQL语句
+     */
+    protected String generateExecutableSqlString(SqlDialect dialect, int valueLimit, boolean commentPreparedVariable) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
                 String string = DbTools.variableToString(variable.value, dialect);
-                sql.append(tryCutStringOverlength(string, stringLimit));
+                sql.append(tryCutStringOverlength(string, valueLimit));
+                if (commentPreparedVariable) {
+                    sql.append("/*").append(variable.getKey()).append("*/");
+                }
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -581,7 +591,7 @@ public class SqlBuffer implements Serializable {
         }
 
         public String getKey() {
-            return "$" + index;
+            return "$" + (index + 1);
         }
 
         public Object getValue() {
