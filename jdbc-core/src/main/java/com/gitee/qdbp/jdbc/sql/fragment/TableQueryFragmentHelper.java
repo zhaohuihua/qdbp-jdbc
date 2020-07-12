@@ -3,7 +3,6 @@ package com.gitee.qdbp.jdbc.sql.fragment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,7 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbFieldValue;
+import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.able.jdbc.ordering.OrderType;
 import com.gitee.qdbp.able.jdbc.ordering.Ordering;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
@@ -40,6 +40,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -238,13 +239,13 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + ")");
             }
         } else if (operator instanceof DbBinaryOperator) {
-            Object value = convertFieldValue(fieldValue);
+            Object value = convertSpecialFieldValue(fieldValue);
             return ((DbBinaryOperator) operator).buildSql(columnName, value, dialect);
         } else if (operator instanceof DbTernaryOperator) {
-            List<Object> values = convertFieldValues(parseListFieldValue(fieldValue));
+            List<Object> values = convertSpecialFieldValues(ConvertTools.parseListIfNullToEmpty(fieldValue));
             if (values.size() == 2) {
-                Object first = convertFieldValue(values.get(0));
-                Object second = convertFieldValue(values.get(1));
+                Object first = convertSpecialFieldValue(values.get(0));
+                Object second = convertSpecialFieldValue(values.get(1));
                 return ((DbTernaryOperator) operator).buildSql(columnName, first, second, dialect);
             } else if (values.size() < 2) { // 参数不够
                 throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
@@ -252,7 +253,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
             }
         } else if (operator instanceof DbMultivariateOperator) {
-            List<Object> values = convertFieldValues(parseListFieldValue(fieldValue));
+            List<Object> values = convertSpecialFieldValues(ConvertTools.parseListIfNullToEmpty(fieldValue));
             if (!values.isEmpty()) {
                 return ((DbMultivariateOperator) operator).buildSql(columnName, values, dialect);
             } else { // 参数不能为空
@@ -263,58 +264,40 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
     }
 
-    protected Object convertFieldValue(Object fieldValue) {
+    /** {@inheritDoc} **/
+    @Override
+    public Object convertSpecialFieldValue(Object fieldValue) {
         if (fieldValue instanceof DbFieldName) {
-            // 已指定是字段名, 按字段名处理
+            // 已指定是字段名, 按字段名处理, 根据字段名转换为列名
             DbFieldName temp = (DbFieldName) fieldValue;
             String fieldName = temp.getFieldName();
             String columnName = getColumnName(fieldName);
-            return new DbFieldName(columnName);
+            return new DbRawValue(columnName);
         }
         if (fieldValue instanceof DbFieldValue) {
-            // 已指定是DbFieldValue, 按字段值处理
+            // 已指定是DbFieldValue, 按字段值处理; 防止作为下面的表别名.字段名解析
             return ((DbFieldValue) fieldValue).getFieldValue();
         }
         if (fieldValue instanceof String && ((String) fieldValue).indexOf('.') > 0) {
             // 字符值是字符串并且是表别名.字段名格式, 如t.updateTime, 尝试作为字段名处理
             String columnName = getColumnName((String) fieldValue, false);
             if (columnName != null) {
-                return new DbFieldName(columnName);
+                return new DbRawValue(columnName);
             }
         }
         return fieldValue;
     }
 
-    protected List<Object> convertFieldValues(List<Object> fieldValues) {
+    /** {@inheritDoc} **/
+    @Override
+    public List<Object> convertSpecialFieldValues(List<Object> fieldValues) {
         List<Object> result = new ArrayList<>();
         if (fieldValues != null) {
             for (Object fieldValue : fieldValues) {
-                result.add(convertFieldValue(fieldValue));
+                result.add(convertSpecialFieldValue(fieldValue));
             }
         }
         return result;
-    }
-
-    protected List<Object> parseListFieldValue(Object fieldValue) {
-        if (fieldValue == null) {
-            return Arrays.asList(fieldValue);
-        } else if (fieldValue.getClass().isArray()) {
-            return Arrays.asList((Object[]) fieldValue);
-        } else if (fieldValue instanceof Collection) {
-            return new ArrayList<Object>((Collection<?>) fieldValue);
-        } else if (fieldValue instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) fieldValue;
-            return new ArrayList<Object>(map.values());
-        } else if (fieldValue instanceof Iterable) {
-            List<Object> values = new ArrayList<Object>();
-            Iterable<?> iterable = (Iterable<?>) fieldValue;
-            for (Object temp : iterable) {
-                values.add(temp);
-            }
-            return values;
-        } else {
-            return Arrays.asList(fieldValue);
-        }
     }
 
     private static void prependWhereAndColumn(SqlBuffer buffer, String columnName, boolean whole) {
@@ -487,19 +470,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
-        // 字段名映射
-        Map<String, Void> fieldMap = new HashMap<String, Void>();
-        List<String> unsupported = new ArrayList<String>();
-        for (String fieldName : fields) {
-            if (containsField(fieldName)) {
-                fieldMap.put(fieldName, null);
-            } else {
-                unsupported.add(fieldName);
-            }
-        }
-        if (!unsupported.isEmpty()) {
-            throw ufe("build field sql unsupported fields", unsupported);
-        }
+        // 检查字段名
+        checkSupportedFields(fields, "build field sql");
+        // 字段名映射表
+        Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
@@ -517,6 +491,28 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     public SqlBuffer buildFromSql() {
         return buildFromSql(true);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public void checkSupportedFields(Collection<String> fields, String desc) {
+        // 不支持的字段名列表
+        List<String> unsupported = new ArrayList<String>();
+        for (String fieldName : fields) {
+            if (!containsField(fieldName)) {
+                unsupported.add(fieldName);
+            }
+        }
+        if (!unsupported.isEmpty()) {
+            String message = StringTools.concat(' ', desc, "unsupported fields");
+            throw ufe(message, unsupported);
+        }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public AllFieldColumn<? extends SimpleFieldColumn> getAllFieldColumns() {
+        return this.columns;
     }
 
     /** {@inheritDoc} **/
@@ -573,7 +569,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             return null;
         }
     }
-    
+
     /** 关于当前SQL片段帮助类的详情描述(用于异常信息问题定位) **/
     protected abstract String getOwnerDescString();
 

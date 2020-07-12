@@ -9,6 +9,8 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
+import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
@@ -389,34 +391,36 @@ public interface CrudDao<T> {
      * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
      * -- 大部分的实现类要求实体列表字段对齐<br>
      * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被设置为NULL<br>
-     * ---- 这将会导致数据库设置的默认值不会生效<br>
+     * ---- 这将会导致数据库设置的默认值不会生效, 因此需要手动设置d字段, 或在d字段上配置默认值<br>
      * 
      * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)
      * @param fillCreateParams 是否自动填充更新参数(创建人/创建时间等)
      * @return 返回主键编号
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
+     * @see BatchInsertExecutor 具体实现由<code>BatchInsertExecutor</code>的子类提供
      */
     List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
     /**
      * 根据主键编号批量更新实体对象<br>
      * 注意: 如果主键编号为空将会报错<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 默认只处理有效项<br>
+     * 注意: 这里的限制条件只有主键编号, 而不会追加数据状态作为限制条件<br>
      * 注意: 根据实现类的不同, 有以下注意事项, 请详查具体实现类的机制:<br>
      * -- 1.某些实现类可能无法获取到准确的受影响行数<br>
      * -- 2.大部分的实现类要求实体列表字段对齐<br>
-     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被更新为NULL
+     * ---- 例如第1个实体有abcd四个字段,第2个实体只有abc三个字段, 则第2个实体的d字段将被更新为NULL<br>
+     * ---- 因此需要手动设置d字段(一般来自数据库查询的记录或用户输入的信息)<br>
      * 
-     * @param entities 实体对象列表(只能是entity或map或IdUpdate列表, 其他参数将会报错)<br>
+     * @param entities 实体对象列表(只能是entity或map或IdEntity列表, 其他参数将会报错)<br>
      *            如果实体对象是map, map下不能有where, 否则将会报错
-     * @param commonWhere 除ID外的公共过滤条件, 如果没有公共过滤条件应传入DbWhere.NONE
      * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @return 受影响行数(某些实现类可能无法获取到准确的受影响行数)
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
+     * @see BatchUpdateExecutor 具体实现由<code>BatchUpdateExecutor</code>的子类提供
      */
-    int updates(List<?> entities, DbWhere commonWhere, boolean fillUpdateParams) throws ServiceException;
+    int updates(List<?> entities, boolean fillUpdateParams) throws ServiceException;
 
     /**
      * 根据主键编号删除实体对象(逻辑删除)<br>
@@ -496,4 +500,3 @@ public interface CrudDao<T> {
      */
     int physicalDelete(DbWhere where, boolean errorOnUnaffected) throws ServiceException;
 }
-	

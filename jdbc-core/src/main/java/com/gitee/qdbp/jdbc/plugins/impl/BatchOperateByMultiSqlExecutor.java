@@ -6,15 +6,17 @@ import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
-import com.gitee.qdbp.able.jdbc.model.PkUpdate;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
+import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
  * 生成多条SQL语句一起执行的批量处理接口实现类<br>
@@ -56,7 +58,8 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
      */
     @Override
     public boolean supports(DbVersion version) {
-        return version.getDbType() == MainDbType.MySQL;
+        DbType dbType = version.getDbType();
+        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB;
     }
 
     /**
@@ -88,26 +91,28 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     /**
      * 根据主键编号批量更新实体对象<br>
      * 生成多条SQL语句一起执行:<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>
      * ...<br>
-     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE=0;<br>
+     * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>
      */
     @Override
-    public int updates(List<PkUpdate> contents, DbWhere commonWhere, SqlBufferJdbcOperations jdbc,
+    public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc,
             CrudSqlBuilder sqlBuilder) {
         // 查找主键(批量更新必须要有主键)
         PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
+        DbConditionConverter converter = DbTools.getDbConditionConverter();
         SqlBuffer buffer = new SqlBuffer();
-        for (PkUpdate item : contents) {
+        for (PkEntity item : entities) {
             String pkValue = item.getPrimaryKey();
-            DbUpdate entity = item.getUpdate();
-            // 从公共条件中复制过滤条件
-            DbWhere where = commonWhere.copy();
-            // 将主键加入到过滤条件中
+            Map<String, Object> entity = item.getEntity();
+            // 生成主键过滤条件
+            DbWhere where = new DbWhere();
             where.on(pk.getFieldName(), "=", pkValue);
+            // entity转换为DbUpdate
+            DbUpdate ud = converter.parseMapToDbUpdate(entity);
             // 拼接SQL
-            SqlBuffer temp = sqlBuilder.buildUpdateSql(entity, where);
+            SqlBuffer temp = sqlBuilder.buildUpdateSql(ud, where);
             if (!buffer.isEmpty()) {
                 buffer.append(';', '\n');
             }

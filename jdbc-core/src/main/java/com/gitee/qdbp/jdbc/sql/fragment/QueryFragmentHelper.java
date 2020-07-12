@@ -8,6 +8,8 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
+import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -152,6 +154,13 @@ public interface QueryFragmentHelper {
     SqlBuffer buildFromSql(boolean whole);
 
     /**
+     * 获取所有列信息
+     * 
+     * @return 列信息
+     */
+    AllFieldColumn<? extends SimpleFieldColumn> getAllFieldColumns();
+
+    /**
      * 是否存在指定字段
      * 
      * @param fieldName 字段名
@@ -191,4 +200,29 @@ public interface QueryFragmentHelper {
      * @return 列名列表
      */
     List<String> getColumnNames();
+
+    /**
+     * 检查字段名是否在允许范围内
+     * 
+     * @param fields 字段名
+     * @param desc 发生错误时的描述内容
+     * @throws UnsupportedFieldException 存在不支持的字段名
+     */
+    void checkSupportedFields(Collection<String> fields, String desc) throws UnsupportedFieldException;
+
+    /**
+     * 转换特殊的字段值, 如DbFieldName转换为DbRawValue(columnName)
+     * 
+     * @param fieldValue 字段值
+     * @return 转换后的字段值
+     */
+    Object convertSpecialFieldValue(Object fieldValue);
+
+    /**
+     * 转换特殊的字段值, 如DbFieldName转换为DbRawValue(columnName)
+     * 
+     * @param fieldValues 字段值列表
+     * @return 转换后的字段值列表
+     */
+    List<Object> convertSpecialFieldValues(List<Object> fieldValues);
 }

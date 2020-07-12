@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
+import java.util.Collection;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
@@ -31,8 +32,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
     PrimaryKeyFieldColumn getPrimaryKey();
 
     /**
-     * 生成Insert字段值占位符列表SQL语句<br>
-     * :$1$FieldName, :$2$FieldName, ..., :$n$FieldName
+     * 生成Insert字段值列表SQL语句
      * 
      * @param entity 字段变量映射表
      * @return SQL语句
@@ -40,8 +40,18 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
     SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldException;
 
     /**
+     * 生成Insert字段值列表SQL语句
+     * 
+     * @param entity 字段变量映射表
+     * @param fields 指定字段名(不能为空)
+     * @return SQL语句
+     */
+    SqlBuffer buildInsertValuesSql(Collection<String> fields, Map<String, Object> entity)
+            throws UnsupportedFieldException;
+
+    /**
      * 生成Update字段值占位符列表SQL语句<br>
-     * 格式: SET COLUMN_NAME1=:$1$FieldName, COLUMN_NAME2=:$2$FieldName, ..., COLUMN_NAMEn=$n$FieldName<br>
+     * 格式: SET COLUMN_NAME1=:$1, COLUMN_NAME2=:$2, ..., COLUMN_NAMEn=$n<br>
      * 
      * @param entity Update容器对象
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀
@@ -51,7 +61,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
 
     /**
      * 生成Update字段值占位符列表SQL语句<br>
-     * 格式: SET COLUMN_NAME1=:$1$FieldName<br>
+     * 格式: SET COLUMN_NAME1=:$1<br>
      * 
      * @param field 单字段条件
      * @param whole 是否输出完整的Update语句, true=带SET前缀, false=不带SET前缀

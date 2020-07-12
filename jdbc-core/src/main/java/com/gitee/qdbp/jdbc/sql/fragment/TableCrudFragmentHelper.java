@@ -1,9 +1,11 @@
 package com.gitee.qdbp.jdbc.sql.fragment;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.gitee.qdbp.able.jdbc.base.DbCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
@@ -16,6 +18,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -42,27 +45,40 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
     @Override
     public SqlBuffer buildInsertValuesSql(Map<String, Object> entity) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(entity, "entity");
+        Set<String> fieldNames = entity.keySet();
+        return doBuildInsertValuesSql(fieldNames, entity);
+    }
 
-        List<String> unsupported = new ArrayList<String>();
-        for (String fieldName : entity.keySet()) {
-            if (!containsField(fieldName)) {
-                unsupported.add(fieldName);
-            }
-        }
-        if (!unsupported.isEmpty()) {
-            throw ufe("insert values sql", unsupported);
-        }
+    /** {@inheritDoc} **/
+    @Override
+    public SqlBuffer buildInsertValuesSql(Collection<String> fields, Map<String, Object> entity)
+            throws UnsupportedFieldException {
+        return doBuildInsertValuesSql(fields, entity);
+    }
+
+    protected SqlBuffer doBuildInsertValuesSql(Collection<String> fields, Map<String, Object> entity)
+            throws UnsupportedFieldException {
+        VerifyTools.requireNotBlank(entity, "entity");
+
+        // 检查字段名
+        checkSupportedFields(fields, "insert values sql");
+        // 字段名映射表
+        Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
         SqlBuffer buffer = new SqlBuffer();
         for (SimpleFieldColumn item : this.columns.items()) {
-            if (!entity.containsKey(item.getFieldName())) {
+            if (!fieldMap.containsKey(item.getFieldName())) {
                 continue;
             }
             if (!buffer.isEmpty()) {
                 buffer.append(',');
             }
-            buffer.addVariable(entity.get(item.getFieldName()));
+            Object fieldValue = entity.get(item.getFieldName());
+            if (VerifyTools.isBlank(fieldValue) && VerifyTools.isNotBlank(item.getColumnDefault())) {
+                fieldValue = item.getColumnDefault();
+            }
+            buffer.addVariable(convertSpecialFieldValue(fieldValue));
         }
         return buffer;
     }

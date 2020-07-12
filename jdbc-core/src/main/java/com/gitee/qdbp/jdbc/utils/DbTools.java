@@ -30,6 +30,7 @@ import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
+import com.gitee.qdbp.jdbc.plugins.RawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
@@ -57,7 +58,7 @@ public abstract class DbTools {
      * @param variable 变量
      * @return 转换后的字段值对象
      */
-    public static Object variableToDbValue(Object variable) {
+    public static Object variableToDbValue(Object variable, SqlDialect dialect) {
         VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
         Object result = helper.convert(variable);
         if (result instanceof TypedDbVariable) {
@@ -76,7 +77,7 @@ public abstract class DbTools {
 
     /**
      * 将变量转换为字符串, 用于拼接SQL<br>
-     * 如字符串会返回'stringValue', Boolean会返回1或0<br>
+     * 如字符串会返回单引号括起来的'stringValue', Boolean会返回1或0<br>
      * 日期: MYSQL: '2019-06-01 12:34:56.789'<br>
      * ORACLE: TO_TIMESTAMP('2019-06-01 12:34:56.789', 'YYYY-MM-DD HH24:MI:SS.FF')
      * 
@@ -109,6 +110,19 @@ public abstract class DbTools {
         } else {
             return dialect.variableToString(result.toString());
         }
+    }
+
+    /**
+     * 转换原始关键字, 如sysdate/CURRENT_TIMESTAMP之前的互转
+     * 
+     * @param value 原生值, 如sysdate
+     * @param dialect 数据库方言
+     * @return 转换后的值, 如mysql的CURRENT_TIMESTAMP, SqlServer的GETDATE()
+     * @see RawValueConverter
+     */
+    public static String resolveRawValue(String rawValue, SqlDialect dialect) {
+        RawValueConverter converter = DbPluginContainer.defaults().getRawValueConverter();
+        return converter.convert(rawValue, dialect);
     }
 
     /** 获取Map到JavaBean的转换处理类 **/
