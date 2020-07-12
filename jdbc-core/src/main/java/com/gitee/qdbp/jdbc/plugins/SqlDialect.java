@@ -25,6 +25,9 @@ public interface SqlDialect {
 
     /** 转换为按拼音排序的表达式 **/
     String toPinyinOrderByExpression(String columnName);
+    
+    /** 当前时间的数据库原生写法 **/
+    String rawCurrentTimestamp();
 
     /**
      * Boolean类型的变量转换为字符串(用于拼接SQL)
