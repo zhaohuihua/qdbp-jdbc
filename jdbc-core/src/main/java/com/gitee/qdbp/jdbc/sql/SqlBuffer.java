@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
+import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
@@ -285,8 +286,12 @@ public class SqlBuffer implements Serializable {
     public SqlBuffer addVariable(Object value) {
         if (value instanceof SqlBuffer) {
             append((SqlBuffer) value);
-        } else if (value instanceof DbFieldName) {
+        } else if (value instanceof DbRawValue) {
             append(value.toString());
+        } else if (value instanceof DbFieldName) {
+            // append(value.toString());
+            // 缺少环境数据, 无法将字段名转换为列名
+            throw new IllegalArgumentException("CanNotSupportedVariableType: DbFieldName");
         } else {
             this.buffer.add(new VariableItem(index++, value));
         }
@@ -375,7 +380,12 @@ public class SqlBuffer implements Serializable {
     }
 
     /** 获取预编译SQL语句 **/
-    public String getPreparedSqlString() {
+    public String getPreparedSqlString(DbVersion version) {
+        return getPreparedSqlString(DbTools.buildSqlDialect(version));
+    }
+
+    /** 获取预编译SQL语句 **/
+    public String getPreparedSqlString(SqlDialect dialect) {
         StringBuilder temp = new StringBuilder();
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
@@ -383,6 +393,9 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 temp.append(stringItem.getValue());
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawValueItem = (RawValueItem) item;
+                temp.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
@@ -391,12 +404,17 @@ public class SqlBuffer implements Serializable {
     }
 
     /** 获取预编译SQL参数 **/
-    public Map<String, Object> getPreparedVariables() {
+    public Map<String, Object> getPreparedVariables(DbVersion version) {
+        return getPreparedVariables(DbTools.buildSqlDialect(version));
+    }
+
+    /** 获取预编译SQL参数 **/
+    public Map<String, Object> getPreparedVariables(SqlDialect dialect) {
         Map<String, Object> map = new HashMap<>();
         for (Object item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
-                map.put(variable.getKey(), DbTools.variableToDbValue(variable.getValue()));
+                map.put(variable.getKey(), DbTools.variableToDbValue(variable.getValue(), dialect));
             }
         }
         return map;
@@ -463,6 +481,21 @@ public class SqlBuffer implements Serializable {
     }
 
     protected static interface Item {
+    }
+
+    protected static class RawValueItem implements Item, Serializable {
+
+        /** SerialVersionUID **/
+        private static final long serialVersionUID = 1L;
+        private String rawValue;
+
+        public RawValueItem(String rawValue) {
+            this.rawValue = rawValue;
+        }
+
+        public String getRawValue() {
+            return rawValue;
+        }
     }
 
     protected static class StringItem implements Item, Serializable {
