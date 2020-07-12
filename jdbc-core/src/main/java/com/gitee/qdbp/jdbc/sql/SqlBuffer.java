@@ -302,6 +302,18 @@ public class SqlBuffer implements Serializable {
         return buffer.isEmpty();
     }
 
+    /**
+     * 超级长的SQL在输出日志时可以省略掉一部分<br>
+     * 省略哪一部分, 用ellipsis(true/false)来标识起止位置
+     *
+     * @author zhaohuihua
+     * @version 20200712
+     */
+    public SqlBuffer ellipsis(boolean enabled) {
+        this.buffer.add(new EllipsisItem(enabled));
+        return this;
+    }
+
     /** 所有内容缩进1个TAB **/
     public SqlBuffer indentAll() {
         return indentAll(1, true);
@@ -386,21 +398,23 @@ public class SqlBuffer implements Serializable {
 
     /** 获取预编译SQL语句 **/
     public String getPreparedSqlString(SqlDialect dialect) {
-        StringBuilder temp = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
-            if (item instanceof VariableItem) {
-                temp.append(':').append(((VariableItem) item).getKey());
-            } else if (item instanceof StringItem) {
+            if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                temp.append(stringItem.getValue());
+                sql.append(stringItem.getValue());
+            } else if (item instanceof VariableItem) {
+                sql.append(':').append(((VariableItem) item).getKey());
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
-                temp.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
+                sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
+            } else if (item instanceof EllipsisItem) {
+                continue;
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
-        return temp.toString();
+        return sql.toString();
     }
 
     /** 获取预编译SQL参数 **/
@@ -422,50 +436,112 @@ public class SqlBuffer implements Serializable {
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(DbVersion version) {
-        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 0, false);
+        return getExecutableSqlString(DbTools.buildSqlDialect(version));
     }
 
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(SqlDialect dialect) {
-        return generateExecutableSqlString(dialect, 0, false);
-    }
-
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
-    public String getLoggingSqlString(DbVersion version) {
-        return generateExecutableSqlString(DbTools.buildSqlDialect(version), 100, true);
-    }
-
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
-    public String getLoggingSqlString(SqlDialect dialect) {
-        return generateExecutableSqlString(dialect, 100, true);
-    }
-
-    /**
-     * 生成可执行SQL语句(预编译参数替换为拼写式参数)
-     * 
-     * @param dialect
-     * @param valueLimit 参数值长度超过多少需要截断, 0为无限制
-     * @param commentPreparedVariable 是否使用注释标记预编译参数位置
-     * @return SQL语句
-     */
-    protected String generateExecutableSqlString(SqlDialect dialect, int valueLimit, boolean commentPreparedVariable) {
         StringBuilder sql = new StringBuilder();
         for (Object item : this.buffer) {
-            if (item instanceof VariableItem) {
-                VariableItem variable = ((VariableItem) item);
-                String string = DbTools.variableToString(variable.value, dialect);
-                sql.append(tryCutStringOverlength(string, valueLimit));
-                if (commentPreparedVariable) {
-                    sql.append("/*").append(variable.getKey()).append("*/");
-                }
-            } else if (item instanceof StringItem) {
+            if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
+            } else if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                String string = DbTools.variableToString(variable.value, dialect);
+                sql.append(string);
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawValueItem = (RawValueItem) item;
+                sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
+            } else if (item instanceof EllipsisItem) {
+                continue;
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
         return sql.toString();
+    }
+
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
+    public String getLoggingSqlString(DbVersion version) {
+        return getLoggingSqlString(DbTools.buildSqlDialect(version));
+    }
+
+    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
+    public String getLoggingSqlString(SqlDialect dialect) {
+        int valueLimit = 100;
+        StringBuilder sql = new StringBuilder();
+        boolean enableEllipsis = false;
+        int lineCount = 0;
+        int charCount = 0;
+        for (Object item : this.buffer) {
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                String stringValue = stringItem.getValue().toString();
+                if (enableEllipsis) {
+                    charCount += stringValue == null ? 4 : stringValue.length();
+                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                } else {
+                    sql.append(stringValue);
+                }
+            } else if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                String stringValue = DbTools.variableToString(variable.value, dialect);
+                if (enableEllipsis) {
+                    charCount += stringValue == null ? 4 : stringValue.length();
+                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                } else {
+                    sql.append(tryCutStringOverlength(stringValue, valueLimit));
+                    sql.append("/*").append(variable.getKey()).append("*/");
+                }
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawValueItem = (RawValueItem) item;
+                String stringValue = DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect);
+                if (enableEllipsis) {
+                    charCount += stringValue == null ? 4 : stringValue.length();
+                    lineCount += stringValue == null ? 0 : countNewLineChars(stringValue);
+                } else {
+                    sql.append(stringValue);
+                }
+            } else if (item instanceof EllipsisItem) {
+                EllipsisItem ellipsisItem = (EllipsisItem) item;
+                if (ellipsisItem.enabled() != enableEllipsis) {
+                    if (!ellipsisItem.enabled() && (charCount > 0 || lineCount > 1)) {
+                        // 输出省略掉的行数和字符数
+                        StringBuffer msg = new StringBuffer();
+                        if (lineCount > 1) {
+                            msg.append("line: ").append(lineCount);
+                        }
+                        if (charCount > 0) {
+                            if (msg.length() > 0) {
+                                msg.append(',').append(' ');
+                            }
+                            msg.append("chars: ").append(charCount);
+                        }
+                        sql.append('\n').append('\t').append('\t').append(' ');
+                        sql.append("...").append(' ').append('(').append(msg).append(')').append('\n');
+                    }
+                    lineCount = 0;
+                    charCount = 0;
+                    enableEllipsis = ellipsisItem.enabled();
+                }
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return sql.toString();
+    }
+
+    /** 统计文本中有多少个换行符 **/
+    private int countNewLineChars(String string) {
+        int count = 0;
+        int size = string == null ? 0 : string.length();
+        for (int i = 0; i < size; i++) {
+            if (string.charAt(i) == '\n') {
+                count++;
+            }
+        }
+        return count;
     }
 
     /** 尝试截短字符串 **/
@@ -491,6 +567,28 @@ public class SqlBuffer implements Serializable {
     }
 
     protected static interface Item {
+    }
+
+    /**
+     * 超级长的SQL在输出日志时可以省略掉一部分<br>
+     * 省略哪一部分, 用EllipsisItem来标识起止位置
+     *
+     * @author zhaohuihua
+     * @version 20200712
+     */
+    protected static class EllipsisItem implements Item, Serializable {
+
+        /** SerialVersionUID **/
+        private static final long serialVersionUID = 1L;
+        private final boolean enabled;
+
+        public EllipsisItem(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean enabled() {
+            return enabled;
+        }
     }
 
     protected static class RawValueItem implements Item, Serializable {
