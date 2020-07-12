@@ -64,7 +64,10 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
     @Override
     protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
         String fieldName = field.getName();
-        return new SimpleFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
+        SimpleFieldColumn column = new SimpleFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
+        // 扫描@ColumnDefault注解声明的默认值
+        scanColumnDefault(field, column);
+        return column;
     }
 
     @Override

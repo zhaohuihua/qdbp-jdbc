@@ -6,11 +6,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.gitee.qdbp.able.jdbc.annotations.ColumnDefault;
+import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.CommonFieldResolver;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.TableNameScans;
+import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * TableAnnotationScans的一种基础实现类
@@ -144,6 +148,41 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
             allColumns.addAll(sortCommonColumns(commonColumns));
         }
         return allColumns;
+    }
+
+    /** 扫描@ColumnDefault注解声明的默认值 **/
+    protected void scanColumnDefault(Field field, SimpleFieldColumn column) {
+        ColumnDefault columnDefault = field.getAnnotation(ColumnDefault.class);
+        if (columnDefault != null) {
+            column.setColumnDefault(parseColumnDefault(columnDefault.value()));
+        }
+    }
+
+    /** 解析默认值 **/
+    // @ColumnDefault("1.00");
+    // @ColumnDefault("CURRENT_TIMESTAMP");
+    // @ColumnDefault("'N/A'"); // 字段串要用单引号括起来
+    protected Object parseColumnDefault(String defaultValue) {
+        if (VerifyTools.isBlank(defaultValue)) {
+            return null;
+        }
+        defaultValue = defaultValue.trim();
+        if (defaultValue.startsWith("'") && defaultValue.endsWith("'")) {
+            return defaultValue.substring(1, defaultValue.length() - 1);
+        }
+        if ("null".equalsIgnoreCase(defaultValue)) {
+            return null;
+        } else if ("true".equalsIgnoreCase(defaultValue) || "false".equalsIgnoreCase(defaultValue)) {
+            // true/false在大部分的数据库都需要转换为1/0
+            return new DbRawValue(defaultValue);
+        } else {
+            Number number = ConvertTools.toNumber(defaultValue, null);
+            if (number != null) { // 是数字
+                return number;
+            } else { // 不是数字: CURRENT_TIMESTAMP
+                return new DbRawValue(defaultValue);
+            }
+        }
     }
 
     private boolean isCommonPackage(String pkg) {

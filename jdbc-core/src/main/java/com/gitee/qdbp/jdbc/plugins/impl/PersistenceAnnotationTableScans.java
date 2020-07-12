@@ -88,10 +88,41 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
                     columnName = nameConverter.fieldNameToColumnName(fieldName);
                 }
             }
-            return new SimpleFieldColumn(fieldName, columnName);
+            SimpleFieldColumn column = new SimpleFieldColumn(fieldName, columnName);
+            // 扫描@ColumnDefault注解声明的默认值
+            scanColumnDefault(field, column);
+            // 解析@Column注解中声明的信息
+            if (annotation != null) {
+                parseColumnAnnotation(column, annotation);
+            }
+            return column;
         }
 
         return null;
+    }
+    
+    /** 解析@Column注解中声明的信息 **/
+    protected void parseColumnAnnotation(SimpleFieldColumn column, Column annotation) {
+        if (annotation != null) {
+            // column.setColumnNullable(annotation.nullable());
+            // column.setColumnInsertable(annotation.insertable());
+            // column.setColumnUpdatable(annotation.updatable());
+            // column.setColumnDefinition(annotation.columnDefinition());
+            // column.setColumnLength(annotation.length());
+            // column.setColumnPrecision(annotation.precision());
+            // column.setColumnScale(annotation.scale());
+            if (VerifyTools.isNotBlank(annotation.columnDefinition())) {
+                parseColumnDefinition(column, annotation.columnDefinition());
+            }
+        }
+    }
+
+    /** 从列定义中解析列属性 **/
+    // columnDefinition="Decimal(10,2) default 1.00"
+    // columnDefinition="TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+    // columnDefinition="VARCHAR(20) DEFAULT 'N/A'" // 字段串要用单引号括起来
+    protected void parseColumnDefinition(SimpleFieldColumn column, String columnDefinition) {
+        // TODO 从列定义中解析列属性
     }
 
     @Override
