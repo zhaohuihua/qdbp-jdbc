@@ -13,6 +13,8 @@ public enum MainDbType implements DbType {
     Oracle,
     /** MySQL **/
     MySQL,
+    /** MariaDB **/
+    MariaDB,
     /** DB2 **/
     DB2,
     /** H2 **/

@@ -35,6 +35,20 @@ public class SimpleSqlDialect implements SqlDialect {
         this.dbVersion = dbVersion;
     }
 
+    @Override
+    public String rawCurrentTimestamp() {
+        DbType dbType = dbVersion.getDbType();
+        if (dbType == MainDbType.Oracle || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
+                || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
+            // 这些数据库都是支持CURRENT_TIMESTAMP的
+            return "CURRENT_TIMESTAMP";
+        } else if (dbType == MainDbType.SqlServer) {
+            return "GETDATE()";
+        } else { // 其他的不知道, 暂时返回CURRENT_TIMESTAMP
+            return "CURRENT_TIMESTAMP";
+        }
+    }
+
     // 参考了org.hibernate.dialect.pagination.LimitHelper类及LimitHandler的子类
 
     /** {@inheritDoc} **/
@@ -51,7 +65,7 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         if (dbType == MainDbType.Oracle) {
             processPagingForOracle(buffer, paging);
-        } else if (dbType == MainDbType.MySQL) {
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
             processPagingForMySql(buffer, paging);
         } else if (dbType == MainDbType.DB2) {
             processPagingForDb2(buffer, paging);
@@ -155,7 +169,7 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         if (dbType == MainDbType.Oracle) {
             return columnName; // 系统默认排序方式就是拼音: "NLSSORT(" + columnName + ",'NLS_SORT=SCHINESE_PINYIN_M')";
-        } else if (dbType == MainDbType.MySQL) {
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
             return "CONVERT(" + columnName + " USING GBK)";
         } else {
             return columnName;
@@ -208,7 +222,7 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
             return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
         } else if (dbType == MainDbType.SqlServer) {
             return buffer.append("('%'+").addVariable(fieldValue).append("+'%')");
@@ -225,7 +239,7 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append('(').addVariable(fieldValue).append("||'%')");
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
             return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
         } else if (dbType == MainDbType.SqlServer) {
             return buffer.append('(').addVariable(fieldValue).append("+'%')");
@@ -242,7 +256,7 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
             return buffer.append("('%'||").addVariable(fieldValue).append(")");
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.H2) {
+        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
             return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
         } else if (dbType == MainDbType.SqlServer) {
             return buffer.append("('%'+").addVariable(fieldValue).append(")");
@@ -264,10 +278,16 @@ public class SimpleSqlDialect implements SqlDialect {
         } else if (dbType == MainDbType.MySQL && dbVersion.getMajorVersion() < 8) {
             return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
                 builder);
+        } else if (dbType == MainDbType.MariaDB && dbVersion.compareTo("10.2.2") < 0) {
+            // 听说MariaDB 10.2.2才开始提供递归语法
+            // https://mariadb.com/kb/en/mariadb-1022-release-notes/
+            // Recursive Common Table Expressions
+            return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
+                builder);
         } else { // 标准递归语法
             // MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可
             String key;
-            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL) {
+            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
                 key = "WITH RECURSIVE";
             } else if (dbType == MainDbType.DB2) {
                 key = "WITH";
