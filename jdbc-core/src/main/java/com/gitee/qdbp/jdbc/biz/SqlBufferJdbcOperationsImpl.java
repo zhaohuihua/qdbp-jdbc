@@ -113,8 +113,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL statement:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         try {
             T result = namedParameterJdbcOperations.execute(sql, params, action);
             if (log.isDebugEnabled()) {
@@ -137,8 +137,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         try {
             T result = namedParameterJdbcOperations.query(sql, params, rse);
             if (log.isDebugEnabled()) {
@@ -162,8 +162,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         namedParameterJdbcOperations.query(sql, params, rch);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
@@ -178,8 +178,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
@@ -195,8 +195,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         try {
             T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
             if (log.isDebugEnabled()) {
@@ -223,8 +223,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 if (log.isDebugEnabled()) {
                     log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
                 }
-                String sql = sb.getPreparedSqlString();
-                Map<String, Object> params = sb.getPreparedVariables();
+                String sql = sb.getPreparedSqlString(sqlDialect);
+                Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
                 result = namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             } else {
                 result = queryForObject(sb, newRowToBeanMapper(resultType));
@@ -268,8 +268,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         try {
             Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
             if (log.isDebugEnabled()) {
@@ -293,8 +293,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         List<T> list;
         if (ReflectTools.isPrimitive(elementType, false)) {
             list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
@@ -315,8 +315,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
@@ -332,8 +332,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
@@ -371,8 +371,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
@@ -386,8 +386,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         SqlParameterSource msps = new MapSqlParameterSource(params);
         int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
         if (log.isDebugEnabled()) {
@@ -414,8 +414,8 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
         if (log.isDebugEnabled()) {
             log.debug("Executing SQL batch {}:\n{}", desc, getCompressedSqlString(sb, 1));
         }
-        String sql = sb.getPreparedSqlString();
-        Map<String, Object> params = sb.getPreparedVariables();
+        String sql = sb.getPreparedSqlString(sqlDialect);
+        Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         int rows = namedParameterJdbcOperations.update(sql, params);
         if (log.isDebugEnabled()) {
             long time = System.currentTimeMillis() - startTime;
