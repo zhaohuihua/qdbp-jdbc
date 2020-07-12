@@ -45,6 +45,15 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             String index = StringTools.pad(i, 4);
             entity.setName("BatchTest-Insert-" + index);
             entity.setContent("BatchTest-Content-" + index);
+            if (i % 5 == 0) {
+                defaultIndex++;
+                // 测试默认值
+                // 由于数据库不允许为空, 所以必须使用@ColumnDefault注解在sortIndex字段上设置默认值
+                // 否则会报Column 'SORT_INDEX' cannot be null
+                entity.setSortIndex(null);
+            } else {
+                entity.setSortIndex(i * 10);
+            }
             entities.add(entity);
         }
         // 执行批量新增
