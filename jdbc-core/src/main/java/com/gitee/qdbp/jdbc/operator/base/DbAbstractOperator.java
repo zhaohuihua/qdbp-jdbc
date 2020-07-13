@@ -15,6 +15,13 @@ public abstract class DbAbstractOperator {
     private String type;
     private List<String> aliases;
 
+    /**
+     * 构造函数
+     * 
+     * @param type 运算符类型(一般是数据库可识别的运算符)
+     * @param aliases 运算符别名(书写时方便识别的运算符别名)<br>
+     *            将会从别名中查找无空格的英文名称,将用于从request中自动构造where和update
+     */
     public DbAbstractOperator(String type, String... aliases) {
         this.name = findName(type, aliases);
         this.type = type;

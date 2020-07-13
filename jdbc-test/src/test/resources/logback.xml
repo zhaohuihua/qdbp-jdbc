@@ -8,9 +8,7 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.gitee.qdbp" level="DEBUG" additivity="true">
-		<appender-ref ref="ASYNC" />
-	</logger>
+	<logger name="com.gitee.qdbp" level="DEBUG" additivity="true" />
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />

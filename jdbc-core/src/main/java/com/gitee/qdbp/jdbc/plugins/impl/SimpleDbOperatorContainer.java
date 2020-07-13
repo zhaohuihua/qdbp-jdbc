@@ -61,19 +61,23 @@ public class SimpleDbOperatorContainer implements DbOperatorContainer {
         registerUpdateOperator(new DbBinaryAddOperator());
     }
 
+    /** 注册Where操作符 **/
     public void registerWhereOperator(DbBaseOperator operator) {
         registerOperator(whereOperators, operator);
     }
 
+    /** 注册Update操作符 **/
     public void registerUpdateOperator(DbBaseOperator operator) {
         registerOperator(updateOperators, operator);
     }
 
+    /** 获取Where操作符 **/
     @Override
     public DbBaseOperator getWhereOperator(String operatorType) {
         return whereOperators.get(convertKey(operatorType));
     }
 
+    /** 获取Update操作符 **/
     @Override
     public DbBaseOperator getUpdateOperator(String operatorType) {
         return updateOperators.get(convertKey(operatorType));
