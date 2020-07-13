@@ -38,4 +38,3 @@ WHERE USER_TYPE=? AND USER_STATE  IN (?,?) AND CREATE_TIME>=? AND DATA_STATE=?] 
 * 一是因为太复杂无法封装，强行封装就会变成hibernate，学习成本骤升，得不偿失；
 * 二是独立SQL方便DBA审查，而恰恰只有这部分才是需要审查的；
 * MyBatis中很多单表增删改查语句，对DBA审查来说只是干扰，并不会过多关注。
-![MyBatis生成的XML](https://images.gitee.com/uploads/images/2020/0713/084103_8b1ab5f2_1823458.png "屏幕截图.png")
