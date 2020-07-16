@@ -11,6 +11,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.IndentTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 
 /**
@@ -287,7 +288,8 @@ public class SqlBuffer implements Serializable {
         if (value instanceof SqlBuffer) {
             append((SqlBuffer) value);
         } else if (value instanceof DbRawValue) {
-            append(value.toString());
+            DbRawValue raw = (DbRawValue) value;
+            this.buffer.add(new RawValueItem(raw.toString()));
         } else if (value instanceof DbFieldName) {
             // append(value.toString());
             // 缺少环境数据, 无法将字段名转换为列名
@@ -358,11 +360,11 @@ public class SqlBuffer implements Serializable {
         if (size <= 0 || this.buffer.isEmpty()) {
             return this;
         }
-        char[] tabs = getTabs(size);
+        char[] tabs = IndentTools.getIndenTabs(size);
         for (Item item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                stringItem.indent(tabs);
+                stringItem.indentAll(tabs);
             }
         }
         if (leading) {
@@ -377,27 +379,15 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
-    private char[] getTabs(int size) {
-        if (size == 1) {
-            return new char[] { '\t' };
-        } else {
-            char[] tabs = new char[size];
-            for (int i = 0; i < size; i++) {
-                tabs[i] = '\t';
-            }
-            return tabs;
-        }
-    }
-
     /**
      * 复制
      * 
      * @return 副本
      */
     public SqlBuffer copy() {
-        SqlBuffer temp = new SqlBuffer();
-        this.copyTo(temp);
-        return temp;
+        SqlBuffer target = new SqlBuffer();
+        this.copyTo(target);
+        return target;
     }
 
     /**
@@ -407,16 +397,23 @@ public class SqlBuffer implements Serializable {
      */
     public void copyTo(SqlBuffer target) {
         for (Item item : this.buffer) {
-            if (item instanceof VariableItem) {
-                VariableItem variable = ((VariableItem) item);
-                target.addVariable(variable.value);
-            } else if (item instanceof StringItem) {
+            if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
-                target.append(stringItem.value.toString());
+                target.getLastStringItem().append(stringItem.getValue().toString());
+            } else if (item instanceof VariableItem) {
+                VariableItem variable = ((VariableItem) item);
+                target.buffer.add(new VariableItem(target.index++, variable.getValue()));
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawItem = (RawValueItem) item;
+                target.buffer.add(new RawValueItem(rawItem.getValue()));
+            } else if (item instanceof OmitItem) {
+                OmitItem omitItem = (OmitItem) item;
+                target.buffer.add(new OmitItem(omitItem.enabled()));
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
+
     }
 
     /** 获取预编译SQL语句 **/
@@ -427,7 +424,7 @@ public class SqlBuffer implements Serializable {
     /** 获取预编译SQL语句 **/
     public String getPreparedSqlString(SqlDialect dialect) {
         StringBuilder sql = new StringBuilder();
-        for (Object item : this.buffer) {
+        for (Item item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -435,7 +432,7 @@ public class SqlBuffer implements Serializable {
                 sql.append(':').append(((VariableItem) item).getKey());
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
-                sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
+                sql.append(DbTools.resolveRawValue(rawValueItem.getValue(), dialect));
             } else if (item instanceof OmitItem) {
                 continue;
             } else {
@@ -453,7 +450,7 @@ public class SqlBuffer implements Serializable {
     /** 获取预编译SQL参数 **/
     public Map<String, Object> getPreparedVariables(SqlDialect dialect) {
         Map<String, Object> map = new HashMap<>();
-        for (Object item : this.buffer) {
+        for (Item item : this.buffer) {
             if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
                 map.put(variable.getKey(), DbTools.variableToDbValue(variable.getValue(), dialect));
@@ -470,7 +467,7 @@ public class SqlBuffer implements Serializable {
     /** 获取可执行SQL语句(预编译参数替换为拼写式参数) **/
     public String getExecutableSqlString(SqlDialect dialect) {
         StringBuilder sql = new StringBuilder();
-        for (Object item : this.buffer) {
+        for (Item item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 sql.append(stringItem.getValue());
@@ -480,7 +477,7 @@ public class SqlBuffer implements Serializable {
                 sql.append(string);
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
-                sql.append(DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect));
+                sql.append(DbTools.resolveRawValue(rawValueItem.getValue(), dialect));
             } else if (item instanceof OmitItem) {
                 continue;
             } else {
@@ -502,13 +499,13 @@ public class SqlBuffer implements Serializable {
         boolean omitEnabled = false;
         int charCount = 0;
         int lineCount = 0;
-        for (Object item : this.buffer) {
+        for (Item item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 String stringValue = stringItem.getValue().toString();
                 if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
                     sql.append(stringValue);
                 }
@@ -517,17 +514,17 @@ public class SqlBuffer implements Serializable {
                 String stringValue = DbTools.variableToString(variable.value, dialect);
                 if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
                     sql.append(tryCutStringOverlength(stringValue, valueLimit));
                     sql.append("/*").append(variable.getKey()).append("*/");
                 }
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
-                String stringValue = DbTools.resolveRawValue(rawValueItem.getRawValue(), dialect);
+                String stringValue = DbTools.resolveRawValue(rawValueItem.getValue(), dialect);
                 if (omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
-                    lineCount += stringValue == null ? 0 : countNewlineChars(stringValue);
+                    lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
                     sql.append(stringValue);
                 }
@@ -535,20 +532,8 @@ public class SqlBuffer implements Serializable {
                 OmitItem omitItem = (OmitItem) item;
                 if (omitItem.enabled() != omitEnabled) {
                     if (!omitItem.enabled() && charCount > 0) {
-                        // 输出省略掉的行数和字符数
-                        // /* 10000 chars, 100 lines are omitted here ... */
-                        StringBuffer msg = generateEllipsisDetails(charCount, lineCount);
-                        int whitespaceIndex = findAfterTextFirstWhitespaceIndex(sql);
-                        if (whitespaceIndex < 0 || whitespaceIndex >= sql.length()) {
-                            sql.append('\n').append(msg).append('\n');
-                        } else {
-                            char c = sql.charAt(whitespaceIndex);
-                            msg.insert(0, '\n');
-                            if (c != '\r' && c != '\n') {
-                                msg.append('\n');
-                            }
-                            sql.insert(whitespaceIndex, msg);
-                        }
+                        // 插入省略信息
+                        insertOmittedDetails(sql, charCount, lineCount);
                     }
                     lineCount = 0;
                     charCount = 0;
@@ -561,10 +546,18 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
+    protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount) {
+        // 计算省略掉的行数和字符数信息
+        // /* 10000 chars, 100 lines are omitted here ... */
+        StringBuilder msg = generateOmittedDetails(charCount, lineCount);
+        // 在最后一个换行符之后插入省略信息
+        IndentTools.insertMessageAfterLastNewline(sql, msg);
+    }
+
     // 生成省略掉的行数和字符数详细描述
     // /* 10000 chars, 100 lines are omitted here ... */
-    protected StringBuffer generateEllipsisDetails(int charCount, int lineCount) {
-        StringBuffer msg = new StringBuffer();
+    protected StringBuilder generateOmittedDetails(int charCount, int lineCount) {
+        StringBuilder msg = new StringBuilder();
         msg.append("/*").append(' ');
         msg.append(charCount).append(' ').append("chars");
         if (lineCount > 0) {
@@ -572,37 +565,6 @@ public class SqlBuffer implements Serializable {
         }
         msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
         return msg;
-    }
-
-    /** 统计文本中有多少个换行符 **/
-    private int countNewlineChars(String string) {
-        int count = 0;
-        int size = string == null ? 0 : string.length();
-        for (int i = 0; i < size; i++) {
-            if (string.charAt(i) == '\n') {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    /**
-     * 查找文本后面最先前的一个空白字符的位置
-     * 
-     * @param string 字符串
-     * @return 空白字符的位置
-     */
-    protected int findAfterTextFirstWhitespaceIndex(StringBuilder string) {
-        int last = string.length() - 1;
-        for (int i = last; i >= 0; i--) {
-            char c = string.charAt(i);
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') {
-                continue;
-            } else {
-                return i == last ? -1 : i + 1;
-            }
-        }
-        return -1;
     }
 
     /** 尝试截短字符串 **/
@@ -656,14 +618,14 @@ public class SqlBuffer implements Serializable {
 
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
-        private String rawValue;
+        private String value;
 
-        public RawValueItem(String rawValue) {
-            this.rawValue = rawValue;
+        public RawValueItem(String value) {
+            this.value = value;
         }
 
-        public String getRawValue() {
-            return rawValue;
+        public String getValue() {
+            return value;
         }
     }
 
@@ -672,10 +634,10 @@ public class SqlBuffer implements Serializable {
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
 
-        private final StringBuffer value;
+        private final StringBuilder value;
 
         public StringItem() {
-            this.value = new StringBuffer();
+            this.value = new StringBuilder();
         }
 
         public void append(char... chars) {
@@ -719,7 +681,7 @@ public class SqlBuffer implements Serializable {
         }
 
         /** 缩进TAB(只在换行符后面增加TAB) **/
-        public void indent(char[] tabs) {
+        public void indentAll(char[] tabs) {
             for (int i = value.length() - 1; i >= 0; i--) {
                 if (value.charAt(i) == '\n') {
                     value.insert(i + 1, tabs);
@@ -727,7 +689,7 @@ public class SqlBuffer implements Serializable {
             }
         }
 
-        public StringBuffer getValue() {
+        public StringBuilder getValue() {
             return this.value;
         }
 
