@@ -13,6 +13,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.IndentTools;
 import com.gitee.qdbp.tools.utils.StringTools;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * SQL容器
@@ -29,6 +30,8 @@ public class SqlBuffer implements Serializable {
     private int index;
     /** SQL缓存容器 **/
     private List<Item> buffer;
+    /** 快捷方式实例 **/
+    private SqlBuilder shortcut;
 
     /** 构造函数 **/
     public SqlBuffer() {
@@ -48,6 +51,14 @@ public class SqlBuffer implements Serializable {
         this.index = 0;
         this.buffer = new ArrayList<>();
         this.append(sql);
+    }
+
+    /** 返回当前实例的快捷方式实例 **/
+    public SqlBuilder shortcut() {
+        if (this.shortcut == null) {
+            this.shortcut = new SqlBuilder(this);
+        }
+        return this.shortcut;
     }
 
     /**
@@ -588,13 +599,64 @@ public class SqlBuffer implements Serializable {
         SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(MainDbType.Oracle));
         return getLoggingSqlString(dialect);
     }
+    
+    protected List<Item> items() {
+        return this.buffer;
+    }
+
+    protected SqlBuffer autoAppendWhitespace(String part) {
+        // 1. 空白字符前/后不加
+        // 2. 符号前/后不加
+        // 3. 两个单词放一块时要加
+        // -- '作为单词而不是符号, SELECT '0' AS price
+
+        if (TextTools.endsWithSqlSymbol(this) || TextTools.startsWithSqlSymbol(part)) {
+            return this;
+        }
+        this.append(' ');
+
+        // TODO
+        // 运算符, 如果前面有空格, 则后面也加一个空格
+        // 换行时, 前面的未闭合的左括号前加一个空格
+        // 右括号前, 如果在本行找不到成对的左括号时, 加一个空格
+        // 右括号后, 如果右括号前有空格, 后面也加一个空格
+        return this;
+    }
+
+    protected SqlBuffer autoAppendWhitespace(SqlBuffer part) {
+        if (TextTools.endsWithSqlSymbol(this) || TextTools.startsWithSqlSymbol(part)) {
+            return this;
+        }
+        this.append(' ');
+        return this;
+    }
+
+    protected SqlBuffer autoPrependWhitespace(String part) {
+        if (TextTools.startsWithSqlSymbol(this) || TextTools.endsWithSqlSymbol(part)) {
+            return this;
+        }
+        this.prepend(' ');
+        return this;
+    }
+
+    protected SqlBuffer autoPrependWhitespace(SqlBuffer part) {
+        if (TextTools.startsWithSqlSymbol(this) || TextTools.endsWithSqlSymbol(part)) {
+            return this;
+        }
+        this.prepend(' ');
+        return this;
+    }
+
+    protected int findLastIndentSize() {
+        return TextTools.findLastIndentSize(this);
+    }
 
     protected static interface Item {
     }
 
     /**
      * 超级长的SQL在输出日志时可以省略掉一部分<br>
-     * 省略哪一部分, 用EllipsisItem来标识起止位置
+     * 省略哪一部分, 用OmitItem来标识起止位置
      *
      * @author zhaohuihua
      * @version 20200712
@@ -621,6 +683,7 @@ public class SqlBuffer implements Serializable {
         private String value;
 
         public RawValueItem(String value) {
+            VerifyTools.requireNonNull(value, "value");
             this.value = value;
         }
 
