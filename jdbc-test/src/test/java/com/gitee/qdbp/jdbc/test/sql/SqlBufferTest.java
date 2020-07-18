@@ -29,7 +29,7 @@ public class SqlBufferTest {
 
         System.out.println(buffer.getPreparedSqlString(dialect));
         System.out.println(buffer.toString());
-        String sql = buffer.getExecutableSqlString(dialect);
-        System.out.println(DbTools.formatSql(sql, 0));
+        // String sql = buffer.getExecutableSqlString(dialect);
+        // System.out.println(DbTools.formatSql(sql, 0));
     }
 }
