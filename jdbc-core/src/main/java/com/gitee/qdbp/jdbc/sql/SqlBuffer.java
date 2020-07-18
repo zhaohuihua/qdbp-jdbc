@@ -605,12 +605,17 @@ public class SqlBuffer implements Serializable {
     }
 
     protected SqlBuffer autoAppendWhitespace(String part) {
-        // 1. 空白字符前/后不加
-        // 2. 符号前/后不加
+        VerifyTools.requireNonNull(part, "part");
+        // 1. 空白后/符号后(右括号除外)不加
+        // 2. 空白前/符号前不加
         // 3. 两个单词放一块时要加
         // -- '作为单词而不是符号, SELECT '0' AS price
 
-        if (TextTools.endsWithSqlSymbol(this) || TextTools.startsWithSqlSymbol(part)) {
+        if (this.isEmpty() || part.isEmpty()) {
+            return this;
+        }
+        // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
+        if (TextTools.endsWithSqlSymbol(this, ')') || TextTools.startsWithSqlSymbol(part)) {
             return this;
         }
         this.append(' ');
@@ -624,7 +629,12 @@ public class SqlBuffer implements Serializable {
     }
 
     protected SqlBuffer autoAppendWhitespace(SqlBuffer part) {
-        if (TextTools.endsWithSqlSymbol(this) || TextTools.startsWithSqlSymbol(part)) {
+        VerifyTools.requireNonNull(part, "part");
+        if (this.isEmpty() || part.isEmpty()) {
+            return this;
+        }
+        // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
+        if (TextTools.endsWithSqlSymbol(this, ')') || TextTools.startsWithSqlSymbol(part)) {
             return this;
         }
         this.append(' ');
@@ -632,7 +642,12 @@ public class SqlBuffer implements Serializable {
     }
 
     protected SqlBuffer autoPrependWhitespace(String part) {
-        if (TextTools.startsWithSqlSymbol(this) || TextTools.endsWithSqlSymbol(part)) {
+        VerifyTools.requireNonNull(part, "part");
+        if (this.isEmpty() || part.isEmpty()) {
+            return this;
+        }
+        // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
+        if (TextTools.endsWithSqlSymbol(part, ')') || TextTools.startsWithSqlSymbol(this)) {
             return this;
         }
         this.prepend(' ');
@@ -640,7 +655,12 @@ public class SqlBuffer implements Serializable {
     }
 
     protected SqlBuffer autoPrependWhitespace(SqlBuffer part) {
-        if (TextTools.startsWithSqlSymbol(this) || TextTools.endsWithSqlSymbol(part)) {
+        VerifyTools.requireNonNull(part, "part");
+        if (this.isEmpty() || part.isEmpty()) {
+            return this;
+        }
+        // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
+        if (TextTools.endsWithSqlSymbol(part, ')') || TextTools.startsWithSqlSymbol(this)) {
             return this;
         }
         this.prepend(' ');
@@ -708,18 +728,22 @@ public class SqlBuffer implements Serializable {
         }
 
         public void append(String value) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.append(value);
         }
 
         public void append(String value, char suffix) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.append(value).append(suffix);
         }
 
         public void append(char prefix, String value) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.append(prefix).append(value);
         }
 
         public void append(char prefix, String value, char suffix) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.append(prefix).append(value).append(suffix);
         }
 
@@ -728,18 +752,22 @@ public class SqlBuffer implements Serializable {
         }
 
         public void prepend(String value) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.insert(0, value);
         }
 
         public void prepend(String value, char suffix) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.insert(0, suffix).insert(0, value);
         }
 
         public void prepend(char prefix, String value) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.insert(0, value).insert(0, prefix);
         }
 
         public void prepend(char prefix, String value, char suffix) {
+            VerifyTools.requireNonNull(value, "value");
             this.value.insert(0, suffix).insert(0, value).insert(0, prefix);
         }
 

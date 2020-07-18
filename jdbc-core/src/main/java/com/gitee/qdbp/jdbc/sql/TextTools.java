@@ -35,7 +35,7 @@ class TextTools {
         // 取换行符之后的子串
         // 如果子串全是空白字符, 再向后取前置的空白字符
         int size = sql.items().size();
-        for (int i = size - 1; i >= 0; i++) {
+        for (int i = size - 1; i >= 0; i--) {
             String suffixAfterNewline;
             { // 查找带有换行符的字符串, 并获取换行符之后的子串
                 CharSequence string = getItemStringValue(sql.items().get(i));
@@ -47,10 +47,10 @@ class TextTools {
                     lastIndex = getIndexOfBeforeTrailingNewline(string);
                 }
                 // 获取换行符之后的子串
-                if (i == 0) { // 第一项, 整个字符串视为换行符之后的子串
+                suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
+                if (suffixAfterNewline == null && i == 0) {
+                    // 在没有换行符的情况下, 如果是第一项, 则将整个字符串视为换行符之后的子串
                     suffixAfterNewline = string.toString().substring(0, lastIndex);
-                } else {
-                    suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
                 }
                 if (suffixAfterNewline == null) {
                     continue; // 未找到换行符
@@ -105,7 +105,7 @@ class TextTools {
     // \t\tABC           -- null (没有换行符)
     // ""                -- null (没有换行符)
     private static String getSubstringOfAfterLastNewline(CharSequence string, int lastIndex) {
-        for (int i = lastIndex; i >= 0; i++) {
+        for (int i = lastIndex; i >= 0; i--) {
             char c = string.charAt(i);
             if (c == '\r' || c == '\n') {
                 return string.toString().substring(i + 1);
@@ -126,10 +126,10 @@ class TextTools {
         }
         return string.toString();
     }
-    
+
     /** 获取结尾换行符之前的位置 **/
     private static int getIndexOfBeforeTrailingNewline(CharSequence string) {
-        int lastIndex = string.length();
+        int lastIndex = string.length() - 1;
         for (int i = lastIndex; i >= 0; i--) {
             char c = string.charAt(i);
             if (c == '\r' || c == '\n') {
@@ -163,7 +163,10 @@ class TextTools {
      * @param c 指定字符
      * @return 是不是符号
      */
-    private static boolean isSqlSymbol(char c) {
+    private static boolean isSqlSymbol(char c, char... excludeSymbols) {
+        if (isInChars(c, excludeSymbols)) {
+            return false;
+        }
         for (int i = 0; i < SYMBOLS.length; i++) {
             if (c == SYMBOLS[i]) {
                 return true;
@@ -172,26 +175,37 @@ class TextTools {
         return false;
     }
 
-    /** 是不是以SQL符号开头 **/
-    public static boolean startsWithSqlSymbol(CharSequence string) {
-        if (string == null || string.length() == 0) {
-            return false;
+    private static boolean isInChars(char c, char... chars) {
+        if (chars != null && chars.length > 0) {
+            for (int i = 0; i < chars.length; i++) {
+                if (c == chars[i]) {
+                    return true;
+                }
+            }
         }
-        return isSqlSymbol(string.charAt(0));
+        return false;
     }
 
     /** 是不是以SQL符号开头 **/
-    public static boolean startsWithSqlSymbol(SqlBuffer sql) {
+    public static boolean startsWithSqlSymbol(CharSequence string, char... excludeSymbols) {
+        if (string == null || string.length() == 0) {
+            return false;
+        }
+        return isSqlSymbol(string.charAt(0), excludeSymbols);
+    }
+
+    /** 是不是以SQL符号开头 **/
+    public static boolean startsWithSqlSymbol(SqlBuffer sql, char... excludeSymbols) {
         if (sql.items().isEmpty()) {
             return false;
         }
         for (Item item : sql.items()) {
             if (item instanceof StringItem) {
-                return startsWithSqlSymbol(((StringItem) item).getValue());
+                return startsWithSqlSymbol(((StringItem) item).getValue(), excludeSymbols);
             } else if (item instanceof VariableItem) {
                 return false;
             } else if (item instanceof RawValueItem) {
-                return startsWithSqlSymbol(((RawValueItem) item).getValue());
+                return startsWithSqlSymbol(((RawValueItem) item).getValue(), excludeSymbols);
             } else if (item instanceof OmitItem) {
                 continue;
             } else {
@@ -202,26 +216,26 @@ class TextTools {
     }
 
     /** 是不是以SQL符号结尾 **/
-    public static boolean endsWithSqlSymbol(CharSequence string) {
+    public static boolean endsWithSqlSymbol(CharSequence string, char... excludeSymbols) {
         if (string == null || string.length() == 0) {
             return false;
         }
-        return isSqlSymbol(string.charAt(string.length() - 1));
+        return isSqlSymbol(string.charAt(string.length() - 1), excludeSymbols);
     }
 
     /** 是不是以SQL符号结尾 **/
-    public static boolean endsWithSqlSymbol(SqlBuffer sql) {
+    public static boolean endsWithSqlSymbol(SqlBuffer sql, char... excludeSymbols) {
         if (sql.items().isEmpty()) {
             return false;
         }
-        for (int i = sql.items().size() - 1; i >= 0; i++) {
+        for (int i = sql.items().size() - 1; i >= 0; i--) {
             Item item = sql.items().get(i);
             if (item instanceof StringItem) {
-                return endsWithSqlSymbol(((StringItem) item).getValue());
+                return endsWithSqlSymbol(((StringItem) item).getValue(), excludeSymbols);
             } else if (item instanceof VariableItem) {
                 return false;
             } else if (item instanceof RawValueItem) {
-                return endsWithSqlSymbol(((RawValueItem) item).getValue());
+                return endsWithSqlSymbol(((RawValueItem) item).getValue(), excludeSymbols);
             } else if (item instanceof OmitItem) {
                 continue;
             } else {
@@ -231,4 +245,62 @@ class TextTools {
         return false;
     }
 
+    /** 是不是以指定字符开头 **/
+    public static boolean startsWithChar(CharSequence string, char c) {
+        if (string == null || string.length() == 0) {
+            return false;
+        }
+        return c == string.charAt(0);
+    }
+
+    /** 是不是以指定字符开头 **/
+    public static boolean startsWithChar(SqlBuffer sql, char c) {
+        if (sql.items().isEmpty()) {
+            return false;
+        }
+        for (Item item : sql.items()) {
+            if (item instanceof StringItem) {
+                return startsWithChar(((StringItem) item).getValue(), c);
+            } else if (item instanceof VariableItem) {
+                return false;
+            } else if (item instanceof RawValueItem) {
+                return startsWithChar(((RawValueItem) item).getValue(), c);
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
+
+    /** 是不是以指定字符结尾 **/
+    public static boolean endsWithChar(CharSequence string, char c) {
+        if (string == null || string.length() == 0) {
+            return false;
+        }
+        return c == string.charAt(string.length() - 1);
+    }
+
+    /** 是不是以指定字符结尾 **/
+    public static boolean endsWithChar(SqlBuffer sql, char c) {
+        if (sql.items().isEmpty()) {
+            return false;
+        }
+        for (int i = sql.items().size() - 1; i >= 0; i--) {
+            Item item = sql.items().get(i);
+            if (item instanceof StringItem) {
+                return endsWithChar(((StringItem) item).getValue(), c);
+            } else if (item instanceof VariableItem) {
+                return false;
+            } else if (item instanceof RawValueItem) {
+                return endsWithChar(((RawValueItem) item).getValue(), c);
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
 }

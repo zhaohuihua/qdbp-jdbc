@@ -54,6 +54,19 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
+     * ad=append: 将指定SQL片段追加到SQL后面, 将会自动追加空格
+     * 
+     * @param parts SQL片段
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuilder ad(char... parts) {
+        if (parts != null) {
+            this.buffer.append(parts);
+        }
+        return this;
+    }
+
+    /**
      * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会自动追加空格
      * 
      * @param parts SQL片段
@@ -67,7 +80,19 @@ public class SqlBuilder implements Serializable {
             }
         }
         return this;
+    }
 
+    /**
+     * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会自动追加空格
+     * 
+     * @param parts SQL片段
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuilder pd(char... parts) {
+        if (parts != null) {
+            this.buffer.prepend(parts);
+        }
+        return this;
     }
 
     /**
@@ -78,6 +103,10 @@ public class SqlBuilder implements Serializable {
      */
     public SqlBuilder ad(SqlBuffer buffer) {
         if (buffer != null && !buffer.isEmpty()) {
+            int indent = this.buffer.findLastIndentSize();
+            if (indent > 0) {
+                buffer.indentAll(indent, false);
+            }
             this.buffer.autoAppendWhitespace(buffer).append(buffer);
         }
         return this;
@@ -101,6 +130,10 @@ public class SqlBuilder implements Serializable {
      */
     public SqlBuilder pd(SqlBuffer buffer) {
         if (buffer != null && !buffer.isEmpty()) {
+            int indent = buffer.findLastIndentSize();
+            if (indent > 0) {
+                this.buffer.indentAll(indent, false);
+            }
             this.buffer.autoPrependWhitespace(buffer).prepend(buffer);
         }
         return this;
@@ -138,13 +171,13 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
-     * 增加换行, 将会自动缩进
+     * 增加换行, 将会自动保持上一行的缩进量
      * 
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder newline() {
         this.buffer.append('\n');
-        return this.tab();
+        return this.tab(0);
     }
 
     /**
@@ -153,11 +186,7 @@ public class SqlBuilder implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder tab() {
-        int size = this.buffer.findLastIndentSize();
-        if (size > 0) {
-            this.buffer.append(IndentTools.getIndenTabs(size));
-        }
-        return this;
+        return this.tab(1);
     }
 
     /**
@@ -241,5 +270,10 @@ public class SqlBuilder implements Serializable {
      */
     public void copyTo(SqlBuilder target) {
         target.buffer = this.buffer.copy();
+    }
+
+    @Override
+    public String toString() {
+        return this.buffer.toString();
     }
 }
