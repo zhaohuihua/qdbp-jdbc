@@ -39,15 +39,19 @@ class SqlTextTools {
             String suffixAfterNewline;
             { // 查找带有换行符的字符串, 并获取换行符之后的子串
                 CharSequence string = getItemStringValue(sql.items().get(i));
-                if (string == null || string.length() == 0) {
+                if (string == null) {
                     continue;
                 }
                 int lastIndex = string.length() - 1;
-                if (i == size - 1) { // 如果是最后一项, 移除最后的连续多个换行符
-                    lastIndex = getIndexOfBeforeTrailingChars(string, '\r', '\n');
+                if (string.length() == 0) {
+                    suffixAfterNewline = null;
+                } else {
+                    if (i == size - 1) { // 如果是最后一项, 移除最后的连续多个换行符
+                        lastIndex = getIndexOfBeforeTrailingChars(string, '\r', '\n');
+                    }
+                    // 获取换行符之后的子串
+                    suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
                 }
-                // 获取换行符之后的子串
-                suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
                 if (suffixAfterNewline == null && i == 0) {
                     // 在没有换行符的情况下, 如果是第一项, 则将整个字符串视为换行符之后的子串
                     // +1是因为getIndexOfBeforeTrailingChars返回是的换行符之前的那个位置
