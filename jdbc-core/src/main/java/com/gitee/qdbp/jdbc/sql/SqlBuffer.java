@@ -450,6 +450,7 @@ public class SqlBuffer implements Serializable {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
+        replaceWhitespace(sql);
         return sql.toString();
     }
 
@@ -495,6 +496,7 @@ public class SqlBuffer implements Serializable {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
+        replaceWhitespace(sql);
         return sql.toString();
     }
 
@@ -554,7 +556,13 @@ public class SqlBuffer implements Serializable {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
+        replaceWhitespace(sql);
         return sql.toString();
+    }
+    
+    /** 替换\t为4个空格, 替换\r\n为\n, 替换单独的\r为\n **/
+    protected void replaceWhitespace(StringBuilder sql) {
+        StringTools.replace(sql, "\t", "    ", "\r\n", "\n", "\r", "\n");
     }
 
     protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount) {
