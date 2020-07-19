@@ -13,7 +13,7 @@ import com.gitee.qdbp.tools.utils.IndentTools;
  * @author zhaohuihua
  * @version 20200718
  */
-class TextTools {
+class SqlTextTools {
 
     /**
      * 查找最后的缩进量<pre>

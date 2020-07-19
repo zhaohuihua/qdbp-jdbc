@@ -616,7 +616,7 @@ public class SqlBuffer implements Serializable {
             return this;
         }
         // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
-        if (TextTools.endsWithSqlSymbol(this, ')') || TextTools.startsWithSqlSymbol(part)) {
+        if (SqlTextTools.endsWithSqlSymbol(this, ')') || SqlTextTools.startsWithSqlSymbol(part)) {
             return this;
         }
         this.append(' ');
@@ -636,7 +636,7 @@ public class SqlBuffer implements Serializable {
             return this;
         }
         // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
-        if (TextTools.endsWithSqlSymbol(this, ')') || TextTools.startsWithSqlSymbol(part)) {
+        if (SqlTextTools.endsWithSqlSymbol(this, ')') || SqlTextTools.startsWithSqlSymbol(part)) {
             return this;
         }
         this.append(' ');
@@ -650,7 +650,7 @@ public class SqlBuffer implements Serializable {
             return this;
         }
         // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
-        if (TextTools.endsWithSqlSymbol(part, ')') || TextTools.startsWithSqlSymbol(this)) {
+        if (SqlTextTools.endsWithSqlSymbol(part, ')') || SqlTextTools.startsWithSqlSymbol(this)) {
             return this;
         }
         this.prepend(' ');
@@ -664,7 +664,7 @@ public class SqlBuffer implements Serializable {
             return this;
         }
         // 左侧是除右括号以外的空白或符号, 或者右侧是空白或符号, 不需要加空格
-        if (TextTools.endsWithSqlSymbol(part, ')') || TextTools.startsWithSqlSymbol(this)) {
+        if (SqlTextTools.endsWithSqlSymbol(part, ')') || SqlTextTools.startsWithSqlSymbol(this)) {
             return this;
         }
         this.prepend(' ');
@@ -673,12 +673,12 @@ public class SqlBuffer implements Serializable {
 
     /** 查找最后的缩进量 **/
     protected int findLastIndentSize() {
-        return TextTools.findLastIndentSize(this);
+        return SqlTextTools.findLastIndentSize(this);
     }
 
     /** 清除最后的文字后面的缩进空白(返回清除了几个缩进量) **/
     protected int clearTrailingIndentWhitespace() {
-        return TextTools.clearTrailingIndentWhitespace(this);
+        return SqlTextTools.clearTrailingIndentWhitespace(this);
     }
 
     protected static interface Item {
