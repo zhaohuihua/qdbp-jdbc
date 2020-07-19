@@ -177,6 +177,10 @@ public class SqlBuilder implements Serializable {
      */
     public SqlBuilder newline() {
         this.buffer.append('\n');
+        int size = this.buffer.findLastIndentSize();
+        if (size > 0) {
+            this.buffer.append(IndentTools.getIndenTabs(size));
+        }
         return this.tab(0);
     }
 
@@ -190,16 +194,22 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
-     * 增加或减少缩进
+     * 在现有的基础上增加或减少缩进
      * 
      * @param size 正数为增加, 负数为减少
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder tab(int size) {
-        int currSize = this.buffer.findLastIndentSize();
-        int realSize = currSize + size;
-        if (realSize > 0) {
-            this.buffer.append(IndentTools.getIndenTabs(realSize));
+        if (size > 0) {
+            this.buffer.append(IndentTools.getIndenTabs(size));
+        } else if (size < 0) {
+            // 负数为减少缩进
+            // 先清除缩进, 再追加至减少后的数量
+            // 因为有可能存在\s\s\t这种不规范的缩进, 无法从后往前直接清除
+            int currSize = this.buffer.clearTrailingIndentWhitespace();
+            if (currSize > 0) {
+                this.buffer.append(IndentTools.getIndenTabs(currSize + size));
+            }
         }
         return this;
     }
@@ -213,6 +223,7 @@ public class SqlBuilder implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder indent(int size) {
+        this.buffer.clearTrailingIndentWhitespace();
         if (size > 0) {
             this.buffer.append(IndentTools.getIndenTabs(size));
         }

@@ -16,7 +16,7 @@ import com.gitee.qdbp.tools.utils.IndentTools;
 class TextTools {
 
     /**
-     * 查找缩进量<pre>
+     * 查找最后的缩进量<pre>
      * 例如: \r\n=换行符, \t=TAB符, \s=空格
      * \n\tABC\n\t\tDEF\t\t\t --> 这里要找的是DEF之前的那个换行符之后的空白字符, 即缩进量为2
      * \n\tABC\n\t\tDEF\n     --> 最后一个字符就是换行符, 即刚刚换行完, 要找的仍然是DEF之前的那个换行符
@@ -24,7 +24,7 @@ class TextTools {
      * \n\tABC\n\t\t          --> 这里应返回ABC后面的换行符之后的缩进量2
      * \tABC --> 这里应返回首行的缩进量1</pre>
      * 
-     * @param string 字符串
+     * @param sql SQL语句
      * @return 缩进量
      */
     public static int findLastIndentSize(SqlBuffer sql) {
@@ -44,7 +44,7 @@ class TextTools {
                 }
                 int lastIndex = string.length() - 1;
                 if (i == size - 1) { // 如果是最后一项, 移除最后的连续多个换行符
-                    lastIndex = getIndexOfBeforeTrailingNewline(string);
+                    lastIndex = getIndexOfBeforeTrailingChars(string, '\r', '\n');
                 }
                 // 获取换行符之后的子串
                 suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
@@ -81,6 +81,74 @@ class TextTools {
             }
         }
         return 0;
+    }
+
+    /**
+     * 清除最后的文字后面的缩进空白
+     * 
+     * @param sql SQL语句
+     * @return 清除了多少个缩进量
+     */
+    public static int clearTrailingIndentWhitespace(SqlBuffer sql) {
+        if (sql.items().isEmpty()) {
+            return 0;
+        }
+        // 先从后向前查找带有换行符的字符串
+        // 取换行符之后的子串
+        // 如果子串全是空白字符, 再向后取前置的空白字符
+        int size = sql.items().size();
+        StringBuilder allCleared = new StringBuilder();
+        for (int i = size - 1; i >= 0; i--) {
+            Item item = sql.items().get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                String cleared = clearTrailingIndentWhitespace(stringItem);
+                if (cleared != null) {
+                    allCleared.append(cleared);
+                }
+                if (stringItem.getValue().length() > 0) {
+                    break; // 清除完之后如果还有字符, 结束查找
+                }
+            } else if (item instanceof VariableItem) {
+                break; // 遇到非string类型的item, 结束查找
+            } else if (item instanceof RawValueItem) {
+                RawValueItem stringItem = (RawValueItem) item;
+                String cleared = clearTrailingIndentWhitespace(stringItem);
+                if (cleared != null) {
+                    allCleared.append(cleared);
+                }
+                if (stringItem.getValue().length() > 0) {
+                    break; // 清除完之后如果还有字符, 结束查找
+                }
+            } else if (item instanceof OmitItem) {
+                break; // 遇到非string类型的item, 结束查找
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return IndentTools.calcSpacesToTabSize(allCleared);
+    }
+
+    private static String clearTrailingIndentWhitespace(StringItem item) {
+        int index = getIndexOfBeforeTrailingChars(item.getValue(), ' ', '\t') + 1;
+        if (index >= item.getValue().length()) {
+            return null;
+        } else {
+            String cleared = item.getValue().substring(index);
+            item.getValue().setLength(index);
+            return cleared;
+        }
+    }
+
+    private static String clearTrailingIndentWhitespace(RawValueItem item) {
+        int index = getIndexOfBeforeTrailingChars(item.getValue(), ' ', '\t') + 1;
+        if (index >= item.getValue().length()) {
+            return null;
+        } else {
+            String cleared = item.getValue().substring(index);
+            item.setValue(index == 0 ? "" : item.getValue().substring(0, index));
+            return cleared;
+        }
     }
 
     private static CharSequence getItemStringValue(Item item) {
@@ -127,12 +195,12 @@ class TextTools {
         return string.toString();
     }
 
-    /** 获取结尾换行符之前的位置 **/
-    private static int getIndexOfBeforeTrailingNewline(CharSequence string) {
+    /** 获取指定字符之前的位置 **/
+    private static int getIndexOfBeforeTrailingChars(CharSequence string, char... chars) {
         int lastIndex = string.length() - 1;
         for (int i = lastIndex; i >= 0; i--) {
             char c = string.charAt(i);
-            if (c == '\r' || c == '\n') {
+            if (isInChars(c, chars)) {
                 lastIndex--; // 移除最后连续的换行符
             } else {
                 break;

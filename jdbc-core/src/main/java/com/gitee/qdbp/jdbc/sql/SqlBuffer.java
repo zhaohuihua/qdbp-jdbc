@@ -604,6 +604,7 @@ public class SqlBuffer implements Serializable {
         return this.buffer;
     }
 
+    /** 自动追加空格 **/
     protected SqlBuffer autoAppendWhitespace(String part) {
         VerifyTools.requireNonNull(part, "part");
         // 1. 空白后/符号后(右括号除外)不加
@@ -628,6 +629,7 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    /** 自动追加空格 **/
     protected SqlBuffer autoAppendWhitespace(SqlBuffer part) {
         VerifyTools.requireNonNull(part, "part");
         if (this.isEmpty() || part.isEmpty()) {
@@ -641,6 +643,7 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    /** 自动在前面添加空格 **/
     protected SqlBuffer autoPrependWhitespace(String part) {
         VerifyTools.requireNonNull(part, "part");
         if (this.isEmpty() || part.isEmpty()) {
@@ -654,6 +657,7 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    /** 自动在前面添加空格 **/
     protected SqlBuffer autoPrependWhitespace(SqlBuffer part) {
         VerifyTools.requireNonNull(part, "part");
         if (this.isEmpty() || part.isEmpty()) {
@@ -667,8 +671,14 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    /** 查找最后的缩进量 **/
     protected int findLastIndentSize() {
         return TextTools.findLastIndentSize(this);
+    }
+
+    /** 清除最后的文字后面的缩进空白(返回清除了几个缩进量) **/
+    protected int clearTrailingIndentWhitespace() {
+        return TextTools.clearTrailingIndentWhitespace(this);
     }
 
     protected static interface Item {
@@ -709,6 +719,10 @@ public class SqlBuffer implements Serializable {
 
         public String getValue() {
             return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
         }
     }
 
