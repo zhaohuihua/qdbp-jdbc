@@ -27,9 +27,20 @@ public class SqlBufferTest {
 
         buffer.prepend("SELECT * FROM SYS_USER ");
 
+        printSqlString(buffer, dialect);
+    }
+    
+    private static void printSqlString(SqlBuffer buffer, SqlDialect dialect) {
+        System.out.println("/******************************************************\\");
+        System.out.println("-- PreparedSqlString");
         System.out.println(buffer.getPreparedSqlString(dialect));
-        System.out.println(buffer.toString());
-        // String sql = buffer.getExecutableSqlString(dialect);
-        // System.out.println(DbTools.formatSql(sql, 0));
+        System.out.println("--------------------------------------------------------");
+        System.out.println("-- ExecutableSqlString");
+        System.out.println(buffer.getExecutableSqlString(dialect));
+        System.out.println("--------------------------------------------------------");
+        System.out.println("-- LoggingSqlString");
+        System.out.println(buffer.getLoggingSqlString(dialect));
+        System.out.println("\\******************************************************/");
+        System.out.println();
     }
 }
