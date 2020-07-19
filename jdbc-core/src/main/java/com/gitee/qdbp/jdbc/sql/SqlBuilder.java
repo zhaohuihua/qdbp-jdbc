@@ -267,6 +267,21 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
+     * 传入size和当前index, 自动计算, 插入省略标记<br>
+     * 日志只取前3行+后3行; 因此在第3行后面开始省略, 在后3行之前结束省略<br>
+     * 注意: 如果有换行符, 最好放在换行符后面
+     * 
+     * @param index 当前行数
+     * @param count 总行数
+     * @param limit 保留多少行(前后各保留limit行)
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuilder omit(int index, int count, int limit) {
+        this.buffer.tryOmit(index, count, limit);
+        return this;
+    }
+
+    /**
      * 复制
      * 
      * @return 副本

@@ -351,13 +351,32 @@ public class SqlBuffer implements Serializable {
      * 
      * @param index 当前行数
      * @param count 总行数
+     * @param limit 保留多少行(前后各保留limit行)
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer tryOmit(int index, int count) {
-        if (count >= 7 && index == 3) {
-            this.startOmit(); // 开始省略
-        } else if (count >= 7 && index == count - 3) {
-            this.endOmit(); // 结束省略
+        return tryOmit(index, count, 3);
+    }
+
+    /**
+     * 传入size和当前index, 自动计算, 插入省略标记<br>
+     * 日志只取前3行+后3行; 因此在第3行后面开始省略, 在后3行之前结束省略<br>
+     * 注意: 如果有换行符, 最好放在换行符后面
+     * 
+     * @param index 当前行数
+     * @param count 总行数
+     * @param limit 保留多少行(前后各保留limit行)
+     * @return 返回当前SQL容器用于连写
+     */
+    public SqlBuffer tryOmit(int index, int count, int limit) {
+        if (count <= limit * 2 + 2) {
+            // 如果总行数只比保留行数多2行, 就没必要省略了
+            return this;
+        }
+        if (index == limit) {
+            this.buffer.add(new OmitItem(true, index)); // 开始省略
+        } else if (index == count - limit) {
+            this.buffer.add(new OmitItem(false, index)); // 结束省略
         }
         return this;
     }
@@ -596,6 +615,7 @@ public class SqlBuffer implements Serializable {
                 }
                 boolean omitEnabled = !omitStacks.isEmpty();
                 OmitItem omitItem = (OmitItem) item;
+                OmitItem srartItem = null;
                 // 开始标记入栈, 结束标记出栈
                 if (omitItem.enabled()) {
                     omitStacks.add(omitItem);
@@ -603,13 +623,13 @@ public class SqlBuffer implements Serializable {
                     if (omitStacks.isEmpty()) {
                         // 结束标记多于开始标记, 不作处理
                     } else {
-                        omitStacks.pop();
+                        srartItem = omitStacks.pop();
                     }
                 }
                 // OmitItem堆栈之前不是空的, 现在变空了, 说明已经回到顶层且结束了
                 if (omitEnabled && omitStacks.isEmpty()) {
                     if (charCount > 0) { // 插入省略信息
-                        insertOmittedDetails(sql, charCount, lineCount);
+                        insertOmittedDetails(sql, charCount, lineCount, calcOmittedIndex(srartItem, omitItem));
                     }
                     // 统计信息归零
                     lineCount = 0;
@@ -621,7 +641,7 @@ public class SqlBuffer implements Serializable {
         }
         // 到最后了, OmitItem还不是空的, 说明开始标记多于结束标记
         if (!omitStacks.isEmpty() && charCount > 0) { // 插入省略信息
-            insertOmittedDetails(sql, charCount, lineCount);
+            insertOmittedDetails(sql, charCount, lineCount, -1);
         }
         return sqlFormatToString(sql);
     }
@@ -646,25 +666,38 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
-    protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount) {
+    protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount, int itemCount) {
         // 计算省略掉的行数和字符数信息
-        // /* 10000 chars, 100 lines are omitted here ... */
-        StringBuilder msg = generateOmittedDetails(charCount, lineCount);
+        // /* 10000 chars, 50 items, 100 lines are omitted here ... */
+        StringBuilder msg = generateOmittedDetails(charCount, lineCount, itemCount);
         // 在最后一个换行符之后插入省略信息
         IndentTools.insertMessageAfterLastNewline(sql, msg);
     }
 
     // 生成省略掉的行数和字符数详细描述
     // /* 10000 chars, 100 lines are omitted here ... */
-    protected StringBuilder generateOmittedDetails(int charCount, int lineCount) {
+    protected StringBuilder generateOmittedDetails(int charCount, int lineCount, int itemCount) {
         StringBuilder msg = new StringBuilder();
         msg.append("/*").append(' ');
         msg.append(charCount).append(' ').append("chars");
+        if (lineCount > 0) {
+            msg.append(',').append(' ').append(itemCount).append(' ').append("items");
+        }
         if (lineCount > 0) {
             msg.append(',').append(' ').append(lineCount).append(' ').append("lines");
         }
         msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
         return msg;
+    }
+    
+    private int calcOmittedIndex(OmitItem start, OmitItem end) {
+        if (start == null || end == null) {
+            return -1;
+        }
+        if (start.index() < 0 || end.index() < 0 || start.index() > end.index()) {
+            return -1;
+        }
+        return end.index() - start.index();
     }
 
     /** 尝试截短字符串 **/
@@ -798,13 +831,24 @@ public class SqlBuffer implements Serializable {
         /** SerialVersionUID **/
         private static final long serialVersionUID = 1L;
         private final boolean enabled;
+        private final int index;
 
         public OmitItem(boolean enabled) {
             this.enabled = enabled;
+            this.index = -1;
+        }
+
+        public OmitItem(boolean enabled, int index) {
+            this.enabled = enabled;
+            this.index = index;
         }
 
         public boolean enabled() {
             return enabled;
+        }
+
+        public int index() {
+            return index;
         }
     }
 
