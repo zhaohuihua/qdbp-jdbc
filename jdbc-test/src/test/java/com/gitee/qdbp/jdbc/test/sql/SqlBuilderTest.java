@@ -26,8 +26,8 @@ public class SqlBuilderTest {
         buffer.newline();
         buffer.ad("AND CREATE_TIME", ">=").var(DateTools.parse("2019-01-01"));
         buffer.newline();
-        buffer.ad("AND USER_STATE").ad('=').var(1);
-        buffer.ad("AND EFTFLAG IN").ad('(').var('E').ad(',').var('N').ad(')');
+        buffer.ad("AND USER_STATE", "IN").ad('(').var(1).ad(',').var(2).ad(')');
+        buffer.ad("AND DATA_STATE").ad('=').var(0);
         buffer.newline().tab(-2);
         buffer.ad("UNION");
         buffer.newline();
@@ -47,8 +47,8 @@ public class SqlBuilderTest {
         buffer.ad("AND CREATE_TIME", ">=").var(DateTools.parse("2019-01-01"));
 
         SqlBuilder appendBuffer = new SqlBuilder();
-        appendBuffer.ad("AND USER_STATE").ad('=').var(1);
-        appendBuffer.ad("AND EFTFLAG IN").ad('(').var('E').ad(',').var('N').ad(')');
+        appendBuffer.ad("AND USER_STATE IN").ad('(').var(1).ad(',').var(2).ad(')');
+        appendBuffer.ad("AND EFTFLAG").ad('=').var(0);
 
         SqlBuilder prependBuffer = new SqlBuilder();
         prependBuffer.ad("WHERE DEPT_CODE").ad('=').var("10001");

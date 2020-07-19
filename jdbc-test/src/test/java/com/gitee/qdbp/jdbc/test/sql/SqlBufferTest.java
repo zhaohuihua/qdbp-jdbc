@@ -10,14 +10,30 @@ public class SqlBufferTest {
 
     public static void main(String[] args) {
         SqlDialect dialect = DbTools.buildSqlDialect(MainDbType.Oracle);
+        test1(dialect);
+        test2(dialect);
+    }
 
+    private static void test1(SqlDialect dialect) {
+        SqlBuffer buffer = new SqlBuffer();
+        buffer.append("SELECT * FROM SYS_USER");
+        buffer.append(" WHERE DEPT_CODE = ").addVariable("10001");
+        buffer.append(" AND PHONE ").append(dialect.buildLikeSql("139%"));
+        buffer.append(" AND CREATE_USER = ").addVariable("zhh");
+        buffer.append(" AND CREATE_TIME >= ").addVariable(DateTools.parse("2019-01-01"));
+        buffer.append(" AND USER_STATE IN (").addVariable(1).append(',').addVariable(2).append(')');
+        buffer.append(" AND DATA_STATE = ").addVariable(0);
+        printSqlString(buffer, dialect);
+    }
+
+    private static void test2(SqlDialect dialect) {
         SqlBuffer buffer = new SqlBuffer();
         buffer.append(" AND CREATE_USER = ").addVariable("zhh");
         buffer.append(" AND CREATE_TIME >= ").addVariable(DateTools.parse("2019-01-01"));
 
         SqlBuffer appendBuffer = new SqlBuffer();
-        appendBuffer.append(" AND USER_STATE = ").addVariable(1);
-        appendBuffer.append(" AND EFTFLAG IN (").addVariable('E').append(',').addVariable('N').append(')');
+        appendBuffer.append(" AND USER_STATE IN (").addVariable(1).append(',').addVariable(2).append(')');
+        appendBuffer.append(" AND DATA_STATE = ").addVariable(0);
 
         SqlBuffer prependBuffer = new SqlBuffer();
         prependBuffer.append(" WHERE DEPT_CODE = ").addVariable("10001");
@@ -25,11 +41,11 @@ public class SqlBufferTest {
         buffer.append(appendBuffer);
         buffer.prepend(prependBuffer);
 
-        buffer.prepend("SELECT * FROM SYS_USER ");
+        buffer.prepend("SELECT * FROM SYS_USER");
 
         printSqlString(buffer, dialect);
     }
-    
+
     private static void printSqlString(SqlBuffer buffer, SqlDialect dialect) {
         System.out.println("/******************************************************\\");
         System.out.println("-- PreparedSqlString");
