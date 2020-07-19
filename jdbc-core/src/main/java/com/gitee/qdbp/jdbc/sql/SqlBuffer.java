@@ -500,13 +500,49 @@ public class SqlBuffer implements Serializable {
         return sql.toString();
     }
 
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
+    /**
+     * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
+     * 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * 
+     * @param version 数据库版本
+     * @return SQL语句
+     */
     public String getLoggingSqlString(DbVersion version) {
-        return getLoggingSqlString(DbTools.buildSqlDialect(version));
+        return getLoggingSqlString(DbTools.buildSqlDialect(version), true);
     }
 
-    /** 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)(如果参数值长度超过100会被截断) **/
+    /**
+     * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
+     * 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * 
+     * @param dialect 数据库方言
+     * @return SQL语句
+     */
     public String getLoggingSqlString(SqlDialect dialect) {
+        return getLoggingSqlString(dialect, true);
+    }
+
+    /**
+     * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)
+     * 
+     * @param version 数据库版本
+     * @param omitMode 是否使用省略模式<br>
+     *            省略时, 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * @return SQL语句
+     */
+    public String getLoggingSqlString(DbVersion version, boolean omitMode) {
+        return getLoggingSqlString(DbTools.buildSqlDialect(version), omitMode);
+    }
+
+    /**
+     * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)
+     * 
+     * @param dialect 数据库方言
+     * @param omitMode 是否使用省略模式<br>
+     *            省略时, 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * @return SQL语句
+     */
+    public String getLoggingSqlString(SqlDialect dialect, boolean omitMode) {
         int valueLimit = 100;
         StringBuilder sql = new StringBuilder();
         boolean omitEnabled = false;
@@ -516,7 +552,7 @@ public class SqlBuffer implements Serializable {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 String stringValue = stringItem.getValue().toString();
-                if (omitEnabled) {
+                if (omitMode && omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
@@ -525,33 +561,40 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
                 String stringValue = DbTools.variableToString(variable.value, dialect);
-                if (omitEnabled) {
+                if (omitMode && omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
-                    sql.append(tryCutStringOverlength(stringValue, valueLimit));
+                    if (omitMode) {
+                        stringValue = tryCutStringOverlength(stringValue, valueLimit);
+                    }
+                    sql.append(stringValue);
                     sql.append("/*").append(variable.getKey()).append("*/");
                 }
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
                 String stringValue = DbTools.resolveRawValue(rawValueItem.getValue(), dialect);
-                if (omitEnabled) {
+                if (omitMode && omitEnabled) {
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
                     sql.append(stringValue);
                 }
             } else if (item instanceof OmitItem) {
+                if (!omitMode) {
+                    continue;
+                }
                 OmitItem omitItem = (OmitItem) item;
-                if (omitItem.enabled() != omitEnabled) {
+                // 之前有omitItem开始标记, 现在遇到omitItem结束标记
+                if (omitEnabled && !omitItem.enabled()) {
                     if (!omitItem.enabled() && charCount > 0) {
                         // 插入省略信息
                         insertOmittedDetails(sql, charCount, lineCount);
                     }
-                    lineCount = 0;
-                    charCount = 0;
-                    omitEnabled = omitItem.enabled();
                 }
+                lineCount = 0;
+                charCount = 0;
+                omitEnabled = omitItem.enabled();
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
@@ -559,7 +602,7 @@ public class SqlBuffer implements Serializable {
         replaceWhitespace(sql);
         return sql.toString();
     }
-    
+
     /** 替换\t为4个空格, 替换\r\n为\n, 替换单独的\r为\n **/
     protected void replaceWhitespace(StringBuilder sql) {
         StringTools.replace(sql, "\t", "    ", "\r\n", "\n", "\r", "\n");
@@ -605,9 +648,9 @@ public class SqlBuffer implements Serializable {
 
     public String toString() {
         SqlDialect dialect = DbTools.buildSqlDialect(new DbVersion(MainDbType.Oracle));
-        return getLoggingSqlString(dialect);
+        return getLoggingSqlString(dialect, true);
     }
-    
+
     protected List<Item> items() {
         return this.buffer;
     }

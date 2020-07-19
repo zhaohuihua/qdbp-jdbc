@@ -100,7 +100,9 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     private String getFormattedSqlString(SqlBuffer sb, int indent) {
-        String sql = sb.getLoggingSqlString(sqlDialect);
+        // 未开启到TRACE级别的日志就执行省略模式
+        boolean omitMode = !log.isTraceEnabled();
+        String sql = sb.getLoggingSqlString(sqlDialect, omitMode);
         return DbTools.formatSql(sql, 1);
     }
 
