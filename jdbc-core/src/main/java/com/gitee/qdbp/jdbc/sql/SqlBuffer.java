@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -450,8 +451,7 @@ public class SqlBuffer implements Serializable {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
-        replaceWhitespace(sql);
-        return sql.toString();
+        return sqlFormatToString(sql);
     }
 
     /** 获取预编译SQL参数 **/
@@ -496,8 +496,7 @@ public class SqlBuffer implements Serializable {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
-        replaceWhitespace(sql);
-        return sql.toString();
+        return sqlFormatToString(sql);
     }
 
     /**
@@ -549,14 +548,15 @@ public class SqlBuffer implements Serializable {
     public String getLoggingSqlString(SqlDialect dialect, boolean omitMode) {
         int valueLimit = 100;
         StringBuilder sql = new StringBuilder();
-        boolean omitEnabled = false;
         int charCount = 0;
         int lineCount = 0;
+        // 解决OmitItem嵌套的问题
+        Stack<OmitItem> omitStacks = new Stack<>();
         for (Item item : this.buffer) {
             if (item instanceof StringItem) {
                 StringItem stringItem = (StringItem) item;
                 String stringValue = stringItem.getValue().toString();
-                if (omitMode && omitEnabled) {
+                if (omitMode && !omitStacks.isEmpty()) { // 省略模式下, 只需要统计数量
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
@@ -565,11 +565,11 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof VariableItem) {
                 VariableItem variable = ((VariableItem) item);
                 String stringValue = DbTools.variableToString(variable.value, dialect);
-                if (omitMode && omitEnabled) {
+                if (omitMode && !omitStacks.isEmpty()) { // 省略模式下, 只需要统计数量
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
-                    if (omitMode) {
+                    if (omitMode) { // 省略模式下, 截短超过长度的字段值
                         stringValue = tryCutStringOverlength(stringValue, valueLimit);
                     }
                     sql.append(stringValue);
@@ -578,7 +578,7 @@ public class SqlBuffer implements Serializable {
             } else if (item instanceof RawValueItem) {
                 RawValueItem rawValueItem = (RawValueItem) item;
                 String stringValue = DbTools.resolveRawValue(rawValueItem.getValue(), dialect);
-                if (omitMode && omitEnabled) {
+                if (omitMode && !omitStacks.isEmpty()) { // 省略模式下, 只需要统计数量
                     charCount += stringValue == null ? 4 : stringValue.length();
                     lineCount += stringValue == null ? 0 : IndentTools.countNewlineChars(stringValue);
                 } else {
@@ -588,26 +588,56 @@ public class SqlBuffer implements Serializable {
                 if (!omitMode) {
                     continue;
                 }
+                boolean omitEnabled = !omitStacks.isEmpty();
                 OmitItem omitItem = (OmitItem) item;
-                // 之前有OmitItem开始标记, 现在遇到OmitItem结束标记
-                if (omitEnabled && !omitItem.enabled() && charCount > 0) {
-                    // 插入省略信息
-                    insertOmittedDetails(sql, charCount, lineCount);
+                // 开始标记入栈, 结束标记出栈
+                if (omitItem.enabled()) {
+                    omitStacks.add(omitItem);
+                } else {
+                    if (omitStacks.isEmpty()) {
+                        // 结束标记多于开始标记, 不作处理
+                    } else {
+                        omitStacks.pop();
+                    }
                 }
-                lineCount = 0;
-                charCount = 0;
-                omitEnabled = omitItem.enabled();
+                // OmitItem堆栈之前不是空的, 现在变空了, 说明已经回到顶层且结束了
+                if (omitEnabled && omitStacks.isEmpty()) {
+                    if (charCount > 0) { // 插入省略信息
+                        insertOmittedDetails(sql, charCount, lineCount);
+                    }
+                    // 统计信息归零
+                    lineCount = 0;
+                    charCount = 0;
+                }
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
         }
-        replaceWhitespace(sql);
-        return sql.toString();
+        // 到最后了, OmitItem还不是空的, 说明开始标记多于结束标记
+        if (!omitStacks.isEmpty() && charCount > 0) { // 插入省略信息
+            insertOmittedDetails(sql, charCount, lineCount);
+        }
+        return sqlFormatToString(sql);
     }
 
-    /** 替换\t为4个空格, 替换\r\n为\n, 替换单独的\r为\n **/
-    protected void replaceWhitespace(StringBuilder sql) {
+    /** 替换\t为4个空格, 替换\r\n为\n, 替换单独的\r为\n; 清除末尾的空白 **/
+    protected String sqlFormatToString(StringBuilder sql) {
         StringTools.replace(sql, "\t", "    ", "\r\n", "\n", "\r", "\n");
+        // 清除末尾的空白
+        int size = sql.length();
+        int lastIndex = size;
+        // 从最后开始, 判断前一个字符是不是空白
+        for (int i = size; i > 0; i--) {
+            char c = sql.charAt(i - 1); // 判断前一个字符
+            if (!StringTools.isAsciiWhitespace(c)) {
+                lastIndex = i;
+                break;
+            }
+        }
+        if (lastIndex < size) {
+            sql.setLength(lastIndex);
+        }
+        return sql.toString();
     }
 
     protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount) {
