@@ -39,7 +39,7 @@ class SqlTextTools {
             String suffixAfterNewline;
             { // 查找带有换行符的字符串, 并获取换行符之后的子串
                 CharSequence string = getItemStringValue(sql.items().get(i));
-                if (string == null) {
+                if (string == null || string.length() == 0) {
                     continue;
                 }
                 int lastIndex = string.length() - 1;
@@ -50,7 +50,9 @@ class SqlTextTools {
                 suffixAfterNewline = getSubstringOfAfterLastNewline(string, lastIndex);
                 if (suffixAfterNewline == null && i == 0) {
                     // 在没有换行符的情况下, 如果是第一项, 则将整个字符串视为换行符之后的子串
-                    suffixAfterNewline = string.toString().substring(0, lastIndex);
+                    // +1是因为getIndexOfBeforeTrailingChars返回是的换行符之前的那个位置
+                    // +1才能将那个位置的字符包含进来
+                    suffixAfterNewline = string.toString().substring(0, lastIndex + 1);
                 }
                 if (suffixAfterNewline == null) {
                     continue; // 未找到换行符
@@ -130,6 +132,8 @@ class SqlTextTools {
     }
 
     private static String clearTrailingIndentWhitespace(StringItem item) {
+        // +1是因为getIndexOfBeforeTrailingChars返回是的空白之前的那个位置
+        // +1才能将那个位置的字符包含进来
         int index = getIndexOfBeforeTrailingChars(item.getValue(), ' ', '\t') + 1;
         if (index >= item.getValue().length()) {
             return null;
@@ -141,6 +145,8 @@ class SqlTextTools {
     }
 
     private static String clearTrailingIndentWhitespace(RawValueItem item) {
+        // +1是因为getIndexOfBeforeTrailingChars返回是的空白之前的那个位置
+        // +1才能将那个位置的字符包含进来
         int index = getIndexOfBeforeTrailingChars(item.getValue(), ' ', '\t') + 1;
         if (index >= item.getValue().length()) {
             return null;
