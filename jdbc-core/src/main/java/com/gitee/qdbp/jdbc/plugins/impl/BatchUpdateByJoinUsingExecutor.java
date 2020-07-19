@@ -66,16 +66,15 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
 
         SqlBuilder sql = new SqlBuilder();
         // UPDATE {tableName} A JOIN (
-        sql.ad("UPDATE").ad(tableName).ad('A').ad("JOIN").ad('(');
+        sql.ad("UPDATE").ad(tableName).ad('A').ad("JOIN").ad('(').newline().tab();
         // 根据列顺序生成SQL
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             PkEntity item = entities.get(i);
             if (i > 0) {
-                sql.newline().ad("UNION");
+                sql.newline().ad("UNION").newline();
             }
             // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
-            sql.newline();
             sql.omit(i, size); // 插入省略标记
             sql.ad("SELECT").var(item.getPrimaryKey()).ad(pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
