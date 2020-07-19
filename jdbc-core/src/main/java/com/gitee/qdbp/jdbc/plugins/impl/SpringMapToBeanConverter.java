@@ -79,6 +79,11 @@ public class SpringMapToBeanConverter
             // NullValue设置给基本类型会报错: boolean, byte, char, short, int, long, float, double
             if (value == null && pd.getPropertyType().isPrimitive()) {
                 value = TypeUtils.cast(null, pd.getPropertyType(), ParserConfig.getGlobalInstance());
+            } else if (value instanceof Map) { // 值是Map, 则属性应该是一个对象
+                // 将map转换为对象
+                @SuppressWarnings("unchecked")
+                Map<String, ?> valueMap = (Map<String, ?>) value;
+                value = convert(valueMap, pd.getPropertyType());
             }
             try {
                 bw.setPropertyValue(pd.getName(), value);
