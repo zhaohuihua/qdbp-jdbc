@@ -34,7 +34,7 @@ public class SqlBuilder implements Serializable {
     }
 
     /** 返回SqlBuffer实例 **/
-    public SqlBuffer end() {
+    public SqlBuffer out() {
         return this.buffer;
     }
 
