@@ -333,7 +333,7 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer endOmit() {
-        this.buffer.add(new OmitItem(true));
+        this.buffer.add(new OmitItem(false));
         return this;
     }
 
@@ -585,12 +585,10 @@ public class SqlBuffer implements Serializable {
                     continue;
                 }
                 OmitItem omitItem = (OmitItem) item;
-                // 之前有omitItem开始标记, 现在遇到omitItem结束标记
-                if (omitEnabled && !omitItem.enabled()) {
-                    if (!omitItem.enabled() && charCount > 0) {
-                        // 插入省略信息
-                        insertOmittedDetails(sql, charCount, lineCount);
-                    }
+                // 之前有OmitItem开始标记, 现在遇到OmitItem结束标记
+                if (omitEnabled && !omitItem.enabled() && charCount > 0) {
+                    // 插入省略信息
+                    insertOmittedDetails(sql, charCount, lineCount);
                 }
                 lineCount = 0;
                 charCount = 0;
