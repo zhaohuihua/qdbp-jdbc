@@ -502,7 +502,8 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param version 数据库版本
      * @return SQL语句
@@ -513,7 +514,8 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param dialect 数据库方言
      * @return SQL语句
@@ -527,7 +529,8 @@ public class SqlBuffer implements Serializable {
      * 
      * @param version 数据库版本
      * @param omitMode 是否使用省略模式<br>
-     *            省略时, 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     *            如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     *            批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * @return SQL语句
      */
     public String getLoggingSqlString(DbVersion version, boolean omitMode) {
@@ -539,7 +542,8 @@ public class SqlBuffer implements Serializable {
      * 
      * @param dialect 数据库方言
      * @param omitMode 是否使用省略模式<br>
-     *            省略时, 如果参数值长度超过100会被截断; 批量SQL会省略部分语句不输出到日志中
+     *            如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     *            批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * @return SQL语句
      */
     public String getLoggingSqlString(SqlDialect dialect, boolean omitMode) {
