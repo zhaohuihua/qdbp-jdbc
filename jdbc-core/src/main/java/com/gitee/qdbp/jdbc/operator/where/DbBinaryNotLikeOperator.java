@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 二元Like运算符
@@ -19,10 +20,7 @@ public class DbBinaryNotLikeOperator extends DbAbstractOperator implements DbBin
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName).append(' ', "NOT", ' ');
-        buffer.append(dialect.buildLikeSql(columnValue));
-        return buffer;
+        return new SqlBuilder().ad(columnName).ad("NOT").ad(dialect.buildLikeSql(columnValue)).out();
     }
 
 }

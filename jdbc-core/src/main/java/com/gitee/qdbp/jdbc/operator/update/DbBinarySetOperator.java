@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 二元UpdateSet运算符(UPDATE SET columnName=columnValue)
@@ -19,14 +20,14 @@ public class DbBinarySetOperator extends DbAbstractOperator implements DbBinaryO
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName, '=');
+        SqlBuilder sql = new SqlBuilder();
+        sql.ad(columnName).ad('=');
         if (columnValue == null || "".equals(columnValue)) {
-            buffer.append("NULL");
+            sql.ad("NULL");
         } else {
-            buffer.addVariable(columnValue);
+            sql.var(columnValue);
         }
-        return buffer;
+        return sql.out();
     }
 
 }

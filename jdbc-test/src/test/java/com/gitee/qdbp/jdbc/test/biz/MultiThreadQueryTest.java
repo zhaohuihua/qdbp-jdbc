@@ -15,7 +15,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
-import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -33,26 +33,26 @@ public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
     @PostConstruct
     public void init() {
         {
-            SqlBuffer buffer = new SqlBuffer();
-            buffer.append("CREATE TABLE IF NOT EXISTS TEST_SETTING (");
-            buffer.append("ID VARCHAR(50) NOT NULL COMMENT '主键',");
-            buffer.append("NAME VARCHAR(20) NOT NULL COMMENT '名称',");
-            buffer.append("VALUE VARCHAR(50) NOT NULL COMMENT '文本',");
-            buffer.append("VERSION INT(8) NOT NULL DEFAULT 1 COMMENT '版本号',");
-            buffer.append("REMARK VARCHAR(200) COMMENT '备注',");
-            buffer.append("STATE TINYINT(1) NOT NULL COMMENT '状态',");
-            buffer.append("CREATE_TIME DATETIME NOT NULL COMMENT '创建时间',");
-            buffer.append("UPDATE_TIME DATETIME COMMENT '修改时间',");
-            buffer.append("DATA_STATE INT(10) NOT NULL COMMENT '数据状态:0为正常|其他为删除',");
-            buffer.append("PRIMARY KEY (ID),");
-            buffer.append("UNIQUE KEY TEST_SETTING_NAME(NAME, DATA_STATE)");
-            buffer.append(")");
-            qdbcBoot.getSqlBufferJdbcOperations().update(buffer);
+            SqlBuilder buffer = new SqlBuilder();
+            buffer.ad("CREATE TABLE IF NOT EXISTS TEST_SETTING (");
+            buffer.ad("ID VARCHAR(50) NOT NULL COMMENT '主键',");
+            buffer.ad("NAME VARCHAR(20) NOT NULL COMMENT '名称',");
+            buffer.ad("VALUE VARCHAR(50) NOT NULL COMMENT '文本',");
+            buffer.ad("VERSION INT(8) NOT NULL DEFAULT 1 COMMENT '版本号',");
+            buffer.ad("REMARK VARCHAR(200) COMMENT '备注',");
+            buffer.ad("STATE TINYINT(1) NOT NULL COMMENT '状态',");
+            buffer.ad("CREATE_TIME DATETIME NOT NULL COMMENT '创建时间',");
+            buffer.ad("UPDATE_TIME DATETIME COMMENT '修改时间',");
+            buffer.ad("DATA_STATE INT(10) NOT NULL COMMENT '数据状态:0为正常|其他为删除',");
+            buffer.ad("PRIMARY KEY (ID),");
+            buffer.ad("UNIQUE KEY TEST_SETTING_NAME(NAME, DATA_STATE)");
+            buffer.ad(")");
+            qdbcBoot.getSqlBufferJdbcOperations().update(buffer.out());
         }
         {
-            SqlBuffer buffer = new SqlBuffer();
-            buffer.append("DELETE FROM TEST_SETTING");
-            qdbcBoot.getSqlBufferJdbcOperations().update(buffer);
+            SqlBuilder buffer = new SqlBuilder();
+            buffer.ad("DELETE FROM TEST_SETTING");
+            qdbcBoot.getSqlBufferJdbcOperations().update(buffer.out());
         }
     }
 

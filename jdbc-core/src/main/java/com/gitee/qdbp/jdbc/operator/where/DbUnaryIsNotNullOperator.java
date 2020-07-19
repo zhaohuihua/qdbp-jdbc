@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbUnaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 一元IsNotNull运算符
@@ -19,9 +20,7 @@ public class DbUnaryIsNotNullOperator extends DbAbstractOperator implements DbUn
 
     @Override
     public SqlBuffer buildSql(String columnName, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName).append(' ').append("IS NOT NULL");
-        return buffer;
+        return new SqlBuilder().ad(columnName).ad("IS NOT NULL").out();
     }
 
 }

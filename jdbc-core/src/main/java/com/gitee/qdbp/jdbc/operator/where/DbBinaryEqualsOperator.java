@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 二元等号运算符
@@ -19,14 +20,14 @@ public class DbBinaryEqualsOperator extends DbAbstractOperator implements DbBina
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName);
+        SqlBuilder sql = new SqlBuilder();
+        sql.ad(columnName);
         if (columnValue == null || "".equals(columnValue)) {
-            buffer.append(' ').append("IS NULL");
+            sql.ad("IS NULL");
         } else {
-            buffer.append('=').addVariable(columnValue);
+            sql.ad('=').var(columnValue);
         }
-        return buffer;
+        return sql.out();
     }
 
 }

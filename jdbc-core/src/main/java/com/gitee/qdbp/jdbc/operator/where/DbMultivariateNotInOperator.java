@@ -5,6 +5,7 @@ import com.gitee.qdbp.jdbc.operator.DbMultivariateOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 
 /**
@@ -21,11 +22,7 @@ public class DbMultivariateNotInOperator extends DbAbstractOperator implements D
 
     @Override
     public SqlBuffer buildSql(String columnName, Collection<?> columnValues, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName);
-        buffer.append(' ');
-        buffer.append(SqlTools.buildNotInSql(columnValues));
-        return buffer;
+        return new SqlBuilder().ad(columnName).ad(SqlTools.buildNotInSql(columnValues)).out();
     }
 
 }

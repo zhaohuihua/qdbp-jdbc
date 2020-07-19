@@ -13,7 +13,7 @@ import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
-import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -64,20 +64,20 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
         // ) B USING(ID)
         // SET A.FIELD1=B.FIELD1, A.FIELD2=B.FIELD2, ..., A.FIELDn=B.FIELDn
 
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         // UPDATE {tableName} A JOIN (
-        buffer.append("UPDATE").append(' ', tableName).append(' ', 'A').append(' ', "JOIN").append(' ', '(');
+        sql.ad("UPDATE").ad(tableName).ad('A').ad("JOIN").ad('(');
         // 根据列顺序生成SQL
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             PkEntity item = entities.get(i);
             if (i > 0) {
-                buffer.append('\n', '\t').append("UNION");
+                sql.newline().ad("UNION");
             }
             // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
-            buffer.append('\n', '\t');
-            buffer.tryOmit(i, size); // 插入省略标记
-            buffer.append("SELECT", ' ').addVariable(item.getPrimaryKey()).append(' ', pk.getColumnName());
+            sql.newline();
+            sql.omit(i, size); // 插入省略标记
+            sql.ad("SELECT").var(item.getPrimaryKey()).ad(pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
             for (SimpleFieldColumn column : columns.items()) {
                 String fieldName = column.getFieldName();
@@ -86,14 +86,14 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
                     // 不支持DbFieldName/DbFieldValue/DbRawValue
                     // 只支持fieldName=fieldValue
                     // fieldValue = sqlHelper.convertFieldValue(fieldValue);
-                    buffer.append(',', ' ').addVariable(fieldValue).append(' ', column.getColumnName());
+                    sql.ad(',', ' ').var(fieldValue).ad(column.getColumnName());
                 }
             }
         }
         // ) B USING(ID)
-        buffer.append('\n', ')', ' ', 'B').append(' ', "USING").append('(', pk.getColumnName(), ')');
+        sql.newline().tab(-1).ad(')').ad('B').ad("USING").ad('(').ad(pk.getColumnName()).ad(')');
         // SET
-        buffer.append('\n', "SET", ' ');
+        sql.newline().ad("SET");
         boolean firstColumn = true;
         // A.FIELD1=B.FIELD1, A.FIELD2=B.FIELD2, ..., A.FIELDn=B.FIELDn
         for (SimpleFieldColumn column : columns.items()) {
@@ -102,16 +102,16 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
                 if (firstColumn) {
                     firstColumn = false;
                 } else {
-                    buffer.append(',', ' ');
+                    sql.ad(',', ' ');
                 }
-                buffer.append('A', '.').append(column.getColumnName());
-                buffer.append('=');
-                buffer.append('B', '.').append(column.getColumnName());
+                sql.ad('A', '.').ad(column.getColumnName());
+                sql.ad('=');
+                sql.ad('B', '.').ad(column.getColumnName());
             }
         }
 
         // 执行批量数据库更新
-        return jdbc.batchUpdate(buffer);
+        return jdbc.batchUpdate(sql.out());
     }
 
     private Set<String> mergeFields(List<PkEntity> entities) {

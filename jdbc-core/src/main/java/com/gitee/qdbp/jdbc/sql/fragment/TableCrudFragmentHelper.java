@@ -17,6 +17,7 @@ import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -66,21 +67,21 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         for (SimpleFieldColumn item : this.columns.items()) {
             if (!fieldMap.containsKey(item.getFieldName())) {
                 continue;
             }
             if (!buffer.isEmpty()) {
-                buffer.append(',');
+                buffer.ad(',');
             }
             Object fieldValue = entity.get(item.getFieldName());
             if (VerifyTools.isBlank(fieldValue) && VerifyTools.isNotBlank(item.getColumnDefault())) {
                 fieldValue = item.getColumnDefault();
             }
-            buffer.addVariable(convertSpecialFieldValue(fieldValue));
+            buffer.var(convertSpecialFieldValue(fieldValue));
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/
@@ -89,24 +90,24 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         VerifyTools.requireNotBlank(entity, "entity");
 
         List<String> unsupported = new ArrayList<String>();
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         Iterator<DbCondition> iterator = entity.iterator();
         while (iterator.hasNext()) {
             DbCondition condition = iterator.next();
             if (!buffer.isEmpty()) {
-                buffer.append(',');
+                buffer.ad(',');
             }
             try {
                 if (condition instanceof UpdateCondition) {
                     UpdateCondition subCondition = (UpdateCondition) condition;
                     SqlBuffer subSql = buildUpdateSql(subCondition, false);
                     if (!subSql.isEmpty()) {
-                        buffer.append(subSql);
+                        buffer.ad(subSql);
                     }
                 } else if (condition instanceof DbField) {
                     DbField item = (DbField) condition;
                     SqlBuffer fieldSql = buildUpdateSql(item, false);
-                    buffer.append(fieldSql);
+                    buffer.ad(fieldSql);
                 } else {
                     unsupported.add(condition.getClass().getSimpleName() + "#UnsupportedCondition");
                 }
@@ -118,9 +119,9 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
             throw ufe("update values sql", unsupported);
         }
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("SET", ' ');
+            buffer.pd("SET");
         }
-        return buffer;
+        return buffer.out();
     }
 
     public SqlBuffer buildUpdateSql(DbField field, boolean whole) throws UnsupportedFieldException {
@@ -145,7 +146,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("SET", ' ');
+            buffer.shortcut().pd("SET");
         }
         return buffer;
     }
@@ -164,18 +165,18 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         }
         SqlBuffer buffer = builder.buildSql(condition, this);
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("SET", ' ');
+            buffer.shortcut().pd("SET");
         }
         return buffer;
     }
 
     /** {@inheritDoc} **/
     public SqlBuffer buildFromSql(boolean whole) {
-        SqlBuffer buffer = new SqlBuffer(tableName);
+        SqlBuilder buffer = new SqlBuilder(tableName);
         if (whole) {
-            buffer.prepend("FROM", ' ');
+            buffer.pd("FROM");
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/

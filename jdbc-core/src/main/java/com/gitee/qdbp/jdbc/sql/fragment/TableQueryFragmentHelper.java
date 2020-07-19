@@ -37,6 +37,7 @@ import com.gitee.qdbp.jdbc.operator.DbUnaryOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -73,7 +74,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             logicType = ((SubWhere) where).getLogicType();
         }
 
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         List<String> unsupported = new ArrayList<String>();
         boolean first = true;
         // 逐一遍历条件项, 生成where语句
@@ -87,7 +88,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             if (first) {
                 first = false;
             } else {
-                buffer.append(' ', logicType, ' ');
+                buffer.ad(logicType);
             }
 
             try {
@@ -95,18 +96,18 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                     WhereCondition subCondition = (WhereCondition) condition;
                     SqlBuffer subSql = buildWhereSql(subCondition, false);
                     if (!subSql.isEmpty()) {
-                        buffer.append("( ").append(subSql).append(" )");
+                        buffer.ad("( ").ad(subSql).ad(" )");
                     }
                 } else if (condition instanceof SubWhere) { // 子条件
                     SubWhere subWhere = (SubWhere) condition;
                     SqlBuffer subSql = buildWhereSql(subWhere, false);
                     if (!subSql.isEmpty()) {
-                        buffer.append(subSql);
+                        buffer.ad(subSql);
                     }
                 } else if (condition instanceof DbField) { // 字段条件
                     DbField item = (DbField) condition;
                     SqlBuffer fieldSql = buildWhereSql(item, false);
-                    buffer.append(fieldSql);
+                    buffer.ad(fieldSql);
                 } else {
                     unsupported.add("UnsupportedCondition:" + condition.getClass().getSimpleName());
                 }
@@ -130,16 +131,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             // 后期处理, 如果不是肯定条件则前面加上NOT, 如果whole=true则在前面加上WHERE
             if (where instanceof SubWhere) {
                 // 子SQL要用括号括起来
-                buffer.prepend("( ").append(" )");
+                buffer.pd("( ").ad(" )");
                 if (!((SubWhere) where).isPositive()) {
-                    buffer.prepend("NOT", ' ');
+                    buffer.pd("NOT");
                 }
             }
             if (whole) {
-                buffer.prepend("WHERE", ' ');
+                buffer.pd("WHERE");
             }
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/
@@ -172,7 +173,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("WHERE", ' ');
+            buffer.shortcut().pd("WHERE");
         }
         return buffer;
     }
@@ -191,7 +192,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
         SqlBuffer buffer = builder.buildSql(condition, this);
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("WHERE", ' ');
+            buffer.shortcut().pd("WHERE");
         }
         return buffer;
     }
@@ -304,7 +305,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (!buffer.isEmpty()) {
             buffer.prepend(columnName);
             if (whole) {
-                buffer.prepend("WHERE", ' ');
+                buffer.shortcut().pd("WHERE");
             }
         }
     }
@@ -317,7 +318,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         if (VerifyTools.isBlank(orderings)) {
             return null;
         }
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         List<String> unsupported = new ArrayList<String>();
         boolean first = true;
         for (Ordering item : orderings) {
@@ -341,23 +342,23 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             if (first) {
                 first = false;
             } else {
-                buffer.append(',');
+                buffer.ad(',');
             }
-            buffer.append(' ', columnName);
+            buffer.ad(columnName);
             OrderType orderType = item.getOrderType();
             if (orderType == OrderType.ASC) {
-                buffer.append(' ', "ASC");
+                buffer.ad("ASC");
             } else if (orderType == OrderType.DESC) {
-                buffer.append(' ', "DESC");
+                buffer.ad("DESC");
             }
         }
         if (!unsupported.isEmpty()) {
             throw ufe("build order by sql unsupported fields", unsupported);
         }
         if (whole && !buffer.isEmpty()) {
-            buffer.prepend("ORDER BY", ' ');
+            buffer.pd("ORDER BY");
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/
@@ -444,7 +445,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 SqlBuffer buffer = doBuildSpecialFieldsSql(items, true, columnAlias);
                 // 如果是DistinctFields, SQL前面加上DISTINCT
                 if (fields instanceof DistinctFields) {
-                    buffer.prepend("DISTINCT", ' ');
+                    buffer.shortcut().pd("DISTINCT");
                 }
                 return buffer;
             }
@@ -456,14 +457,14 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     }
 
     protected SqlBuffer doBuildAllFieldsSql(boolean columnAlias) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         for (SimpleFieldColumn item : this.columns.items()) {
             if (!buffer.isEmpty()) {
-                buffer.append(',');
+                buffer.ad(',');
             }
-            buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
+            buffer.ad(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
         }
-        return buffer;
+        return buffer.out();
     }
 
     protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean isWhitelist, boolean columnAlias)
@@ -476,16 +477,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         for (SimpleFieldColumn item : this.columns.items()) {
             if (fieldMap.containsKey(item.getFieldName()) == isWhitelist) {
                 if (!buffer.isEmpty()) {
-                    buffer.append(',');
+                    buffer.ad(',');
                 }
-                buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
+                buffer.ad(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
             }
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/

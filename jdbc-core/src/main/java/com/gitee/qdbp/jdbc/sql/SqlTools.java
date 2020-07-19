@@ -44,9 +44,9 @@ public abstract class SqlTools {
      */
     private static SqlBuffer buildInSql(Collection<?> fieldValues, boolean matches)
             throws UnsupportedFieldException {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         if (VerifyTools.isBlank(fieldValues)) {
-            return buffer;
+            return sql.out();
         }
 
         if (fieldValues.size() == 1) {
@@ -56,20 +56,21 @@ public abstract class SqlTools {
                 firstValue = value;
                 break;
             }
-            buffer.append(operate).addVariable(firstValue);
+            sql.ad(operate).var(firstValue);
         } else {
             String operate = matches ? "IN" : "NOT IN";
-            buffer.append(' ', operate, ' ').append('(');
+            sql.ad(operate).ad('(');
             boolean first = true;
             for (Object value : fieldValues) {
-                if (!first) {
-                    buffer.append(',');
+                if (first) {
+                    first = false;
+                } else {
+                    sql.ad(',');
                 }
-                first = false;
-                buffer.addVariable(value);
+                sql.var(value);
             }
-            buffer.append(')');
+            sql.ad(')');
         }
-        return buffer;
+        return sql.out();
     }
 }

@@ -20,12 +20,13 @@ public class SqlBuilder implements Serializable {
 
     /** 构造函数 **/
     public SqlBuilder() {
-        this.buffer = new SqlBuffer();
+        this.buffer = new SqlBuffer(this);
     }
 
     /** 构造函数 **/
     public SqlBuilder(String sql) {
-        this.buffer = new SqlBuffer(sql);
+        this.buffer = new SqlBuffer(this);
+        this.buffer.append(sql);
     }
 
     /** 构造函数 **/
@@ -39,7 +40,7 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
-     * ad=append: 将指定SQL片段追加到SQL后面, 将会自动追加空格
+     * ad=append: 将指定SQL片段追加到SQL后面, 将会在前后及每项之间自动追加空格
      * 
      * @param parts SQL片段
      * @return 返回当前SQL容器用于连写
@@ -54,20 +55,21 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
-     * ad=append: 将指定SQL片段追加到SQL后面, 将会自动追加空格
+     * ad=append: 将指定SQL片段追加到SQL后面, 将会在前后自动追加空格<br>
+     * 注意: 每项之间不会追加空格, 这点与ad(String... parts)不同
      * 
      * @param parts SQL片段
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder ad(char... parts) {
         if (parts != null) {
-            this.buffer.append(parts);
+            this.buffer.autoAppendWhitespace(new String(parts)).append(parts);
         }
         return this;
     }
 
     /**
-     * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会自动追加空格
+     * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会在前后及每项之间自动追加空格
      * 
      * @param parts SQL片段
      * @return 返回当前SQL容器用于连写
@@ -83,14 +85,15 @@ public class SqlBuilder implements Serializable {
     }
 
     /**
-     * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会自动追加空格
+     * pd=prepend: 将指定SQL片段增加到SQL语句最前面, 将会在前后自动追加空格<br>
+     * 注意: 每项之间不会追加空格, 这点与pd(String... parts)不同
      * 
      * @param parts SQL片段
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder pd(char... parts) {
         if (parts != null) {
-            this.buffer.prepend(parts);
+            this.buffer.autoPrependWhitespace(new String(parts)).prepend(parts);
         }
         return this;
     }
@@ -156,7 +159,7 @@ public class SqlBuilder implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuilder var(Object value) {
-        this.buffer.addVariable(value);
+        this.buffer.autoAppendWhitespace().addVariable(value);
         return this;
     }
 

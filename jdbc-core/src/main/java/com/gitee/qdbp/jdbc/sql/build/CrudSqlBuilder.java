@@ -5,6 +5,7 @@ import java.util.Set;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -32,42 +33,38 @@ public class CrudSqlBuilder extends QuerySqlBuilder {
         SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
         SqlBuffer valuesSqlBuffer = sqlHelper.buildInsertValuesSql(entity);
 
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // INSERT INTO (...)
-        buffer.append("INSERT INTO").append(' ', tableName).append(' ');
-        buffer.append('(');
-        buffer.append(fieldsSqlBuffer);
-        buffer.append(')');
+        buffer.ad("INSERT INTO").ad(tableName);
+        buffer.ad('(').ad(fieldsSqlBuffer).ad(')');
         // VALUES (...)
-        buffer.append('\n', "VALUES", ' ').append('(');
-        buffer.append(valuesSqlBuffer);
-        buffer.append(')');
-        return buffer;
+        buffer.newline().ad("VALUES").ad('(').ad(valuesSqlBuffer).ad(')');
+        return buffer.out();
     }
 
     public SqlBuffer buildUpdateSql(DbUpdate entity, DbWhere where) {
         CrudFragmentHelper sqlHelper = helper();
         String tableName = sqlHelper.getTableName();
 
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append("UPDATE").append(' ', tableName);
-        buffer.append('\n', sqlHelper.buildUpdateSetSql(entity, true));
+        SqlBuilder buffer = new SqlBuilder();
+        buffer.ad("UPDATE").ad(tableName);
+        buffer.newline().ad(sqlHelper.buildUpdateSetSql(entity, true));
 
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append('\n', sqlHelper.buildWhereSql(where, true));
+            buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
         }
-        return buffer;
+        return buffer.out();
     }
 
     public SqlBuffer buildDeleteSql(DbWhere where) {
         CrudFragmentHelper sqlHelper = helper();
         String tableName = sqlHelper.getTableName();
 
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append("DELETE").append(' ', "FROM").append(' ', tableName);
+        SqlBuilder buffer = new SqlBuilder();
+        buffer.ad("DELETE").ad("FROM").ad(tableName);
         if (VerifyTools.isNotBlank(where)) {
-            buffer.append('\n', sqlHelper.buildWhereSql(where, true));
+            buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
         }
-        return buffer;
+        return buffer.out();
     }
 }

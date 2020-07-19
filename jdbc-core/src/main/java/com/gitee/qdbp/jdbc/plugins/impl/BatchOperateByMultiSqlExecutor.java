@@ -15,6 +15,7 @@ import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
@@ -72,7 +73,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
      */
     @Override
     public List<String> inserts(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         List<String> ids = new ArrayList<>();
         int size = entities.size();
         for (int i = 0; i < size; i++) {
@@ -81,16 +82,16 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
             Map<String, Object> entity = item.getEntity();
             ids.add(id);
             if (i > 0) {
-                buffer.append('\n');
-                buffer.tryOmit(i, size); // 插入省略标记
+                sql.ad('\n');
+                sql.omit(i, size); // 插入省略标记
             }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildInsertSql(entity);
-            buffer.append(temp).append(';');
+            sql.ad(temp).ad(';');
         }
 
         // 执行批量数据库插入
-        jdbc.batchInsert(buffer);
+        jdbc.batchInsert(sql.out());
         return ids;
     }
 
@@ -107,7 +108,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
         // 查找主键(批量更新必须要有主键)
         PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         DbConditionConverter converter = DbTools.getDbConditionConverter();
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             PkEntity item = entities.get(i);
@@ -119,16 +120,16 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
             // entity转换为DbUpdate
             DbUpdate ud = converter.parseMapToDbUpdate(entity);
             if (i > 0) {
-                buffer.append('\n');
-                buffer.tryOmit(i, size); // 插入省略标记
+                sql.ad('\n');
+                sql.omit(i, size); // 插入省略标记
             }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildUpdateSql(ud, where);
-            buffer.append(temp).append(';');
+            sql.ad(temp).ad(';');
         }
 
         // 执行批量数据库插入
-        return jdbc.batchUpdate(buffer);
+        return jdbc.batchUpdate(sql.out());
     }
 
 }

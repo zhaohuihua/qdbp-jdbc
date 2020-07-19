@@ -13,6 +13,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -79,39 +80,37 @@ public class SimpleSqlDialect implements SqlDialect {
     }
 
     protected void processPagingForMySql(SqlBuffer buffer, Paging paging) {
+        SqlBuilder sql = buffer.shortcut();
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
             // limit {start}, {rows}
-            buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable(paging.getStart()).append(',').addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getStart()).ad(',').var(paging.getRows());
         }
     }
 
     protected void processPagingForH2(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.H2Dialect
+        SqlBuilder sql = buffer.shortcut();
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
             // limit {start} offset {rows}
-            buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable(paging.getStart());
-            buffer.append(" OFFSET ").addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getStart()).ad("OFFSET").var(paging.getRows());
         }
     }
 
     protected void processPagingForPostgreSql(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.PostgreSQLDialect
+        SqlBuilder sql = buffer.shortcut();
         if (paging.getStart() <= 0) {
             // limit {rows}
-            buffer.append('\n').append("LIMIT").append(' ').addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
             // limit {start} offset {rows}
-            buffer.append('\n').append("LIMIT").append(' ');
-            buffer.addVariable(paging.getStart());
-            buffer.append(" OFFSET ").addVariable(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getStart()).ad("OFFSET").var(paging.getRows());
         }
     }
 
@@ -218,16 +217,14 @@ public class SimpleSqlDialect implements SqlDialect {
     public SqlBuffer buildLikeSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
         // TODO chooseEscapeChar
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
-            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
+            return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad("||'%')").out();
         } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
-            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(",'%')");
+            return new SqlBuilder("LIKE").ad("CONCAT('%',").var(fieldValue).ad(",'%')").out();
         } else if (dbType == MainDbType.SqlServer) {
-            return buffer.append("('%'+").addVariable(fieldValue).append("+'%')");
+            return new SqlBuilder("LIKE").ad("('%'+").var(fieldValue).ad("+'%')").out();
         } else {
-            return buffer.append("('%'||").addVariable(fieldValue).append("||'%')");
+            return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad("||'%')").out();
         }
     }
 
@@ -235,16 +232,14 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public SqlBuffer buildStartsWithSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
-            return buffer.append('(').addVariable(fieldValue).append("||'%')");
+            return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("||'%')").out();
         } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
-            return buffer.append("CONCAT(").addVariable(fieldValue).append(",'%')");
+            return new SqlBuilder("LIKE").ad("CONCAT(").var(fieldValue).ad(",'%')").out();
         } else if (dbType == MainDbType.SqlServer) {
-            return buffer.append('(').addVariable(fieldValue).append("+'%')");
+            return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("+'%')").out();
         } else {
-            return buffer.append('(').addVariable(fieldValue).append("||'%')");
+            return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("||'%')").out();
         }
     }
 
@@ -252,16 +247,14 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public SqlBuffer buildEndsWithSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append("LIKE", ' ');
         if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
-            return buffer.append("('%'||").addVariable(fieldValue).append(")");
+            return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad(")").out();
         } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
-            return buffer.append("CONCAT('%',").addVariable(fieldValue).append(")");
+            return new SqlBuilder("LIKE").ad("CONCAT('%',").var(fieldValue).ad(")").out();
         } else if (dbType == MainDbType.SqlServer) {
-            return buffer.append("('%'+").addVariable(fieldValue).append(")");
+            return new SqlBuilder("LIKE").ad("('%'+").var(fieldValue).ad(")").out();
         } else {
-            return buffer.append("('%'||").addVariable(fieldValue).append(")");
+            return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad(")").out();
         }
     }
 
@@ -322,29 +315,28 @@ public class SimpleSqlDialect implements SqlDialect {
      */
     protected SqlBuffer oracleRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper sqlHelper) {
-
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         // SELECT ... FROM
-        buffer.append("SELECT", ' ');
-        buffer.append(sqlHelper.buildSelectFieldsSql(selectFields));
-        buffer.append(' ', sqlHelper.buildFromSql());
+        sql.ad("SELECT");
+        sql.ad(sqlHelper.buildSelectFieldsSql(selectFields));
+        sql.ad(sqlHelper.buildFromSql());
         // START WITH {codeField} IN ( {startCodes} ) 
-        buffer.append(' ', "START WITH", ' ').append(sqlHelper.buildInSql(codeField, startCodes, false));
+        sql.ad("START WITH").ad(sqlHelper.buildInSql(codeField, startCodes, false));
         // CONNECT BY PRIOR {codeField} = {parentField}
-        buffer.append(' ', "CONNECT BY PRIOR", ' ');
-        buffer.append(sqlHelper.getColumnName(codeField)).append("=").append(sqlHelper.getColumnName(parentField));
+        sql.ad("CONNECT BY PRIOR");
+        sql.ad(sqlHelper.getColumnName(codeField)).ad("=").ad(sqlHelper.getColumnName(parentField));
         // WHERE ...
         if (where != null && !where.isEmpty()) {
             SqlBuffer whereSql = sqlHelper.buildWhereSql(where, false);
             if (!whereSql.isEmpty()) {
-                buffer.append(' ', "AND").append(' ', whereSql);
+                sql.ad("AND").ad(whereSql);
             }
         }
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append(' ', sqlHelper.buildOrderBySql(orderings, true));
+            sql.ad(sqlHelper.buildOrderBySql(orderings, true));
         }
-        return buffer;
+        return sql.out();
     }
 
     /**

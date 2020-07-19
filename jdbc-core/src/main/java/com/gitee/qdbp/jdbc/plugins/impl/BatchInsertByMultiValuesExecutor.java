@@ -12,6 +12,7 @@ import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 
@@ -46,12 +47,12 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
         Set<String> fieldNames = mergeFields(entities);
         SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
 
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder sql = new SqlBuilder();
         // INSERT INTO (...)
-        buffer.append("INSERT INTO").append(' ', tableName).append(' ');
-        buffer.append('(').append(fieldsSqlBuffer).append(')');
+        sql.ad("INSERT INTO").ad(tableName);
+        sql.ad('(').ad(fieldsSqlBuffer).ad(')', '\n');
         // VALUES (...) (...)
-        buffer.append('\n', "VALUES");
+        sql.ad("VALUES");
         List<String> ids = new ArrayList<>();
         int size = entities.size();
         for (int i = 0; i < size; i++) {
@@ -61,15 +62,15 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
             Map<String, Object> entity = item.getEntity();
             SqlBuffer valuesSqlBuffer = sqlHelper.buildInsertValuesSql(fieldNames, entity);
             if (i > 0) {
-                buffer.append(',');
+                sql.ad(',');
             }
-            buffer.append('\n');
-            buffer.tryOmit(i, size); // 插入省略标记
-            buffer.append('(').append(valuesSqlBuffer).append(')');
+            sql.ad('\n');
+            sql.omit(i, size); // 插入省略标记
+            sql.ad('(').ad(valuesSqlBuffer).ad(')');
         }
 
         // 执行批量数据库插入
-        jdbc.batchInsert(buffer);
+        jdbc.batchInsert(sql.out());
         return ids;
     }
 

@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbTernaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 三元Between运算符
@@ -19,13 +20,7 @@ public class DbTernaryBetweenOperator extends DbAbstractOperator implements DbTe
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue1, Object columnValue2, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName);
-        buffer.append(' ', "BETWEEN", ' ');
-        buffer.addVariable(columnValue1);
-        buffer.append(' ', "AND", ' ');
-        buffer.addVariable(columnValue2);
-        return buffer;
+        return new SqlBuilder().ad(columnName).ad("BETWEEN").var(columnValue1).ad("AND").var(columnValue2).out();
     }
 
 }

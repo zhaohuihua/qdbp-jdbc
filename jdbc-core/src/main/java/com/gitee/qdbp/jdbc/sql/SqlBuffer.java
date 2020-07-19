@@ -42,16 +42,20 @@ public class SqlBuffer implements Serializable {
 
     /** 构造函数 **/
     public SqlBuffer(String sql) {
-        this.index = 0;
-        this.buffer = new ArrayList<>();
+        this();
         this.append(sql);
     }
 
     /** 构造函数 **/
     public SqlBuffer(SqlBuffer sql) {
-        this.index = 0;
-        this.buffer = new ArrayList<>();
+        this();
         this.append(sql);
+    }
+
+    /** 构造函数 **/
+    protected SqlBuffer(SqlBuilder shortcut) {
+        this();
+        this.shortcut = shortcut;
     }
 
     /** 返回当前实例的快捷方式实例 **/
@@ -299,6 +303,8 @@ public class SqlBuffer implements Serializable {
     public SqlBuffer addVariable(Object value) {
         if (value instanceof SqlBuffer) {
             append((SqlBuffer) value);
+        } else if (value instanceof SqlBuilder) {
+            append(((SqlBuilder) value).out());
         } else if (value instanceof DbRawValue) {
             DbRawValue raw = (DbRawValue) value;
             this.buffer.add(new RawValueItem(raw.toString()));
@@ -723,6 +729,19 @@ public class SqlBuffer implements Serializable {
             return this;
         }
         this.append(' ');
+        return this;
+    }
+
+    /** 自动追加空格 **/
+    protected SqlBuffer autoAppendWhitespace() {
+        if (this.isEmpty()) {
+            return this;
+        }
+        if (SqlTextTools.endsWithSqlSymbol(this, ')')) {
+            return this;
+        }
+        this.append(' ');
+
         return this;
     }
 

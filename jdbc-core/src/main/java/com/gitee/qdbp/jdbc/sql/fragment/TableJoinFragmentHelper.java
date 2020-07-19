@@ -14,6 +14,7 @@ import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -115,47 +116,48 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         }
 
         // 根据列顺序生成SQL
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         for (SimpleFieldColumn item : this.columns.items()) {
             boolean exists = fieldMap.containsKey(item.toTableFieldName()) || fieldMap.containsKey(item.getFieldName());
             if (exists == isWhitelist) {
                 if (!buffer.isEmpty()) {
-                    buffer.append(',');
+                    buffer.ad(',');
                 }
-                buffer.append(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
+                buffer.ad(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
             }
         }
-        return buffer;
+        return buffer.out();
     }
 
     /** {@inheritDoc} **/
     public SqlBuffer buildFromSql(boolean whole) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // 主表
         TableItem major = tables.getMajor();
-        buffer.append(DbTools.parseTableName(major.getTableType()));
+        buffer.ad(DbTools.parseTableName(major.getTableType()));
         if (VerifyTools.isNotBlank(major.getTableAlias())) {
-            buffer.append(' ').append(major.getTableAlias().toUpperCase());
+            buffer.ad(major.getTableAlias().toUpperCase());
         }
         List<JoinItem> joins = tables.getJoins();
         if (VerifyTools.isNotBlank(joins)) {
             for (JoinItem item : joins) { // 关联表
+                buffer.newline();
                 JoinType joinType = VerifyTools.nvl(item.getJoinType(), JoinType.InnerJoin);
-                buffer.append(' ').append(joinType.toSqlString()); // 关联类型
-                buffer.append(' ').append(DbTools.parseTableName(item.getTableType()));
+                buffer.ad(joinType.toSqlString()); // 关联类型
+                buffer.ad(DbTools.parseTableName(item.getTableType()));
                 if (VerifyTools.isNotBlank(item.getTableAlias())) { // 表别名
-                    buffer.append(' ').append(item.getTableAlias().toUpperCase());
+                    buffer.ad(item.getTableAlias().toUpperCase());
                 }
                 DbWhere where = item.getWhere();
                 if (where != null && !where.isEmpty()) { // 关联条件
-                    buffer.append(' ', "ON", ' ').append(buildWhereSql(where, false));
+                    buffer.ad("ON").ad(buildWhereSql(where, false));
                 }
             }
         }
         if (whole) {
-            buffer.prepend("FROM", ' ');
+            buffer.pd("FROM");
         }
-        return buffer;
+        return buffer.out();
     }
 
     private String tablesDescString;

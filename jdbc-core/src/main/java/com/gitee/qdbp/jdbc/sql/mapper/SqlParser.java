@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 
@@ -39,34 +40,38 @@ public class SqlParser {
      * @return SqlBuffer对象
      */
     public SqlBuffer parse(String sqlTemplate, Map<String, Object> params) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         Matcher matcher = PLACEHOLDER.matcher(sqlTemplate);
         int index = 0;
         while (matcher.find()) {
             if (index < matcher.start()) {
-                buffer.append(sqlTemplate.substring(index, matcher.start()));
+                buffer.ad(sqlTemplate.substring(index, matcher.start()));
             }
             String prefix = matcher.group(1);
             String placeholder = matcher.group(2);
             Object value = ReflectTools.getDepthValue(params, placeholder);
             if ("$".equals(prefix)) { // 拼写式参数
                 if (value instanceof SqlBuffer) {
-                    buffer.append(((SqlBuffer) value).getExecutableSqlString(dialect));
+                    buffer.ad(((SqlBuffer) value).getExecutableSqlString(dialect));
+                } else if (value instanceof SqlBuilder) {
+                    buffer.ad(((SqlBuilder) value).out().getExecutableSqlString(dialect));
                 } else {
-                    buffer.append(DbTools.variableToString(value, dialect));
+                    buffer.ad(DbTools.variableToString(value, dialect));
                 }
             } else { // 预编译参数
                 if (value instanceof SqlBuffer) {
-                    buffer.append((SqlBuffer) value);
+                    buffer.ad((SqlBuffer) value);
+                } else if (value instanceof SqlBuilder) {
+                    buffer.ad((SqlBuilder) value);
                 } else {
-                    buffer.addVariable(value);
+                    buffer.var(value);
                 }
             }
             index = matcher.end();
         }
         if (index < sqlTemplate.length()) {
-            buffer.append(sqlTemplate.substring(index));
+            buffer.ad(sqlTemplate.substring(index));
         }
-        return buffer;
+        return buffer.out();
     }
 }

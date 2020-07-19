@@ -6,6 +6,7 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -33,13 +34,13 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildFindSql(Fields fields, DbWhere where) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql(fields));
-        buffer.append('\n', sqlHelper.buildFromSql());
+        buffer.ad("SELECT").ad(sqlHelper.buildSelectFieldsSql(fields));
+        buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
-        return buffer;
+        buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
+        return buffer.out();
     }
 
     public SqlBuffer buildListSql(DbWhere where, Orderings orderings) {
@@ -57,16 +58,16 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildListSql(Fields fields, SqlBuffer whereSql, Orderings orderings) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // SELECT ... FROM
-        buffer.append("SELECT").append(' ', sqlHelper.buildSelectFieldsSql(fields));
-        buffer.append('\n', sqlHelper.buildFromSql());
+        buffer.ad("SELECT").ad(sqlHelper.buildSelectFieldsSql(fields));
+        buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', whereSql);
+        buffer.newline().ad(whereSql);
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append('\n', sqlHelper.buildOrderBySql(orderings, true));
+            buffer.newline().ad(sqlHelper.buildOrderBySql(orderings, true));
         }
-        return buffer;
+        return buffer.out();
     }
 
     public SqlBuffer buildCountSql(DbWhere where) {
@@ -75,12 +76,12 @@ public class QuerySqlBuilder {
     }
 
     public SqlBuffer buildCountSql(SqlBuffer whereSql) {
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // SELECT COUNT(*) FROM
-        buffer.append("SELECT").append(' ', "COUNT(*)").append(' ', sqlHelper.buildFromSql());
+        buffer.ad("SELECT").ad("COUNT(*)").ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', whereSql);
-        return buffer;
+        buffer.newline().ad(whereSql);
+        return buffer.out();
     }
 
     public SqlBuffer buildGroupCountSql(String groupBy, DbWhere where) {
@@ -92,16 +93,16 @@ public class QuerySqlBuilder {
         SqlBuffer fieldSql = sqlHelper.buildSelectFieldsSql(fields);
         SqlBuffer groupBySql = sqlHelper.buildByFieldsSql(fields);
 
-        SqlBuffer buffer = new SqlBuffer();
+        SqlBuilder buffer = new SqlBuilder();
         // SELECT ... FROM
-        buffer.append("SELECT");
-        buffer.append(' ', fieldSql).append(',').append("COUNT(*)");
-        buffer.append('\n', sqlHelper.buildFromSql());
+        buffer.ad("SELECT");
+        buffer.ad(fieldSql).ad(',').ad("COUNT(*)");
+        buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', sqlHelper.buildWhereSql(where, true));
+        buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
         // GROUP BY ...
-        buffer.append('\n', "GROUP BY").append(' ', groupBySql);
-        return buffer;
+        buffer.newline().ad("GROUP BY").ad(groupBySql);
+        return buffer.out();
     }
 
     public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, DbWhere where, Orderings orderings)
@@ -112,21 +113,20 @@ public class QuerySqlBuilder {
 
     public SqlBuffer buildListFieldValuesSql(String fieldName, boolean distinct, SqlBuffer where, Orderings orderings)
             throws ServiceException {
-        SqlBuffer buffer = new SqlBuffer();
-
+        SqlBuilder buffer = new SqlBuilder();
         // SELECT ... FROM
-        buffer.append("SELECT", ' ');
+        buffer.ad("SELECT");
         if (distinct) {
-            buffer.append("DISTINCT", ' ');
+            buffer.ad("DISTINCT");
         }
-        buffer.append(sqlHelper.buildSelectFieldsSql(fieldName));
-        buffer.append('\n', sqlHelper.buildFromSql());
+        buffer.ad(sqlHelper.buildSelectFieldsSql(fieldName));
+        buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.append('\n', where);
+        buffer.newline().ad(where);
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
-            buffer.append('\n', sqlHelper.buildOrderBySql(orderings, true));
+            buffer.newline().ad(sqlHelper.buildOrderBySql(orderings, true));
         }
-        return buffer;
+        return buffer.out();
     }
 }

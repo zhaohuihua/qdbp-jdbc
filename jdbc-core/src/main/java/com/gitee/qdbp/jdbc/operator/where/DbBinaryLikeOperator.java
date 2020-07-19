@@ -4,6 +4,7 @@ import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 
 /**
  * 二元Like运算符
@@ -19,10 +20,7 @@ public class DbBinaryLikeOperator extends DbAbstractOperator implements DbBinary
 
     @Override
     public SqlBuffer buildSql(String columnName, Object columnValue, SqlDialect dialect) {
-        SqlBuffer buffer = new SqlBuffer();
-        buffer.append(columnName, ' ');
-        buffer.append(dialect.buildLikeSql(columnValue));
-        return buffer;
+        return new SqlBuilder().ad(columnName).ad(dialect.buildLikeSql(columnValue)).out();
     }
 
 }
