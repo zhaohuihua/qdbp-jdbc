@@ -20,6 +20,9 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.JdbcAccessor;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import com.gitee.qdbp.able.exception.ServiceException;
+import com.gitee.qdbp.able.result.IResultMessage;
+import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
@@ -29,6 +32,7 @@ import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -107,11 +111,12 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     @Override
-    public <T> T execute(SqlBuffer sb, PreparedStatementCallback<T> action) throws DataAccessException {
+    public <T> T execute(SqlBuffer sb, PreparedStatementCallback<T> action) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL statement:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL statement:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -127,15 +132,20 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 log.debug("SQL query returns 0 row.");
             }
             return null;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
     @Override
-    public <T> T query(SqlBuffer sb, ResultSetExtractor<T> rse) throws DataAccessException {
+    public <T> T query(SqlBuffer sb, ResultSetExtractor<T> rse) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -152,48 +162,67 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
     @Override
-    public void query(SqlBuffer sb, RowCallbackHandler rch) throws DataAccessException {
+    public void query(SqlBuffer sb, RowCallbackHandler rch) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        namedParameterJdbcOperations.query(sql, params, rch);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query, elapsed time {}ms.", time);
+        try {
+            namedParameterJdbcOperations.query(sql, params, rch);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query, elapsed time {}ms.", time);
+            }
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
     @Override
-    public <T> List<T> query(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
+    public <T> List<T> query(SqlBuffer sb, RowMapper<T> rowMapper) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+        try {
+            List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+            }
+            return list;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
-        return list;
     }
 
     @Override
-    public <T> T queryForObject(SqlBuffer sb, RowMapper<T> rowMapper) throws DataAccessException {
+    public <T> T queryForObject(SqlBuffer sb, RowMapper<T> rowMapper) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -210,25 +239,28 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
     @Override
-    public <T> T queryForObject(SqlBuffer sb, Class<T> resultType) throws DataAccessException {
+    public <T> T queryForObject(SqlBuffer sb, Class<T> resultType) throws ServiceException {
+        VerifyTools.requireNotBlank(sb, "sqlBuffer");
+        if (!ReflectTools.isPrimitive(resultType, false)) {
+            return queryForObject(sb, newRowToBeanMapper(resultType));
+        }
         long startTime = System.currentTimeMillis();
+        String logsql = null;
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+        }
         try {
-            T result;
-            if (ReflectTools.isPrimitive(resultType, false)) {
-                VerifyTools.requireNotBlank(sb, "sqlBuffer");
-                if (log.isDebugEnabled()) {
-                    log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
-                }
-                String sql = sb.getPreparedSqlString(sqlDialect);
-                Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-                result = namedParameterJdbcOperations.queryForObject(sql, params, resultType);
-            } else {
-                result = queryForObject(sb, newRowToBeanMapper(resultType));
-            }
+            String sql = sb.getPreparedSqlString(sqlDialect);
+            Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
+            T result = namedParameterJdbcOperations.queryForObject(sql, params, resultType);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
                 queryForObjectLogResult(time, result);
@@ -240,6 +272,10 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
@@ -262,11 +298,12 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     }
 
     @Override
-    public Map<String, Object> queryForMap(SqlBuffer sb) throws DataAccessException {
+    public Map<String, Object> queryForMap(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -283,145 +320,192 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
                 log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
     }
 
     @Override
-    public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws DataAccessException {
+    public <T> List<T> queryForList(SqlBuffer sb, Class<T> elementType) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        List<T> list;
-        if (ReflectTools.isPrimitive(elementType, false)) {
-            list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
-        } else {
-            list = namedParameterJdbcOperations.query(sql, params, newRowToBeanMapper(elementType));
+        try {
+            List<T> list;
+            if (ReflectTools.isPrimitive(elementType, false)) {
+                list = namedParameterJdbcOperations.queryForList(sql, params, elementType);
+            } else {
+                list = namedParameterJdbcOperations.query(sql, params, newRowToBeanMapper(elementType));
+            }
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+            }
+            return list;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
-        }
-        return list;
     }
 
     @Override
-    public List<Map<String, Object>> queryForList(SqlBuffer sb) throws DataAccessException {
+    public List<Map<String, Object>> queryForList(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+        try {
+            List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+            }
+            return list;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
-        return list;
     }
 
     @Override
-    public SqlRowSet queryForRowSet(SqlBuffer sb) throws DataAccessException {
+    public SqlRowSet queryForRowSet(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL query, elapsed time {}ms.", time);
+        try {
+            SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL query, elapsed time {}ms.", time);
+            }
+            return result;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
-        return result;
     }
 
     @Override
-    public int insert(SqlBuffer sb) throws DataAccessException {
+    public int insert(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doUpdate(sb, "insert");
+        return doExecute(sb, "insert", ResultCode.DB_INSERT_ERROR);
     }
 
     @Override
-    public int insert(SqlBuffer sb, KeyHolder generatedKeyHolder) throws DataAccessException {
+    public int insert(SqlBuffer sb, KeyHolder generatedKeyHolder) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doUpdate(sb, generatedKeyHolder, "insert");
+        return doExecute(sb, generatedKeyHolder, "insert", ResultCode.DB_INSERT_ERROR);
     }
 
     @Override
-    public int update(SqlBuffer sb) throws DataAccessException {
+    public int update(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doUpdate(sb, "update");
+        return doExecute(sb, "update", ResultCode.DB_UPDATE_ERROR);
     }
 
     @Override
-    public int delete(SqlBuffer sb) throws DataAccessException {
+    public int delete(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doUpdate(sb, "delete");
+        return doExecute(sb, "delete", ResultCode.DB_DELETE_ERROR);
     }
 
-    protected int doUpdate(SqlBuffer sb, String desc) throws DataAccessException {
+    protected int doExecute(SqlBuffer sb, String desc, IResultMessage errorCode) throws ServiceException {
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        int rows = namedParameterJdbcOperations.update(sql, params);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+        try {
+            int rows = namedParameterJdbcOperations.update(sql, params);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+            }
+            return rows;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(errorCode, details, e);
         }
-        return rows;
     }
 
-    protected int doUpdate(SqlBuffer sb, KeyHolder generatedKeyHolder, String desc) throws DataAccessException {
+    protected int doExecute(SqlBuffer sb, KeyHolder generatedKeyHolder, String desc, IResultMessage errorCode)
+            throws ServiceException {
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL {}:\n{}", desc, getFormattedSqlString(sb, 1));
+            log.debug("Executing SQL {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
         SqlParameterSource msps = new MapSqlParameterSource(params);
-        int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+        try {
+            int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+            }
+            return rows;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(errorCode, details, e);
         }
-        return rows;
     }
 
     @Override
-    public int batchInsert(SqlBuffer sb) throws DataAccessException {
+    public int batchInsert(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doBatchUpdate(sb, "insert");
+        return doBatchExecute(sb, "insert", ResultCode.DB_INSERT_ERROR);
     }
 
     @Override
-    public int batchUpdate(SqlBuffer sb) throws DataAccessException {
+    public int batchUpdate(SqlBuffer sb) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
-        return doBatchUpdate(sb, "update");
+        return doBatchExecute(sb, "update", ResultCode.DB_UPDATE_ERROR);
     }
 
-    protected int doBatchUpdate(SqlBuffer sb, String desc) throws DataAccessException {
+    protected int doBatchExecute(SqlBuffer sb, String desc, IResultMessage errorCode) throws ServiceException {
         long startTime = System.currentTimeMillis();
+        String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL batch {}:\n{}", desc, getCompressedSqlString(sb, 1));
+            log.debug("Executing SQL batch {}:\n{}", desc, logsql = getCompressedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
-        int rows = namedParameterJdbcOperations.update(sql, params);
-        if (log.isDebugEnabled()) {
-            long time = System.currentTimeMillis() - startTime;
-            log.debug("SQL batch {} affected {} rows, elapsed time {}ms.", desc, rows, time);
+        try {
+            int rows = namedParameterJdbcOperations.update(sql, params);
+            if (log.isDebugEnabled()) {
+                long time = System.currentTimeMillis() - startTime;
+                log.debug("SQL batch {} affected {} rows, elapsed time {}ms.", desc, rows, time);
+            }
+            return rows;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(errorCode, details, e);
         }
-        return rows;
     }
 
     protected String getCompressedSqlString(SqlBuffer sb, int indent) {
