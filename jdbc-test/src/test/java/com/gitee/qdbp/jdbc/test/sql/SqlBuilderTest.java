@@ -16,28 +16,29 @@ public class SqlBuilderTest {
     }
 
     private static void test1(SqlDialect dialect) {
-        SqlBuilder buffer = new SqlBuilder();
-        buffer.ad("SELECT * FROM SYS_USER");
-        buffer.newline().tab();
-        buffer.ad("WHERE DEPT_CODE").ad('=').var("10001");
-        buffer.newline().tab();
-        buffer.ad("AND PHONE").ad(dialect.buildLikeSql("139%"));
-        buffer.ad("AND CREATE_USER").ad('=').var("zhh");
-        buffer.newline();
-        buffer.ad("AND CREATE_TIME", ">=").var(DateTools.parse("2019-01-01"));
-        buffer.newline();
-        buffer.ad("AND USER_STATE", "IN").ad('(').var(1).ad(',').var(2).ad(')');
-        buffer.ad("AND DATA_STATE").ad('=').var(0);
-        buffer.newline().tab(-2);
-        buffer.ad("UNION");
-        buffer.newline();
-        buffer.ad("SELECT * FROM SYS_USER");
-        buffer.newline().tab();
-        buffer.ad("WHERE DEPT_CODE").ad('=').var("10001");
-        buffer.ad("AND USER_STATE").ad('=').var(2);
-        buffer.ad("AND EFTFLAG IN").ad('(').var('E').ad(',').var('N').ad(')');
+        // ad=append, pd=prepend, var=addVariable
+        SqlBuilder builder = new SqlBuilder();
+        builder.ad("SELECT * FROM SYS_USER");
+        builder.newline().tab(); // 缩进1次
+        builder.ad("WHERE DEPT_CODE").ad('=').var("10001");
+        builder.newline().tab(); // 在上次的基础上再缩进1次
+        builder.ad("AND PHONE").ad(dialect.buildLikeSql("139%"));
+        builder.ad("AND CREATE_USER").ad('=').var("zhh");
+        builder.newline(); // 这里会继承前面的2次缩进
+        builder.ad("AND CREATE_TIME", ">=").var(DateTools.parse("2019-01-01"));
+        builder.newline(); // 继承2次缩进
+        builder.ad("AND USER_STATE", "IN").ad('(').var(1).ad(',').var(2).ad(')');
+        builder.ad("AND DATA_STATE").ad('=').var(0);
+        builder.newline().tab(-2); // 回退2次缩进, 即回到顶格
+        builder.ad("UNION");
+        builder.newline(); // 继承0缩进
+        builder.ad("SELECT * FROM SYS_USER");
+        builder.newline().tab(); // 缩进1次
+        builder.ad("WHERE DEPT_CODE").ad('=').var("10002");
+        builder.ad("AND USER_STATE", "IN").ad('(').var(1).ad(',').var(2).ad(')');
+        builder.ad("AND DATA_STATE").ad('=').var(0);
 
-        printSqlString(buffer.out(), dialect);
+        printSqlString(builder.out(), dialect);
     }
 
     private static void test2(SqlDialect dialect) {
