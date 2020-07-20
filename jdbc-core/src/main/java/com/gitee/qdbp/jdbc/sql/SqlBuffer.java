@@ -629,7 +629,8 @@ public class SqlBuffer implements Serializable {
                 // OmitItem堆栈之前不是空的, 现在变空了, 说明已经回到顶层且结束了
                 if (omitEnabled && omitStacks.isEmpty()) {
                     if (charCount > 0) { // 插入省略信息
-                        insertOmittedDetails(sql, charCount, lineCount, calcOmittedIndex(srartItem, omitItem));
+                        int itemCount = calcOmittedIndex(srartItem, omitItem);
+                        insertOmittedDetails(sql, charCount, lineCount, itemCount);
                     }
                     // 统计信息归零
                     lineCount = 0;
@@ -668,23 +669,23 @@ public class SqlBuffer implements Serializable {
 
     protected void insertOmittedDetails(StringBuilder sql, int charCount, int lineCount, int itemCount) {
         // 计算省略掉的行数和字符数信息
-        // /* 10000 chars, 50 items, 100 lines are omitted here ... */
+        // /* 10000 chars, 100 lines, 50 items are omitted here ... */
         StringBuilder msg = generateOmittedDetails(charCount, lineCount, itemCount);
         // 在最后一个换行符之后插入省略信息
         IndentTools.insertMessageAfterLastNewline(sql, msg);
     }
 
     // 生成省略掉的行数和字符数详细描述
-    // /* 10000 chars, 100 lines are omitted here ... */
+    // /* 10000 chars, 100 lines, 50 items are omitted here ... */
     protected StringBuilder generateOmittedDetails(int charCount, int lineCount, int itemCount) {
         StringBuilder msg = new StringBuilder();
         msg.append("/*").append(' ');
         msg.append(charCount).append(' ').append("chars");
         if (lineCount > 0) {
-            msg.append(',').append(' ').append(itemCount).append(' ').append("items");
-        }
-        if (lineCount > 0) {
             msg.append(',').append(' ').append(lineCount).append(' ').append("lines");
+        }
+        if (itemCount > 0) {
+            msg.append(',').append(' ').append(itemCount).append(' ').append("items");
         }
         msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
         return msg;
