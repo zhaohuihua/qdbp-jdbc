@@ -9,14 +9,13 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
 
 又造了一个轮子。
 
-为什么会有这个项目，自然是现有的框架用得不够爽：
+为什么会有这个项目，自然是现有的框架用得不够爽：(更多讨论见《[ORM框架的痛点讨论](https://yuque.com/zhaohuihua/qdbc/gebddu)》)
 * Hibernate太重量级，学习成本高，用得不好容易出现性能问题；
 * Spring的JdbcTemplate太基础，只做了预编译参数和结果映射；
 * MyBatis要生成一大堆xml文件，难以维护，尤其表结构变更时，重新生成的xml就需要跟以前的比对，很是麻烦；
 * 即使有MyBatisGenerator之类的工具来辅助生成代码，但由于代码是提前生成的，结构变更时依然麻烦；
 * 还有一个问题，所有的框架输出预编译参数的SQL日志都是用问号代替参数，
 如果参数很多，根据日志到数据库中重现问题的时候简直痛苦。
-更多讨论见《[ORM框架的痛点讨论](https://yuque.com/zhaohuihua/qdbc/gebddu)》。
 
 本项目的独创内容：
 * 对于单表增删改查，多表关联的基本查询，以及所涉及到的大于/小于/不等于/like/in等基本条件，完全不要写sql或xml！《[基本用法简介](https://yuque.com/zhaohuihua/qdbc/vfkzgg)》
