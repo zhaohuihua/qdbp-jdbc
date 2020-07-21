@@ -83,8 +83,8 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
                 String fieldName = column.getFieldName();
                 if (fieldMap.containsKey(fieldName) && !fieldName.equals(pk.getFieldName())) {
                     Object fieldValue = entity.get(fieldName);
-                    // 不支持DbFieldName/DbFieldValue/DbRawValue
-                    // 只支持fieldName=fieldValue
+                    // 不用调sqlHelper.convertFieldValue
+                    // 因为不支持DbFieldName/DbFieldValue/DbRawValue, 只支持fieldName=fieldValue
                     // fieldValue = sqlHelper.convertFieldValue(fieldValue);
                     sql.ad(',', ' ').var(fieldValue).ad(column.getColumnName());
                 }
