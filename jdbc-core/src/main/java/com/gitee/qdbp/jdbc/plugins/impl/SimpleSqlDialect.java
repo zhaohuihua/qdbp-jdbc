@@ -155,7 +155,7 @@ public class SimpleSqlDialect implements SqlDialect {
             String start = String.valueOf(paging.getStart());
             String end = String.valueOf(paging.getEnd());
             buffer.prepend("SELECT * FROM (\n\tSELECT T_T.*, ROWNUMBER() OVER(ORDER BY ORDER OF T_T) AS R_N FROM (\n");
-            buffer.append('\n', '\t').append("FETCH FIRST").append(' ', end, ' ').append("ROWS ONLY");
+            buffer.append('\n', '\t', '\t').append("FETCH FIRST").append(' ', end, ' ').append("ROWS ONLY");
             buffer.append('\n', '\t').append(") AS T_T\n)");
             buffer.append(' ').append("WHERE").append(' ').append("R_N > ").append(start);
             buffer.append(' ').append("ORDER BY").append(' ').append("R_N");
