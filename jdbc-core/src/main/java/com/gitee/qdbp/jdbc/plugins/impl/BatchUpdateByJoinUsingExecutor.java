@@ -19,7 +19,8 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
- * MySQL UPDATE JOIN USING 批量更新接口实现类(要求字段对齐)<pre>
+ * UPDATE JOIN USING 批量更新接口实现类(要求字段对齐)<br>
+ * MySQL专有语法, 效率高于BatchUpdateByCaseWhen<pre>
     UPDATE {tableName} A JOIN (
         SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
         UNION
