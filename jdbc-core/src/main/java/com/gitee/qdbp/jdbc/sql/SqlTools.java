@@ -1,6 +1,10 @@
 package com.gitee.qdbp.jdbc.sql;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -42,8 +46,7 @@ public abstract class SqlTools {
      * @param fieldValues 字段值
      * @param matches true=in, false=not in
      */
-    private static SqlBuffer buildInSql(Collection<?> fieldValues, boolean matches)
-            throws UnsupportedFieldException {
+    private static SqlBuffer buildInSql(Collection<?> fieldValues, boolean matches) throws UnsupportedFieldException {
         SqlBuilder sql = new SqlBuilder();
         if (VerifyTools.isBlank(fieldValues)) {
             return sql.out();
@@ -58,19 +61,33 @@ public abstract class SqlTools {
             }
             sql.ad(operate).var(firstValue);
         } else {
+            List<?> values = duplicateRemoval(fieldValues);
             String operate = matches ? "IN" : "NOT IN";
             sql.ad(operate).ad('(');
-            boolean first = true;
-            for (Object value : fieldValues) {
-                if (first) {
-                    first = false;
-                } else {
+            for (int i = 0, count = values.size(); i < count; i++) {
+                Object value = values.get(i);
+                if (i > 0) {
                     sql.ad(',');
+                }
+                if (count > 40) {
+                    sql.omit(i, count, 10);
                 }
                 sql.var(value);
             }
             sql.ad(')');
         }
         return sql.out();
+    }
+
+    private static List<?> duplicateRemoval(Collection<?> items) {
+        Map<Object, ?> map = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+        for (Object item : items) {
+            if (!map.containsKey(item)) {
+                map.put(item, null);
+                list.add(item);
+            }
+        }
+        return list;
     }
 }
