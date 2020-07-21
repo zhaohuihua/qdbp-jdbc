@@ -32,4 +32,5 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
 * MyBatis中大量的单表增删改查语句，对DBA审查来说只是一种干扰，并不会过多关注；
 * 多种数据库就需要多套模板，但实际情况往往是多套模板大体相同，只有少量差异；
 * SQL模板首先应该是SQL，然后其中有一些XML的判断条件和循环语句，而不应该是XML格式。
+
 详见《[SQL模板构思](https://yuque.com/zhaohuihua/qdbc/bvk5gy)》(开发中)。
