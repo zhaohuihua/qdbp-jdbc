@@ -19,7 +19,7 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
- * MySQL UPDATE JOIN USING 批量更新接口实现类<br>
+ * MySQL UPDATE JOIN USING 批量更新接口实现类(要求字段对齐)<br>
  * UPDATE {tableName} A JOIN (<br>
  * &nbsp;&nbsp;&nbsp;&nbsp;SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n<br>
  * &nbsp;&nbsp;&nbsp;&nbsp;UNION<br>

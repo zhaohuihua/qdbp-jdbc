@@ -64,7 +64,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     }
 
     /**
-     * 批量保存实体对象<br>
+     * 批量保存实体对象(不要求字段对齐)<br>
      * 生成多条SQL语句一起执行:<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
      * INSERT INTO {tableName}({columnNames}) VALUES ({fieldValues});<br>
@@ -96,7 +96,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     }
 
     /**
-     * 根据主键编号批量更新实体对象<br>
+     * 根据主键编号批量更新实体对象(不要求字段对齐)<br>
      * 生成多条SQL语句一起执行:<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE ID={id};<br>

@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 
 /**
- * 一个INSERT对应多个VALUES的批量新增接口实现类<br>
+ * 一个INSERT对应多个VALUES的批量新增接口实现类(要求字段对齐)<br>
  * INSERT INTO {tableName}({columnNames}) <br>
  * VALUES<br>
  * ({fieldValues})<br>
@@ -37,7 +37,7 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
     @Override
     public boolean supports(DbVersion version) {
         DbType dbType = version.getDbType();
-        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB;
+        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.DB2;
     }
 
     @Override
