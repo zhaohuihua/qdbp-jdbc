@@ -19,13 +19,13 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
- * MySQL UPDATE JOIN USING 批量更新接口实现类(要求字段对齐)<br>
- * UPDATE {tableName} A JOIN (<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;UNION<br>
- * &nbsp;&nbsp;&nbsp;&nbsp;SELECT {id2} ID, {field21} FIELD21, {field22} FIELD22, ..., {field2n} FIELD2n<br>
- * ) B USING(ID)<br>
- * SET A.FIELD1=B.FIELD1, A.FIELD2=B.FIELD2, ..., A.FIELDn=B.FIELDn <br>
+ * MySQL UPDATE JOIN USING 批量更新接口实现类(要求字段对齐)<pre>
+    UPDATE {tableName} A JOIN (
+        SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
+        UNION
+        SELECT {id2} ID, {field21} FIELD21, {field22} FIELD22, ..., {field2n} FIELD2n
+    ) B USING(ID)
+    SET A.FIELD1=B.FIELD1, A.FIELD2=B.FIELD2, ..., A.FIELDn=B.FIELDn</pre>
  * 
  * @author zhaohuihua
  * @version 20200712
