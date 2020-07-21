@@ -363,7 +363,7 @@ public class SqlBuffer implements Serializable {
      * 日志只取前3行+后3行; 因此在第3行后面开始省略, 在后3行之前结束省略<br>
      * 注意: 如果有换行符, 最好放在换行符后面
      * 
-     * @param index 当前行数
+     * @param index 当前行数(从0开始)
      * @param count 总行数
      * @param limit 保留多少行(前后各保留limit行)
      * @return 返回当前SQL容器用于连写
@@ -445,7 +445,7 @@ public class SqlBuffer implements Serializable {
                 target.buffer.add(new RawValueItem(rawItem.getValue()));
             } else if (item instanceof OmitItem) {
                 OmitItem omitItem = (OmitItem) item;
-                target.buffer.add(new OmitItem(omitItem.enabled()));
+                target.buffer.add(new OmitItem(omitItem.enabled(), omitItem.index()));
             } else {
                 throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
             }
