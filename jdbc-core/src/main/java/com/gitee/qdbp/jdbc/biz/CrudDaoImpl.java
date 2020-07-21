@@ -45,7 +45,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     protected Class<T> beanClass;
     /** 批量执行时的大小限制(0为无限制) **/
-    protected int defaultBatchSize = 200;
+    protected int defaultBatchSize = QdbcBootImpl.DEFAULT_BATCH_SIZE;
 
     CrudDaoImpl(Class<T> c, SqlBufferJdbcOperations jdbc) {
         super(newQuerySqlBuilder(c, jdbc), newEntityFillExecutor(c), jdbc, newRowToBeanMapper(c));
@@ -785,12 +785,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     /** 批量执行时的大小限制(0为无限制) **/
-    public int getDefaultBatchSize() {
+    protected int getDefaultBatchSize() {
         return defaultBatchSize;
     }
 
     /** 批量执行时的大小限制(0为无限制) **/
-    public void setDefaultBatchSize(int batchSize) {
+    protected void setDefaultBatchSize(int batchSize) {
         this.defaultBatchSize = batchSize;
     }
 }

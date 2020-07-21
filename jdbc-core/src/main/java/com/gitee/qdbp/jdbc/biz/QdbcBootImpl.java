@@ -21,6 +21,25 @@ public class QdbcBootImpl implements QdbcBoot {
 
     private Map<Class<?>, CrudDao<?>> crudDaoCache = new HashMap<>();
     private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
+    /** 批量执行时的大小限制常量(0为无限制) **/
+    protected static int DEFAULT_BATCH_SIZE = 500;
+    /** 批量执行时的默认大小限制(0为无限制) **/
+    protected int defaultBatchSize = DEFAULT_BATCH_SIZE;
+
+    /** 批量执行时的默认大小限制(0为无限制) **/
+    public int getDefaultBatchSize() {
+        return defaultBatchSize;
+    }
+
+    /** 批量执行时的默认大小限制(0为无限制) **/
+    public void setDefaultBatchSize(int batchSize) {
+        this.defaultBatchSize = batchSize;
+        for (CrudDao<?> item : crudDaoCache.values()) {
+            if (item instanceof CrudDaoImpl) {
+                ((CrudDaoImpl<?>) item).setDefaultBatchSize(defaultBatchSize);
+            }
+        }
+    }
 
     /** {@inheritDoc} **/
     @Override
@@ -29,7 +48,8 @@ public class QdbcBootImpl implements QdbcBoot {
         if (crudDaoCache.containsKey(clazz)) {
             return (CrudDao<T>) crudDaoCache.get(clazz);
         } else {
-            CrudDao<T> instance = new CrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
+            CrudDaoImpl<T> instance = new CrudDaoImpl<>(clazz, sqlBufferJdbcOperations);
+            instance.setDefaultBatchSize(this.defaultBatchSize);
             crudDaoCache.put(clazz, instance);
             return instance;
         }
