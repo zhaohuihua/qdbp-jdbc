@@ -9,7 +9,7 @@ import com.alibaba.fastjson.util.TypeUtils;
  * 获取第1列数据<br>
  * 注意, 有可能由于分页SQL的写法, 而导致想要的列并不在第1列<br>
  * 最好使用SingleColumnMapper代替, 明确指定列名<br>
- * 如DB2的分页(这样写第1列是R_N而不是ID):<pre>
+ * 例如Oracle的分页(这样写第1列是R_N而不是ID):<pre>
     SELECT * FROM (
         SELECT ROWNUM R_N,T_T.* FROM (
             SELECT ID FROM tableName
