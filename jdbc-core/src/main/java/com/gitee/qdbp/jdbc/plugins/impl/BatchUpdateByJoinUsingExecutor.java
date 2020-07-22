@@ -75,8 +75,8 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
             if (i > 0) {
                 sql.newline().ad("UNION").newline();
             }
-            // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
             sql.omit(i, size); // 插入省略标记
+            // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
             sql.ad("SELECT").var(item.getPrimaryKey()).ad(pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
             for (SimpleFieldColumn column : columns.items()) {
