@@ -36,7 +36,10 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
     @Override
     public boolean supports(DbVersion version) {
         DbType dbType = version.getDbType();
-        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.DB2;
+        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
+                || dbType == MainDbType.DB2
+                // SQL Server 2008 以上版本
+                || (dbType == MainDbType.SqlServer && version.getMajorVersion() >= 2008);
     }
 
     @Override
