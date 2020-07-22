@@ -7,6 +7,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -101,8 +102,8 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
         entity.setValue("测试 " + key);
         try {
             sysSettingService.createSetting(entity, TestModel.mainErrorLogSuccess);
-        } catch (Exception e) {
-            Assert.assertTrue(e instanceof DataIntegrityViolationException);
+        } catch (ServiceException e) {
+            Assert.assertTrue(e.getCause() instanceof DataIntegrityViolationException);
         }
         { // 主记录失败
             DbWhere where = new DbWhere();
