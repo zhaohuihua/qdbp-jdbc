@@ -25,6 +25,7 @@ import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
+import com.gitee.qdbp.jdbc.result.SingleColumnMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
@@ -144,7 +145,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         Set<String> selectFields = ConvertTools.toSet(codeField);
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
-        return jdbc.query(buffer, FIRST_COLUMN_STRING_MAPPER);
+        String codeColumn = sqlHelper.getColumnName(codeField);
+        return jdbc.query(buffer, new SingleColumnMapper<>(codeColumn, String.class));
     }
 
     protected static FirstColumnMapper<String> FIRST_COLUMN_STRING_MAPPER = new FirstColumnMapper<>(String.class);

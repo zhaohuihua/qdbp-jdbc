@@ -3,6 +3,7 @@ package com.gitee.qdbp.jdbc.biz;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.jdbc.core.RowMapper;
 import com.gitee.qdbp.able.beans.KeyValue;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
@@ -16,9 +17,9 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
-import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
+import com.gitee.qdbp.jdbc.result.SingleColumnMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.utils.PagingQuery;
@@ -164,7 +165,9 @@ public abstract class BaseQueryerImpl<T> {
         if (odpg.isPaging() && odpg.isNeedCount()) {
             csb = sqlBuilder.buildCountSql(wsb);
         }
-        PartList<V> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, new FirstColumnMapper<>(valueClazz));
+        String columnName = sqlBuilder.helper().getColumnName(fieldName);
+        RowMapper<V> rowMapper = new SingleColumnMapper<>(columnName, valueClazz);
+        PartList<V> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, rowMapper);
         return list == null ? null : new PageList<V>(list, list.getTotal());
     }
 
