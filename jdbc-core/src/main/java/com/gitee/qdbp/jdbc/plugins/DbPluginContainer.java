@@ -5,8 +5,10 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
-import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiValuesExecutor;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiRowsExecutor;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByUnionAllFromDualExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor;
+import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
@@ -94,12 +96,14 @@ public class DbPluginContainer {
         if (container.getDefaultBatchUpdateExecutor() == null) {
             container.setDefaultBatchUpdateExecutor(new BatchOperateByForEachExecutor());
         }
-        // 初始化公共的批量操作处理器
+        // 初始化公共的批量操作处理器(专用的放前面,通用的放后面)
         if (container.getBatchInsertExecutors().isEmpty()) {
-            container.addBatchInsertExecutor(new BatchInsertByMultiValuesExecutor());
+            container.addBatchInsertExecutor(new BatchInsertByUnionAllFromDualExecutor());
+            container.addBatchInsertExecutor(new BatchInsertByMultiRowsExecutor());
         }
         if (container.getBatchUpdateExecutors().isEmpty()) {
             container.addBatchUpdateExecutor(new BatchUpdateByJoinUsingExecutor());
+            container.addBatchUpdateExecutor(new BatchUpdateByCaseWhenExecutor());
         }
     }
 
