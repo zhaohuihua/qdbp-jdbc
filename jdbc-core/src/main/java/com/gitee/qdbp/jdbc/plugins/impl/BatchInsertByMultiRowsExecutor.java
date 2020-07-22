@@ -27,7 +27,7 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
  * @author zhaohuihua
  * @version 20200707
  */
-public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
+public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
 
     /**
      * 是否支持指定数据库<br>
