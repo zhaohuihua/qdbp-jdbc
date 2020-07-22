@@ -126,11 +126,11 @@ public class SimpleSqlDialect implements SqlDialect {
         } else {
             buffer.indentAll(2, true);
             // SELECT * FROM (
-            //     SELECT ROWNUM R_N, T_T.* FROM (
+            //     SELECT T_T.*, ROWNUM R_N FROM (
             //         {sql}
             //     ) T_T WHERE ROWNUM <= {end}
             // ) WHERE R_N > {start}
-            buffer.prepend("SELECT * FROM (\n\tSELECT ROWNUM R_N, T_T.* FROM (\n");
+            buffer.prepend("SELECT * FROM (\n\tSELECT T_T.*, ROWNUM R_N FROM (\n");
             buffer.append("\n\t) T_T WHERE ROWNUM <= ").addVariable(paging.getEnd());
             buffer.append("\n) WHERE R_N > ").addVariable(paging.getStart());
         }
