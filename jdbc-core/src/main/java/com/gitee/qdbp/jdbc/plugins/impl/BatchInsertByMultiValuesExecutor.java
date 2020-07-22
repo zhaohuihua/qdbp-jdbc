@@ -31,7 +31,6 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
 
     /**
      * 是否支持指定数据库<br>
-     * 目前已知只有mysql支持, oracle/db2都不支持<br>
      * 如果有其他数据库支持, 可以继承此类, 覆盖supports方法
      */
     @Override
@@ -50,7 +49,7 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
         SqlBuilder sql = new SqlBuilder();
         // INSERT INTO (...)
         sql.ad("INSERT INTO").ad(tableName);
-        sql.ad('(').ad(fieldsSqlBuffer).ad(')', '\n');
+        sql.ad('(').ad(fieldsSqlBuffer).ad(')').newline();
         // VALUES (...) (...)
         sql.ad("VALUES");
         List<String> ids = new ArrayList<>();
@@ -64,7 +63,7 @@ public class BatchInsertByMultiValuesExecutor implements BatchInsertExecutor {
             if (i > 0) {
                 sql.ad(',');
             }
-            sql.ad('\n');
+            sql.newline();
             sql.omit(i, size); // 插入省略标记
             sql.ad('(').ad(valuesSqlBuffer).ad(')');
         }
