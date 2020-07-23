@@ -85,6 +85,7 @@ public class SimpleDbOperatorContainer implements DbOperatorContainer {
 
     private static void registerOperator(Map<String, DbBaseOperator> container, DbBaseOperator operator) {
         container.put(convertKey(operator.getType()), operator);
+        container.put(convertKey(operator.getName()), operator);
         List<String> aliases = operator.getAliases();
         if (aliases != null) {
             for (String alias : aliases) {
