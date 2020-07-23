@@ -351,6 +351,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillUpdateWhereDataStatus(readyWhere);
         entityFillExecutor.fillUpdateWhereParams(readyWhere);
+        // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
+        // entityFillExecutor.fillEntityUpdateDataStatus(entity);
         if (fillUpdateParams) {
             entityFillExecutor.fillEntityUpdateParams(entity);
         }
@@ -732,6 +734,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      */
     protected void fillEntityUpdateParams(Map<String, Object> entity, boolean fillUpdateParams) {
+        // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
+        // entityFillExecutor.fillEntityUpdateDataStatus(entity);
         if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
             entityFillExecutor.fillEntityUpdateParams(entity);
         }
@@ -744,6 +748,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      * @param fillCreateParams 是否自动填充创建参数
      */
     protected void fillEntityUpdateParams(DbUpdate ud, boolean fillUpdateParams) {
+        // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
+        // entityFillExecutor.fillEntityUpdateDataStatus(ud);
         if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
             entityFillExecutor.fillEntityUpdateParams(ud);
         }
