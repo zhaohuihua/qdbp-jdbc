@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface DbBaseOperator {
 
-    /** 运算符名称(无空格的英文名称,将用于从request中自动构造where和update) **/
+    /** 运算符名称(无空格的英文名称) **/
     String getName();
 
     /** 运算符类型(一般是数据库可识别的运算符) **/
@@ -19,4 +19,8 @@ public interface DbBaseOperator {
 
     /** 运算符别名(书写时方便识别的运算符别名) **/
     List<String> getAliases();
+
+    /** 判断当前操作符与指定的操作符是否匹配 **/
+    boolean matchers(String operator);
+
 }

@@ -143,7 +143,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         }
         // 由运算符处理类生成子SQL
         String desc = "build update sql unsupported field";
-        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
+        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operateType, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
             buffer.shortcut().pd("SET");

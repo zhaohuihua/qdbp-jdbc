@@ -170,7 +170,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
         // 由运算符处理类生成子SQL
         String desc = "build where sql unsupported fields";
-        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operator, fieldValue, desc);
+        SqlBuffer buffer = buildOperatorSql(fieldName, columnName, operateType, operator, fieldValue, desc);
 
         if (whole && !buffer.isEmpty()) {
             buffer.shortcut().pd("WHERE");
@@ -229,15 +229,23 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return buffer;
     }
 
-    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, DbBaseOperator operator,
-            Object fieldValue, String desc) {
-        String operatorName = operator.getName();
+    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, String operateType, Object fieldValue,
+            String desc) {
+        // 查找Where运算符处理类
+        DbBaseOperator operator = DbTools.getWhereOperator(operateType);
+        if (operator == null) {
+            throw ufe("build where sql", "UnsupportedOperator:(" + fieldName + ' ' + operateType + " ...)");
+        }
+        return buildOperatorSql(fieldName, columnName, operateType, operator, fieldValue, desc);
+    }
 
+    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, String operateType, DbBaseOperator operator,
+            Object fieldValue, String desc) {
         if (operator instanceof DbUnaryOperator) {
             if (VerifyTools.isBlank(fieldValue)) {
                 return ((DbUnaryOperator) operator).buildSql(columnName, dialect);
             } else {
-                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + ")");
+                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operateType + ")");
             }
         } else if (operator instanceof DbBinaryOperator) {
             Object value = convertSpecialFieldValue(fieldValue);
@@ -249,19 +257,19 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 Object second = convertSpecialFieldValue(values.get(1));
                 return ((DbTernaryOperator) operator).buildSql(columnName, first, second, dialect);
             } else if (values.size() < 2) { // 参数不够
-                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
+                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operateType + " arg1 arg2)");
             } else { // 参数过多
-                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operatorName + " arg1 arg2)");
+                throw ufe(desc, "TooManyArguments:(" + fieldName + ' ' + operateType + " arg1 arg2)");
             }
         } else if (operator instanceof DbMultivariateOperator) {
             List<Object> values = convertSpecialFieldValues(ConvertTools.parseListIfNullToEmpty(fieldValue));
             if (!values.isEmpty()) {
                 return ((DbMultivariateOperator) operator).buildSql(columnName, values, dialect);
             } else { // 参数不能为空
-                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operatorName + " ...)");
+                throw ufe(desc, "MissArguments:(" + fieldName + ' ' + operateType + " ...)");
             }
         } else {
-            throw ufe(desc, "UnsupportedOperator:(" + fieldName + ' ' + operatorName + " ...)");
+            throw ufe(desc, "UnsupportedOperator:(" + fieldName + ' ' + operateType + " ...)");
         }
     }
 

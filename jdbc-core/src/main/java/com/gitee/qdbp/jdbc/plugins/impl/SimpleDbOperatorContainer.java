@@ -94,6 +94,6 @@ public class SimpleDbOperatorContainer implements DbOperatorContainer {
     }
 
     private static String convertKey(String operatorType) {
-        return operatorType.toUpperCase();
+        return operatorType == null ? null : operatorType.toUpperCase();
     }
 }

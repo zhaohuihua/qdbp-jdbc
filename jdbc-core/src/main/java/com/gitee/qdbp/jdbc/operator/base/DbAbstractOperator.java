@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.operator.base;
 
 import java.util.Arrays;
 import java.util.List;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 基本运算符Abstract类
@@ -54,6 +55,25 @@ public abstract class DbAbstractOperator {
         this.aliases = aliases;
     }
 
+    public boolean matchers(String operator) {
+        String otherOperator = convertKey(operator);
+        if (VerifyTools.equals(otherOperator, convertKey(this.getType()))) {
+            return true;
+        }
+        if (VerifyTools.equals(otherOperator, convertKey(this.getName()))) {
+            return true;
+        }
+        List<String> aliases = this.getAliases();
+        if (aliases != null) {
+            for (String alias : aliases) {
+                if (VerifyTools.equals(otherOperator, convertKey(alias))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** 查找第一个无空格英文名称 **/
     private String findName(String type, String... aliases) {
         if (isAscii(type)) {
@@ -70,7 +90,7 @@ public abstract class DbAbstractOperator {
         throw new IllegalArgumentException("EnglishNameWithoutSpace not found.");
     }
 
-    private boolean isAscii(String string) {
+    private static boolean isAscii(String string) {
         for (int i = 0, z = string.length(); i < z; i++) {
             char c = string.charAt(i);
             if (!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')) {
@@ -78,5 +98,9 @@ public abstract class DbAbstractOperator {
             }
         }
         return true;
+    }
+
+    private static String convertKey(String operatorType) {
+        return operatorType == null ? null : operatorType.toUpperCase();
     }
 }
