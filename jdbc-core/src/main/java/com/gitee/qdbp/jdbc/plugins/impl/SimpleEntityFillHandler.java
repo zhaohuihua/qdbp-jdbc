@@ -201,24 +201,24 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillEntityCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
+    public void fillEntityCreateParams(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         Date now = new Date();
-        fillValueIfAbsent(model, createTimeField, now, allFields);
-        fillValueIfAbsent(model, updateTimeField, now, allFields);
+        fillValueIfAbsent(entity, createTimeField, now, allFields);
+        fillValueIfAbsent(entity, updateTimeField, now, allFields);
 
         String account = getLoginAccount();
-        fillValueIfAbsent(model, createUserField, account, allFields);
-        fillValueIfAbsent(model, updateUserField, account, allFields);
+        fillValueIfAbsent(entity, createUserField, account, allFields);
+        fillValueIfAbsent(entity, updateUserField, account, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillEntityUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
+    public void fillEntityUpdateParams(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         Date now = new Date();
-        fillValueIfAbsent(model, updateTimeField, now, allFields);
+        fillValueIfAbsent(entity, updateTimeField, now, allFields);
 
         String account = getLoginAccount();
-        fillValueIfAbsent(model, updateUserField, account, allFields);
+        fillValueIfAbsent(entity, updateUserField, account, allFields);
     }
 
     /** {@inheritDoc} **/
@@ -233,8 +233,8 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteParams(Map<String, Object> model, AllFieldColumn<?> allFields) {
-        this.fillEntityUpdateParams(model, allFields);
+    public void fillLogicalDeleteParams(Map<String, Object> entity, AllFieldColumn<?> allFields) {
+        this.fillEntityUpdateParams(entity, allFields);
     }
 
     /** {@inheritDoc} **/
@@ -245,13 +245,13 @@ public class SimpleEntityFillHandler<DS> extends BaseEntityFillHandler {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteDataStatus(Map<String, Object> model, AllFieldColumn<?> allFields) {
+    public void fillLogicalDeleteDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         Object ineffectiveFlag = dataIneffectiveFlag;
         if (logicalDeleteRandoms > 0) {
             ineffectiveFlag = RandomTools.generateNumber(logicalDeleteRandoms);
         }
         // 将数据状态设置为无效
-        fillValueIfAbsent(model, logicalDeleteField, ineffectiveFlag, allFields);
+        fillValueIfAbsent(entity, logicalDeleteField, ineffectiveFlag, allFields);
     }
 
     /** {@inheritDoc} **/
