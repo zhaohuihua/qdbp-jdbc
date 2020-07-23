@@ -72,6 +72,7 @@ public abstract class BaseQueryerImpl<T> {
     public T find(Fields fields, DbWhere where) {
         VerifyTools.requireNotBlank(where, "where");
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildFindSql(fields, where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
@@ -87,6 +88,7 @@ public abstract class BaseQueryerImpl<T> {
     public List<T> listAll(Orderings orderings) {
         DbWhere where = new DbWhere();
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
@@ -94,6 +96,7 @@ public abstract class BaseQueryerImpl<T> {
     public List<T> listAll(Fields fields, Orderings orderings) {
         DbWhere where = new DbWhere();
         entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
@@ -109,6 +112,7 @@ public abstract class BaseQueryerImpl<T> {
             readyWhere = new DbWhere();
         }
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
@@ -138,6 +142,7 @@ public abstract class BaseQueryerImpl<T> {
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         PageList<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
@@ -146,6 +151,7 @@ public abstract class BaseQueryerImpl<T> {
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         PageList<V> result = doListFieldValues(fieldName, distinct, readyWhere, OrderPaging.of(orderings), valueClazz);
         return result == null ? null : result.toList();
     }
@@ -154,6 +160,7 @@ public abstract class BaseQueryerImpl<T> {
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doListFieldValues(fieldName, distinct, readyWhere, odpg, valueClazz);
     }
 
@@ -174,6 +181,7 @@ public abstract class BaseQueryerImpl<T> {
     public int count(DbWhere where) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doCount(readyWhere);
     }
 
@@ -186,6 +194,7 @@ public abstract class BaseQueryerImpl<T> {
         VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
         entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return this.doGroupCount(groupBy, readyWhere);
     }
 
