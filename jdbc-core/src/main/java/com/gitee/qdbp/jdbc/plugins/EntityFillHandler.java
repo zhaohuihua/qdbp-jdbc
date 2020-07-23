@@ -59,7 +59,9 @@ public interface EntityFillHandler {
 
     /**
      * 填充查询时WHERE条件的数据状态标记<br>
-     * SELECT * FROM table WHERE ... {在这里限制数据状态为有效}
+     * SELECT * FROM table WHERE ... {在这里限制数据状态为有效}<br>
+     * 如果查询条件中的数据状态为已删除, 则应根据逻辑删除策略将条件修改为已删除的过滤条件<br>
+     * 如使用随机数作为标记时, 应设置过滤条件为 dataState >= logicalDeleteRandoms的最小值
      * 
      * @param tableAlias 表别名
      * @param where 条件
@@ -69,7 +71,9 @@ public interface EntityFillHandler {
 
     /**
      * 填充更新时WHERE条件的数据状态标记<br>
-     * UPDATE table SET ... WHERE ... {在这里限制数据状态为有效}
+     * UPDATE table SET ... WHERE ... {在这里限制数据状态为有效}<br>
+     * 如果查询条件中的数据状态为已删除, 则应根据逻辑删除策略将条件修改为已删除的过滤条件<br>
+     * 如使用随机数作为标记时, 应设置过滤条件为 dataState >= logicalDeleteRandoms的最小值
      * 
      * @param where 条件
      * @param allFields 全字段
@@ -78,7 +82,9 @@ public interface EntityFillHandler {
 
     /**
      * 填充删除时WHERE条件的数据状态标记<br>
-     * DELETE FOM table WHERE ... {在这里限制数据状态为有效}
+     * DELETE FOM table WHERE ... {在这里限制数据状态为有效}<br>
+     * 如果查询条件中的数据状态为已删除, 则应根据逻辑删除策略将条件修改为已删除的过滤条件<br>
+     * 如使用随机数作为标记时, 应设置过滤条件为 dataState >= logicalDeleteRandoms的最小值
      * 
      * @param where 条件
      * @param allFields 全字段
@@ -87,29 +93,49 @@ public interface EntityFillHandler {
 
     /**
      * 填充新增时的数据状态标记<br>
-     * 增加INSERT时的数据状态字段的默认值设置为有效
+     * 增加INSERT时的数据状态字段的默认值设置为有效<br>
+     * 如果实体中的数据状态为已删除, 则应根据逻辑删除策略将字段修改为已删除状态<br>
+     * 如使用随机数作为标记时, 应将字段修改为 dataState = 根据logicalDeleteRandoms生成的随机数
      * 
-     * @param condition 条件
+     * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillEntityCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields);
+    void fillEntityCreateDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     /**
      * 填充创建参数(如创建人创建时间等)
      * 
-     * @param model 实体对象
+     * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillEntityCreateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+    void fillEntityCreateParams(Map<String, Object> entity, AllFieldColumn<?> allFields);
+
+    // 不需要自动填充修改时的数据状态标记, 修改时不涉及数据状态的变更, 如需修改应使用logicalDelete
+    // /**
+    //  * 填充修改时的数据状态标记
+    //  * 
+    //  * @param entity 实体对象
+    //  * @param allFields 全字段
+    //  */
+    // void fillEntityUpdateDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     /**
      * 填充修改参数(如修改人修改时间等)<br>
      * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
      * 
-     * @param model 实体对象
+     * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillEntityUpdateParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+    void fillEntityUpdateParams(Map<String, Object> entity, AllFieldColumn<?> allFields);
+
+    // 不需要自动填充修改时的数据状态标记, 修改时不涉及数据状态的变更, 如需修改应使用logicalDelete
+    // /**
+    //  * 填充修改时的数据状态标记
+    //  * 
+    //  * @param ud 更新对象
+    //  * @param allFields 全字段
+    //  */
+    // void fillEntityUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充修改参数(如修改人修改时间等)<br>
@@ -120,23 +146,36 @@ public interface EntityFillHandler {
      */
     void fillEntityUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields);
 
-    // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
-    // /**
-    //  * 填充修改时的数据状态标记
-    //  * 
-    //  * @param ud 更新对象
-    //  * @param allFields 全字段
-    //  */
-    // void fillEntityUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
+    /**
+     * 填充逻辑删除时的数据状态标记<br>
+     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...<br>
+     * 需要根据逻辑删除策略将字段修改为已删除状态<br>
+     * 如使用随机数作为标记时, 应将字段修改为 dataState = 根据logicalDeleteRandoms生成的随机数
+     * 
+     * @param entity 实体对象
+     * @param allFields 全字段
+     */
+    void fillLogicalDeleteDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
+
+    /**
+     * 填充逻辑删除时的数据状态标记<br>
+     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...<br>
+     * 需要根据逻辑删除策略将字段修改为已删除状态<br>
+     * 如使用随机数作为标记时, 应将字段修改为 dataState = 根据logicalDeleteRandoms生成的随机数
+     * 
+     * @param ud 更新对象
+     * @param allFields 全字段
+     */
+    void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充逻辑删除时的参数(如修改人修改时间等)<br>
      * UPDATE table SET ..., {在这里填充修改时的默认值} WHERE ...
      * 
-     * @param model 实体对象
+     * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillLogicalDeleteParams(Map<String, Object> model, AllFieldColumn<?> allFields);
+    void fillLogicalDeleteParams(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     /**
      * 填充逻辑删除时的参数(如修改人修改时间等)<br>
@@ -146,22 +185,4 @@ public interface EntityFillHandler {
      * @param allFields 全字段
      */
     void fillLogicalDeleteParams(DbUpdate ud, AllFieldColumn<?> allFields);
-
-    /**
-     * 填充逻辑删除时的数据状态标记<br>
-     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...
-     * 
-     * @param model 实体对象
-     * @param allFields 全字段
-     */
-    void fillLogicalDeleteDataStatus(Map<String, Object> model, AllFieldColumn<?> allFields);
-
-    /**
-     * 填充逻辑删除时的数据状态标记<br>
-     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...
-     * 
-     * @param ud 更新对象
-     * @param allFields 全字段
-     */
-    void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
 }
