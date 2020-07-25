@@ -3,7 +3,6 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
-import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
@@ -17,26 +16,6 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @version 190602
  */
 public abstract class BaseEntityFillHandler implements EntityFillHandler {
-
-    /**
-     * 如果指定字段(fieldName)不存在, 则在WHERE条件中增加字段值条件
-     * 
-     * @param where WHERE条件
-     * @param fieldName 字段名
-     * @param tableAlias 表别名
-     * @param fieldvalue 字段值
-     * @param allFields 操作对象的所有字段
-     */
-    protected void fillValueIfAbsent(DbWhere where, String fieldName, String tableAlias, Object fieldvalue,
-            AllFieldColumn<?> allFields) {
-        if (where == null || VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(fieldvalue)) {
-            return;
-        }
-        String fullFieldName = FieldTools.toTableFieldName(fieldName, tableAlias);
-        if (allFields.containsByFieldName(fullFieldName) && !where.contains(fullFieldName)) {
-            where.on(fullFieldName, "=", fieldvalue);
-        }
-    }
 
     /**
      * 如果指定字段(fieldName)不存在, 则在WHERE条件中增加字段值条件
@@ -60,7 +39,6 @@ public abstract class BaseEntityFillHandler implements EntityFillHandler {
      * 
      * @param where WHERE条件
      * @param field 字段对象
-     * @param tableAlias 表别名
      * @param fieldvalue 字段值
      * @param allFields 操作对象的所有字段
      */
