@@ -24,7 +24,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据查询条件获取对象<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
@@ -38,7 +38,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 查找所有的实体列表, 不分页<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
@@ -51,7 +51,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 查找所有的实体列表, 不分页<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
@@ -65,7 +65,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据条件分页查询实体列表<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
@@ -85,7 +85,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据条件统计实体数量<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
@@ -98,7 +98,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据条件分组统计实体数量<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {groupByColumnName}, COUNT(*) FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ON A.DATA_ID=B.ID AND B.DATA_STATE=0<br>
@@ -113,7 +113,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据条件查询某个字段的值<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>
@@ -129,7 +129,7 @@ public interface JoinQueryer<T> {
 
     /**
      * 根据条件查询某个字段的值列表<br>
-     * 注意: 默认查询条件由entityFillExecutor添加, 只查有效项<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * <br>
      * SELECT {columnName} FROM {tableNameA} A<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;INNER JOIN {tableNameB} B<br>

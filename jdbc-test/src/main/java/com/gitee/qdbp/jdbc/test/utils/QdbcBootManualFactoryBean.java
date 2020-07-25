@@ -10,9 +10,10 @@ import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.EntityFillBizResolver;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
+import com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStatusFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleNameConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
@@ -41,7 +42,8 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         registerTableInfoScans(plugins, context, false);
         registerToDbValueConverter(plugins, context);
         registerMapToBeanConverter(plugins, context);
-        registerEntityFillHandler(plugins, context);
+        registerEntityFieldFillStrategy(plugins, context);
+        registerEntityDataStatusFillStrategy(plugins, context);
         SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
         SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
         SqlBuilderScanTools.scanAndRegisterOrderBySqlBuilder(plugins, context);
@@ -56,28 +58,33 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         super.afterPropertiesSet();
     }
 
-    private void registerEntityFillHandler(DbPluginContainer plugins, ApplicationContext context) {
-        SimpleEntityFillHandler<Object> handler = new SimpleEntityFillHandler<>();
-        // 逻辑删除字段名
-        handler.setLogicalDeleteField("dataState");
-        // 数据有效标记
-        handler.setDataEffectiveFlag(DataState.NORMAL);
-        // 数据无效标记
-        handler.setDataIneffectiveFlag(DataState.DELETED);
+    private void registerEntityFieldFillStrategy(DbPluginContainer plugins, ApplicationContext context) {
+        SimpleEntityFieldFillStrategy trategy = new SimpleEntityFieldFillStrategy();
         // 创建用户字段名
-        handler.setCreateUserField("creatorId");
+        trategy.setCreateUserField("creatorId");
         // 创建时间字段名
-        handler.setCreateTimeField("createTime");
+        trategy.setCreateTimeField("createTime");
         // 更新用户字段名
-        handler.setUpdateUserField("updatorId");
+        trategy.setUpdateUserField("updatorId");
         // 修改时间字段名
-        handler.setCreateTimeField("updateTime");
+        trategy.setCreateTimeField("updateTime");
         try {
             // 与业务强相关的数据提供者, 查找并设置EntityFillBizResolver
-            handler.setEntityFillBizResolver(context.getBean(EntityFillBizResolver.class));
+            trategy.setEntityFillBizResolver(context.getBean(EntityFillBizResolver.class));
         } catch (NoSuchBeanDefinitionException ignore) {
         }
-        plugins.setEntityFillHandler(handler);
+        plugins.setEntityFieldFillStrategy(trategy);
+    }
+
+    private void registerEntityDataStatusFillStrategy(DbPluginContainer plugins, ApplicationContext context) {
+        RandomNumberEntityDataStatusFillStrategy<DataState> strategy = new RandomNumberEntityDataStatusFillStrategy<>();
+        // 逻辑删除字段名
+        strategy.setLogicalDeleteField("dataState");
+        // 数据有效标记
+        strategy.setDataEffectiveFlag(DataState.NORMAL);
+        // 数据无效标记
+        strategy.setDataIneffectiveFlag(DataState.DELETED);
+        plugins.setEntityDataStatusFillStrategy(strategy);
     }
 
     private void registerToDbValueConverter(DbPluginContainer plugins, ApplicationContext context) {
@@ -101,7 +108,7 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         // converter.addObjectToStringEspecialList(Yyy.class);
         plugins.setToDbValueConverter(converter);
     }
-    
+
     private void registerMapToBeanConverter(DbPluginContainer plugins, ApplicationContext context) {
         SpringMapToBeanConverter converter = new SpringMapToBeanConverter();
         converter.setConversionService(conversionService);

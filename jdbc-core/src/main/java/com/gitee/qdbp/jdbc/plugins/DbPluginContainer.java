@@ -14,7 +14,8 @@ import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
@@ -66,8 +67,11 @@ public class DbPluginContainer {
         if (container.getTableInfoScans() == null) {
             container.setTableInfoScans(new SimpleTableInfoScans());
         }
-        if (container.getEntityFillHandler() == null) {
-            container.setEntityFillHandler(new SimpleEntityFillHandler<>());
+        if (container.getEntityFieldFillStrategy() == null) {
+            container.setEntityFieldFillStrategy(new SimpleEntityFieldFillStrategy());
+        }
+        if (container.getEntityDataStatusFillStrategy() == null) {
+            container.setEntityDataStatusFillStrategy(new SimpleEntityDataStatusFillStrategy<>());
         }
         if (container.getRawValueConverter() == null) {
             container.setRawValueConverter(new SimpleRawValueConverter());
@@ -120,17 +124,29 @@ public class DbPluginContainer {
         return tableInfoScans;
     }
 
-    /** 实体数据填充处理类 **/
-    private EntityFillHandler entityFillHandler;
+    /** 实体类字段数据填充策略 **/
+    private EntityFieldFillStrategy entityFieldFillStrategy;
+    /** 实体类逻辑删除数据状态填充策略 **/
+    private EntityDataStatusFillStrategy<?> dataStatusFillStrategy;
 
-    /** 实体数据填充处理类 **/
-    public void setEntityFillHandler(EntityFillHandler entityFillHandler) {
-        this.entityFillHandler = entityFillHandler;
+    /** 实体类字段数据填充策略 **/
+    public void setEntityFieldFillStrategy(EntityFieldFillStrategy entityFieldFillStrategy) {
+        this.entityFieldFillStrategy = entityFieldFillStrategy;
     }
 
-    /** 实体数据填充处理类 **/
-    public EntityFillHandler getEntityFillHandler() {
-        return entityFillHandler;
+    /** 实体类逻辑删除数据状态填充策略 **/
+    public EntityFieldFillStrategy getEntityFieldFillStrategy() {
+        return entityFieldFillStrategy;
+    }
+
+    /** 实体类逻辑删除数据状态填充策略 **/
+    public EntityDataStatusFillStrategy<?> getEntityDataStatusFillStrategy() {
+        return dataStatusFillStrategy;
+    }
+
+    /** 实体类逻辑删除数据状态填充策略 **/
+    public void setEntityDataStatusFillStrategy(EntityDataStatusFillStrategy<?> dataStatusFillStrategy) {
+        this.dataStatusFillStrategy = dataStatusFillStrategy;
     }
 
     /** 数据库原生值的转换处理类(sysdate, CURRENT_TIMESTAMP等) **/

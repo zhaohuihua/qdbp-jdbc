@@ -52,12 +52,19 @@
 				</property>
 			</bean>
 		</property>
-		<property name="entityFillHandler">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillHandler">
+		<property name="entityFieldFillStrategy">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy">
 				<property name="createUserField" value="${qdbc.entityData.createUserField:creatorId}" />
 				<property name="createTimeField" value="${qdbc.entityData.createTimeField:createTime}" />
 				<property name="updateUserField" value="${qdbc.entityData.updateUserField:updatorId}" />
 				<property name="updateTimeField" value="${qdbc.entityData.updateTimeField:updateTime}" />
+				<property name="entityFillBizResolver">
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillBizResolver" />
+				</property>
+			</bean>
+		</property>
+		<property name="entityDataStatusFillStrategy">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStatusFillStrategy">
 				<property name="logicalDeleteField" value="${qdbc.entityData.logicalDeleteField:dataState}" />
 				<property name="logicalDeleteRandoms" value="${qdbc.entityData.logicalDeleteRandoms:0}" />
 				<property name="dataEffectiveFlag">
@@ -69,9 +76,6 @@
 					<bean class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
 						<property name="staticField" value="${qdbc.entityData.logicalDeleteClass}.${qdbc.entityData.dataIneffectiveFlag}" />
 					</bean>
-				</property>
-				<property name="entityFillBizResolver">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFillBizResolver" />
 				</property>
 			</bean>
 		</property>

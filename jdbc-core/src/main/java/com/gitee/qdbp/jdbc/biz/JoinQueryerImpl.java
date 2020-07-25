@@ -7,8 +7,9 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
-import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
-import com.gitee.qdbp.jdbc.plugins.EntityFillHandler;
+import com.gitee.qdbp.jdbc.plugins.EntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.EntityFieldFillExecutor;
+import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TablesRowToProperyMapper;
@@ -27,11 +28,11 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
     private String majorTableAlias;
 
     public JoinQueryerImpl(TableJoin t, Class<T> r, SqlBufferJdbcOperations jdbc) {
-        super(newQuerySqlBuilder(t, jdbc), newEntityFillExecutor(t), jdbc, newRowToBeanMapper(t, r));
+        super(newQuerySqlBuilder(t, jdbc), newEntityFieldFillExecutor(t), jdbc, newRowToBeanMapper(t, r));
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
         for (JoinItem item : joins) {
-            entityFillExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
+            entityFieldFillExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
         }
     }
 
@@ -40,13 +41,14 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
         return new QuerySqlBuilder(sqlHelper);
     }
 
-    private static EntityFillExecutor newEntityFillExecutor(TableJoin tables) {
+    private static EntityFieldFillExecutor newEntityFieldFillExecutor(TableJoin tables) {
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(tables);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
-        EntityFillHandler handler = DbTools.getEntityFillHandler();
-        return new EntityFillExecutor(allFields, handler);
+        EntityFieldFillStrategy fieldFillStrategy = DbTools.getEntityFieldFillStrategy();
+        EntityDataStatusFillStrategy<?> dataStatusFillStrategy = DbTools.getEntityDataStatusFillStrategy();
+        return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStatusFillStrategy);
     }
 
     private static <T> RowToBeanMapper<T> newRowToBeanMapper(TableJoin tables, Class<T> clazz) {

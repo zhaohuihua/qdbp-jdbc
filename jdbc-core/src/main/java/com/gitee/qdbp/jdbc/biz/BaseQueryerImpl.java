@@ -15,7 +15,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
-import com.gitee.qdbp.jdbc.plugins.EntityFillExecutor;
+import com.gitee.qdbp.jdbc.plugins.EntityFieldFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
@@ -35,7 +35,7 @@ public abstract class BaseQueryerImpl<T> {
 
     protected RowToBeanMapper<T> rowToBeanMapper;
     protected QuerySqlBuilder sqlBuilder;
-    protected EntityFillExecutor entityFillExecutor;
+    protected EntityFieldFillExecutor entityFieldFillExecutor;
     protected SqlBufferJdbcOperations jdbc;
     protected SqlDialect dialect;
 
@@ -43,15 +43,15 @@ public abstract class BaseQueryerImpl<T> {
      * 构造函数
      * 
      * @param sqlBuilder SQL生成工具
-     * @param entityFillExecutor 实体业务处理接口
+     * @param entityFieldFillExecutor 实体业务处理接口
      * @param jdbcOperations SqlBuffer数据库操作类
      * @param rowToBeanMapper 结果转换接口
      */
-    public BaseQueryerImpl(QuerySqlBuilder sqlBuilder, EntityFillExecutor entityFillExecutor,
+    public BaseQueryerImpl(QuerySqlBuilder sqlBuilder, EntityFieldFillExecutor entityFieldFillExecutor,
             SqlBufferJdbcOperations jdbcOperations, RowToBeanMapper<T> rowToBeanMapper) {
         this.rowToBeanMapper = rowToBeanMapper;
         this.sqlBuilder = sqlBuilder;
-        this.entityFillExecutor = entityFillExecutor;
+        this.entityFieldFillExecutor = entityFieldFillExecutor;
         this.jdbc = jdbcOperations;
         this.dialect = jdbcOperations.findSqlDialect();
     }
@@ -71,8 +71,8 @@ public abstract class BaseQueryerImpl<T> {
 
     public T find(Fields fields, DbWhere where) {
         VerifyTools.requireNotBlank(where, "where");
-        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildFindSql(fields, where);
         return jdbc.queryForObject(buffer, rowToBeanMapper);
     }
@@ -87,16 +87,16 @@ public abstract class BaseQueryerImpl<T> {
 
     public List<T> listAll(Orderings orderings) {
         DbWhere where = new DbWhere();
-        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
 
     public List<T> listAll(Fields fields, Orderings orderings) {
         DbWhere where = new DbWhere();
-        entityFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(where, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
         SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
@@ -111,8 +111,8 @@ public abstract class BaseQueryerImpl<T> {
         if (where == null || where == DbWhere.NONE) {
             readyWhere = new DbWhere();
         }
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
 
         // WHERE条件
         SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
@@ -141,8 +141,8 @@ public abstract class BaseQueryerImpl<T> {
 
     public <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         PageList<V> list = doListFieldValues(fieldName, false, readyWhere, null, valueClazz);
         return VerifyTools.isBlank(list) ? null : list.get(0);
     }
@@ -150,8 +150,8 @@ public abstract class BaseQueryerImpl<T> {
     public <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, Orderings orderings,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         PageList<V> result = doListFieldValues(fieldName, distinct, readyWhere, OrderPaging.of(orderings), valueClazz);
         return result == null ? null : result.toList();
     }
@@ -159,8 +159,8 @@ public abstract class BaseQueryerImpl<T> {
     public <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doListFieldValues(fieldName, distinct, readyWhere, odpg, valueClazz);
     }
 
@@ -180,8 +180,8 @@ public abstract class BaseQueryerImpl<T> {
 
     public int count(DbWhere where) throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doCount(readyWhere);
     }
 
@@ -193,8 +193,8 @@ public abstract class BaseQueryerImpl<T> {
     public Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException {
         VerifyTools.requireNotBlank(groupBy, "groupBy");
         DbWhere readyWhere = checkWhere(where);
-        entityFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
-        entityFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return this.doGroupCount(groupBy, readyWhere);
     }
 

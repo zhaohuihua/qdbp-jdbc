@@ -4,10 +4,11 @@ import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 实体数据填充业务处理接口<br>
- * 每个项目的处理方式不一样, 调用EntityFillHandler接口由各项目提供实现类<br>
+ * 每个项目的处理方式不一样, 调用EntityFieldFillStrategy接口由各项目提供实现类<br>
  * 命名说明:<br>
  * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给BaseQueryerImpl(JoinQueryerImpl/CrudDaoImpl的查询)调用<br>
  * fillEntityXxx是单表增删改查用到的, 只支持单表, 主要是给CrudDaoImpl调用<br>
@@ -18,22 +19,24 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
  * @author zhaohuihua
  * @version 190601
  */
-public class EntityFillExecutor {
+public class EntityFieldFillExecutor {
 
     private AllFieldColumn<?> allFields;
-    private EntityFillHandler entityFillHandler;
+    private EntityFieldFillStrategy fieldFillStrategy;
+    private EntityDataStatusFillStrategy<?> dataStateFillStrategy;
 
-    public EntityFillExecutor(AllFieldColumn<?> allFields, EntityFillHandler entityFillHandler) {
+    public EntityFieldFillExecutor(AllFieldColumn<?> allFields, EntityFieldFillStrategy fieldFillStrategy, EntityDataStatusFillStrategy<?> dataStateFillStrategy) {
         this.allFields = allFields;
         if (this.allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }
-        this.entityFillHandler = entityFillHandler;
+        this.fieldFillStrategy = fieldFillStrategy;
+        this.dataStateFillStrategy = dataStateFillStrategy;
     }
 
     /** 生成主键编号 **/
     public String generatePrimaryKeyCode(String tableName) {
-        return entityFillHandler.generatePrimaryKeyCode(tableName);
+        return fieldFillStrategy.generatePrimaryKeyCode(tableName);
     }
 
     /**
@@ -42,7 +45,12 @@ public class EntityFillExecutor {
      * @return 是否支持
      */
     public boolean supportedTableLogicalDelete() {
-        return entityFillHandler.supportedTableLogicalDelete(allFields);
+        String logicalDeleteField = dataStateFillStrategy.getLogicalDeleteField();
+        if (VerifyTools.isBlank(logicalDeleteField)) {
+            return false;
+        } else {
+            return allFields.containsByFieldName(logicalDeleteField);
+        }
     }
 
     /**
@@ -52,7 +60,7 @@ public class EntityFillExecutor {
      * @param where 条件
      */
     public void fillQueryWhereDataStatus(DbWhere where, String tableAlias) {
-        entityFillHandler.fillQueryWhereDataStatus(where, tableAlias, allFields);
+        dataStateFillStrategy.fillQueryWhereDataStatus(where, tableAlias, allFields);
     }
 
     /**
@@ -62,7 +70,7 @@ public class EntityFillExecutor {
      * @param where 查询条件
      */
     public void fillQueryWhereParams(DbWhere where, String tableAlias) {
-        entityFillHandler.fillQueryWhereParams(where, tableAlias, allFields);
+        fieldFillStrategy.fillQueryWhereParams(where, tableAlias, allFields);
     }
 
     /**
@@ -71,7 +79,7 @@ public class EntityFillExecutor {
      * @param where 条件
      */
     public void fillUpdateWhereDataStatus(DbWhere where) {
-        entityFillHandler.fillUpdateWhereDataStatus(where, allFields);
+        dataStateFillStrategy.fillUpdateWhereDataStatus(where, allFields);
     }
 
     /**
@@ -80,7 +88,7 @@ public class EntityFillExecutor {
      * @param where 查询条件
      */
     public void fillUpdateWhereParams(DbWhere where) {
-        entityFillHandler.fillUpdateWhereParams(where, allFields);
+        fieldFillStrategy.fillUpdateWhereParams(where, allFields);
     }
 
     /**
@@ -89,7 +97,7 @@ public class EntityFillExecutor {
      * @param where 查询条件
      */
     public void fillDeleteWhereParams(DbWhere where) {
-        entityFillHandler.fillDeleteWhereParams(where, allFields);
+        fieldFillStrategy.fillDeleteWhereParams(where, allFields);
     }
 
     /**
@@ -98,7 +106,7 @@ public class EntityFillExecutor {
      * @param where 条件
      */
     public void fillDeleteWhereDataStatus(DbWhere where) {
-        entityFillHandler.fillDeleteWhereDataStatus(where, allFields);
+        dataStateFillStrategy.fillDeleteWhereDataStatus(where, allFields);
     }
 
     /**
@@ -107,7 +115,7 @@ public class EntityFillExecutor {
      * @param condition 条件
      */
     public void fillEntityCreateDataStatus(Map<String, Object> condition) {
-        entityFillHandler.fillEntityCreateDataStatus(condition, allFields);
+        dataStateFillStrategy.fillEntityCreateDataStatus(condition, allFields);
     }
 
     /**
@@ -116,7 +124,7 @@ public class EntityFillExecutor {
      * @param entity 实体对象
      */
     public void fillEntityCreateParams(Map<String, Object> entity) {
-        entityFillHandler.fillEntityCreateParams(entity, allFields);
+        fieldFillStrategy.fillEntityCreateParams(entity, allFields);
     }
 
     /**
@@ -125,7 +133,7 @@ public class EntityFillExecutor {
      * @param entity 实体对象
      */
     public void fillEntityUpdateParams(Map<String, Object> entity) {
-        entityFillHandler.fillEntityUpdateParams(entity, allFields);
+        fieldFillStrategy.fillEntityUpdateParams(entity, allFields);
     }
 
     // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
@@ -135,7 +143,7 @@ public class EntityFillExecutor {
     //  * @param ud 更新对象
     //  */
     // public void fillEntityUpdateDataStatus(DbUpdate ud) {
-    //     entityFillHandler.fillEntityUpdateDataStatus(ud, allFields);
+    //     entityFieldFillStrategy.fillEntityUpdateDataStatus(ud, allFields);
     // }
 
     /**
@@ -144,7 +152,7 @@ public class EntityFillExecutor {
      * @param ud 更新对象
      */
     public void fillEntityUpdateParams(DbUpdate ud) {
-        entityFillHandler.fillEntityUpdateParams(ud, allFields);
+        fieldFillStrategy.fillEntityUpdateParams(ud, allFields);
     }
 
     /**
@@ -153,7 +161,7 @@ public class EntityFillExecutor {
      * @param ud 更新对象
      */
     public void fillLogicalDeleteDataStatus(DbUpdate ud) {
-        entityFillHandler.fillLogicalDeleteDataStatus(ud, allFields);
+        dataStateFillStrategy.fillLogicalDeleteDataStatus(ud, allFields);
     }
 
     /**
@@ -162,7 +170,7 @@ public class EntityFillExecutor {
      * @param entity 实体对象
      */
     public void fillLogicalDeleteParams(Map<String, Object> entity) {
-        entityFillHandler.fillLogicalDeleteParams(entity, allFields);
+        fieldFillStrategy.fillLogicalDeleteParams(entity, allFields);
     }
 
     /**
@@ -171,7 +179,7 @@ public class EntityFillExecutor {
      * @param ud 更新对象
      */
     public void fillLogicalDeleteParams(DbUpdate ud) {
-        entityFillHandler.fillLogicalDeleteParams(ud, allFields);
+        fieldFillStrategy.fillLogicalDeleteParams(ud, allFields);
     }
 
 }
