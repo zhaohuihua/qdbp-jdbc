@@ -13,11 +13,11 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 20200725
  */
-public class SimpleEntityDataStatusFillStrategy<DS> extends BaseEntityDataStatusFillStrategy<DS> {
+public class SimpleEntityDataStateFillStrategy<DS> extends BaseEntityDataStateFillStrategy<DS> {
 
     /** {@inheritDoc} **/
     @Override
-    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
+    public void fillQueryWhereDataState(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
         String fullFieldName = FieldTools.toTableFieldName(getLogicalDeleteField(), tableAlias);
         // 将数据状态设置为有效
         EntityFillTools.fillValueIfAbsent(where, fullFieldName, getDataEffectiveFlag(), allFields);
@@ -25,28 +25,28 @@ public class SimpleEntityDataStatusFillStrategy<DS> extends BaseEntityDataStatus
 
     /** {@inheritDoc} **/
     @Override
-    public void fillUpdateWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields) {
+    public void fillUpdateWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
         EntityFillTools.fillValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillDeleteWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields) {
+    public void fillDeleteWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
         EntityFillTools.fillValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillEntityCreateDataStatus(Map<String, Object> condition, AllFieldColumn<?> allFields) {
+    public void fillEntityCreateDataState(Map<String, Object> condition, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
         EntityFillTools.fillValueIfAbsent(condition, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields) {
+    public void fillLogicalDeleteDataState(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         String fieldName = getLogicalDeleteField();
         DS fieldValue = getDataIneffectiveFlag();
         if (entity == null || VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(fieldValue)) {
@@ -58,7 +58,7 @@ public class SimpleEntityDataStatusFillStrategy<DS> extends BaseEntityDataStatus
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
+    public void fillLogicalDeleteDataState(DbUpdate ud, AllFieldColumn<?> allFields) {
         String fieldName = getLogicalDeleteField();
         DS fieldValue = getDataIneffectiveFlag();
         if (ud == null || VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(fieldValue)) {
@@ -66,6 +66,6 @@ public class SimpleEntityDataStatusFillStrategy<DS> extends BaseEntityDataStatus
         }
         // 将数据状态设置为无效
         EntityFillTools.fillValueIfAbsent(ud, fieldName, fieldValue, allFields);
-        this.putLogicalDeleteDataStatus(ud, fieldName, fieldValue);
+        this.putLogicalDeleteDataState(ud, fieldName, fieldValue);
     }
 }

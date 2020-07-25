@@ -10,7 +10,7 @@ import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.EntityFillBizResolver;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
-import com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
@@ -43,7 +43,7 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         registerToDbValueConverter(plugins, context);
         registerMapToBeanConverter(plugins, context);
         registerEntityFieldFillStrategy(plugins, context);
-        registerEntityDataStatusFillStrategy(plugins, context);
+        registerEntityDataStateFillStrategy(plugins, context);
         SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
         SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
         SqlBuilderScanTools.scanAndRegisterOrderBySqlBuilder(plugins, context);
@@ -76,15 +76,15 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         plugins.setEntityFieldFillStrategy(trategy);
     }
 
-    private void registerEntityDataStatusFillStrategy(DbPluginContainer plugins, ApplicationContext context) {
-        RandomNumberEntityDataStatusFillStrategy<DataState> strategy = new RandomNumberEntityDataStatusFillStrategy<>();
+    private void registerEntityDataStateFillStrategy(DbPluginContainer plugins, ApplicationContext context) {
+        RandomNumberEntityDataStateFillStrategy<DataState> strategy = new RandomNumberEntityDataStateFillStrategy<>();
         // 逻辑删除字段名
         strategy.setLogicalDeleteField("dataState");
         // 数据有效标记
         strategy.setDataEffectiveFlag(DataState.NORMAL);
         // 数据无效标记
         strategy.setDataIneffectiveFlag(DataState.DELETED);
-        plugins.setEntityDataStatusFillStrategy(strategy);
+        plugins.setEntityDataStateFillStrategy(strategy);
     }
 
     private void registerToDbValueConverter(DbPluginContainer plugins, ApplicationContext context) {

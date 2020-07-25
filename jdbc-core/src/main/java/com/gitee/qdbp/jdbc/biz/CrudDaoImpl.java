@@ -20,7 +20,7 @@ import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
-import com.gitee.qdbp.jdbc.plugins.EntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.EntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
@@ -62,8 +62,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     private static EntityFieldFillExecutor newEntityFieldFillExecutor(Class<?> clazz) {
         AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
         EntityFieldFillStrategy fieldFillStrategy = DbTools.getEntityFieldFillStrategy();
-        EntityDataStatusFillStrategy<?> dataStatusFillStrategy = DbTools.getEntityDataStatusFillStrategy();
-        return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStatusFillStrategy);
+        EntityDataStateFillStrategy<?> dataStateFillStrategy = DbTools.getEntityDataStateFillStrategy();
+        return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStateFillStrategy);
     }
 
     private static <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
@@ -94,7 +94,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
             Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
@@ -104,7 +104,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -122,7 +122,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
             Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         List<String> startCodes = ConvertTools.toList(startCode);
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
@@ -132,7 +132,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
             Orderings orderings) {
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataStatus(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
@@ -254,7 +254,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         // 生成主键限制条件
         DbWhere where = new DbWhere();
         where.on(pk.getFieldName(), "=", pkValue);
-        entityFieldFillExecutor.fillUpdateWhereDataStatus(where);
+        entityFieldFillExecutor.fillUpdateWhereDataState(where);
         entityFieldFillExecutor.fillUpdateWhereParams(where);
         return this.doUpdate(ud, where, errorOnUnaffected);
     }
@@ -288,7 +288,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             DbWhere where = new DbWhere();
             where.on(pk.getFieldName(), "=", pkValue);
             // 填充Where条件
-            entityFieldFillExecutor.fillUpdateWhereDataStatus(where);
+            entityFieldFillExecutor.fillUpdateWhereDataState(where);
             entityFieldFillExecutor.fillUpdateWhereParams(where);
             return this.doUpdate(ud, where, errorOnUnaffected);
         } else { // 如果Update对象中带有where字段, 将where字段值转换为DbWhere对象
@@ -322,7 +322,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             // 检查Where条件
             DbWhere readyWhere = checkWhere(where);
             // 填充Where条件
-            entityFieldFillExecutor.fillUpdateWhereDataStatus(where);
+            entityFieldFillExecutor.fillUpdateWhereDataState(where);
             entityFieldFillExecutor.fillUpdateWhereParams(where);
             return this.doUpdate(ud, readyWhere, errorOnUnaffected);
         }
@@ -341,7 +341,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         }
 
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillUpdateWhereDataStatus(readyWhere);
+        entityFieldFillExecutor.fillUpdateWhereDataState(readyWhere);
         entityFieldFillExecutor.fillUpdateWhereParams(readyWhere);
         return this.doUpdate(readyEntity, readyWhere, errorOnUnaffected);
     }
@@ -351,10 +351,10 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             throws ServiceException {
         VerifyTools.requireNotBlank(entity, "entity");
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillUpdateWhereDataStatus(readyWhere);
+        entityFieldFillExecutor.fillUpdateWhereDataState(readyWhere);
         entityFieldFillExecutor.fillUpdateWhereParams(readyWhere);
         // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
-        // entityFieldFillExecutor.fillEntityUpdateDataStatus(entity);
+        // entityFieldFillExecutor.fillEntityUpdateDataState(entity);
         if (fillUpdateParams) {
             entityFieldFillExecutor.fillEntityUpdateParams(entity);
         }
@@ -402,7 +402,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             DbWhere where = new DbWhere();
             where.on(pk.getFieldName(), "=", pkValue);
             // 与批量处理的逻辑保持一致, 不限制数据状态
-            // entityFieldFillExecutor.fillUpdateWhereDataStatus(where);
+            // entityFieldFillExecutor.fillUpdateWhereDataState(where);
             // entityFieldFillExecutor.fillUpdateWhereParams(where);
             return this.doUpdate(ud, where, false);
         } else if (batchSize <= 0 || entities.size() <= batchSize) {
@@ -455,7 +455,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
         where.on(primaryField, "in", ids);
-        entityFieldFillExecutor.fillDeleteWhereDataStatus(where);
+        entityFieldFillExecutor.fillDeleteWhereDataState(where);
         entityFieldFillExecutor.fillDeleteWhereParams(where);
         return this.doDelete(where, false, fillUpdateParams, errorOnUnaffected);
     }
@@ -469,7 +469,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         DbWhere beanWhere = converter.convertBeanToDbWhere(where);
         DbWhere readyWhere = checkWhere(beanWhere);
-        entityFieldFillExecutor.fillDeleteWhereDataStatus(readyWhere);
+        entityFieldFillExecutor.fillDeleteWhereDataState(readyWhere);
         entityFieldFillExecutor.fillDeleteWhereParams(readyWhere);
         return this.doDelete(readyWhere, false, fillUpdateParams, errorOnUnaffected);
     }
@@ -478,7 +478,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public int logicalDelete(DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillDeleteWhereDataStatus(readyWhere);
+        entityFieldFillExecutor.fillDeleteWhereDataState(readyWhere);
         entityFieldFillExecutor.fillDeleteWhereParams(readyWhere);
         return this.doDelete(readyWhere, false, fillUpdateParams, errorOnUnaffected);
     }
@@ -524,7 +524,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         } else { // 逻辑删除
             if (entityFieldFillExecutor.supportedTableLogicalDelete()) { // 支持逻辑删除
                 DbUpdate ud = new DbUpdate();
-                entityFieldFillExecutor.fillLogicalDeleteDataStatus(ud);
+                entityFieldFillExecutor.fillLogicalDeleteDataState(ud);
                 if (fillUpdateParams) {
                     entityFieldFillExecutor.fillLogicalDeleteParams(ud);
                 }
@@ -613,7 +613,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             // 生成主键
             entity.put(pk.getFieldName(), id = entityFieldFillExecutor.generatePrimaryKeyCode(tableName));
         }
-        entityFieldFillExecutor.fillEntityCreateDataStatus(entity);
+        entityFieldFillExecutor.fillEntityCreateDataState(entity);
         if (fillCreateParams) {
             entityFieldFillExecutor.fillEntityCreateParams(entity);
         }
@@ -737,7 +737,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected void fillEntityUpdateParams(Map<String, Object> entity, boolean fillUpdateParams) {
         // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
-        // entityFieldFillExecutor.fillEntityUpdateDataStatus(entity);
+        // entityFieldFillExecutor.fillEntityUpdateDataState(entity);
         if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
             entityFieldFillExecutor.fillEntityUpdateParams(entity);
         }
@@ -751,7 +751,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
      */
     protected void fillEntityUpdateParams(DbUpdate ud, boolean fillUpdateParams) {
         // 不需要自动填充修改时的数据状态标记, 没有这样的业务场景
-        // entityFieldFillExecutor.fillEntityUpdateDataStatus(ud);
+        // entityFieldFillExecutor.fillEntityUpdateDataState(ud);
         if (fillUpdateParams) { // 填充单表修改参数(如修改人修改时间等)
             entityFieldFillExecutor.fillEntityUpdateParams(ud);
         }

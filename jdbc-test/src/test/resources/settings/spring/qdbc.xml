@@ -63,8 +63,8 @@
 				</property>
 			</bean>
 		</property>
-		<property name="entityDataStatusFillStrategy">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStatusFillStrategy">
+		<property name="entityDataStateFillStrategy">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.RandomNumberEntityDataStateFillStrategy">
 				<property name="logicalDeleteField" value="${qdbc.entityData.logicalDeleteField:dataState}" />
 				<property name="logicalDeleteRandoms" value="${qdbc.entityData.logicalDeleteRandoms:0}" />
 				<property name="dataEffectiveFlag">

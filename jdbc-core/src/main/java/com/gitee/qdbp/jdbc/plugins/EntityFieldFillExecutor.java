@@ -13,8 +13,8 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * fillQueryXxx是查询时用到的, 兼容单表和表关联, 主要是给BaseQueryerImpl(JoinQueryerImpl/CrudDaoImpl的查询)调用<br>
  * fillEntityXxx是单表增删改查用到的, 只支持单表, 主要是给CrudDaoImpl调用<br>
  * 注意事项:<br>
- * fillXxxDataStatus和fillXxxParams都是成对出现的, 调用时也需要同时调用<br>
- * 为什么分开写, 是因为fillXxxDataStatus是无条件调用的, 而fillXxxParams受boolean fillParams的控制
+ * fillXxxDataState和fillXxxParams都是成对出现的, 调用时也需要同时调用<br>
+ * 为什么分开写, 是因为fillXxxDataState是无条件调用的, 而fillXxxParams受boolean fillParams的控制
  *
  * @author zhaohuihua
  * @version 190601
@@ -23,9 +23,9 @@ public class EntityFieldFillExecutor {
 
     private AllFieldColumn<?> allFields;
     private EntityFieldFillStrategy fieldFillStrategy;
-    private EntityDataStatusFillStrategy<?> dataStateFillStrategy;
+    private EntityDataStateFillStrategy<?> dataStateFillStrategy;
 
-    public EntityFieldFillExecutor(AllFieldColumn<?> allFields, EntityFieldFillStrategy fieldFillStrategy, EntityDataStatusFillStrategy<?> dataStateFillStrategy) {
+    public EntityFieldFillExecutor(AllFieldColumn<?> allFields, EntityFieldFillStrategy fieldFillStrategy, EntityDataStateFillStrategy<?> dataStateFillStrategy) {
         this.allFields = allFields;
         if (this.allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
@@ -59,8 +59,8 @@ public class EntityFieldFillExecutor {
      * @param tableAlias 表别名
      * @param where 条件
      */
-    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias) {
-        dataStateFillStrategy.fillQueryWhereDataStatus(where, tableAlias, allFields);
+    public void fillQueryWhereDataState(DbWhere where, String tableAlias) {
+        dataStateFillStrategy.fillQueryWhereDataState(where, tableAlias, allFields);
     }
 
     /**
@@ -78,8 +78,8 @@ public class EntityFieldFillExecutor {
      * 
      * @param where 条件
      */
-    public void fillUpdateWhereDataStatus(DbWhere where) {
-        dataStateFillStrategy.fillUpdateWhereDataStatus(where, allFields);
+    public void fillUpdateWhereDataState(DbWhere where) {
+        dataStateFillStrategy.fillUpdateWhereDataState(where, allFields);
     }
 
     /**
@@ -105,8 +105,8 @@ public class EntityFieldFillExecutor {
      * 
      * @param where 条件
      */
-    public void fillDeleteWhereDataStatus(DbWhere where) {
-        dataStateFillStrategy.fillDeleteWhereDataStatus(where, allFields);
+    public void fillDeleteWhereDataState(DbWhere where) {
+        dataStateFillStrategy.fillDeleteWhereDataState(where, allFields);
     }
 
     /**
@@ -114,8 +114,8 @@ public class EntityFieldFillExecutor {
      * 
      * @param condition 条件
      */
-    public void fillEntityCreateDataStatus(Map<String, Object> condition) {
-        dataStateFillStrategy.fillEntityCreateDataStatus(condition, allFields);
+    public void fillEntityCreateDataState(Map<String, Object> condition) {
+        dataStateFillStrategy.fillEntityCreateDataState(condition, allFields);
     }
 
     /**
@@ -142,8 +142,8 @@ public class EntityFieldFillExecutor {
     //  * 
     //  * @param ud 更新对象
     //  */
-    // public void fillEntityUpdateDataStatus(DbUpdate ud) {
-    //     entityFieldFillStrategy.fillEntityUpdateDataStatus(ud, allFields);
+    // public void fillEntityUpdateDataState(DbUpdate ud) {
+    //     entityFieldFillStrategy.fillEntityUpdateDataState(ud, allFields);
     // }
 
     /**
@@ -160,8 +160,8 @@ public class EntityFieldFillExecutor {
      * 
      * @param ud 更新对象
      */
-    public void fillLogicalDeleteDataStatus(DbUpdate ud) {
-        dataStateFillStrategy.fillLogicalDeleteDataStatus(ud, allFields);
+    public void fillLogicalDeleteDataState(DbUpdate ud) {
+        dataStateFillStrategy.fillLogicalDeleteDataState(ud, allFields);
     }
 
     /**

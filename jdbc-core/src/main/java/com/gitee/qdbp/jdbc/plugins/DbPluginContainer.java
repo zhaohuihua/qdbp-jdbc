@@ -14,7 +14,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
@@ -70,8 +70,8 @@ public class DbPluginContainer {
         if (container.getEntityFieldFillStrategy() == null) {
             container.setEntityFieldFillStrategy(new SimpleEntityFieldFillStrategy());
         }
-        if (container.getEntityDataStatusFillStrategy() == null) {
-            container.setEntityDataStatusFillStrategy(new SimpleEntityDataStatusFillStrategy<>());
+        if (container.getEntityDataStateFillStrategy() == null) {
+            container.setEntityDataStateFillStrategy(new SimpleEntityDataStateFillStrategy<>());
         }
         if (container.getRawValueConverter() == null) {
             container.setRawValueConverter(new SimpleRawValueConverter());
@@ -127,7 +127,7 @@ public class DbPluginContainer {
     /** 实体类字段数据填充策略 **/
     private EntityFieldFillStrategy entityFieldFillStrategy;
     /** 实体类逻辑删除数据状态填充策略 **/
-    private EntityDataStatusFillStrategy<?> dataStatusFillStrategy;
+    private EntityDataStateFillStrategy<?> dataStateFillStrategy;
 
     /** 实体类字段数据填充策略 **/
     public void setEntityFieldFillStrategy(EntityFieldFillStrategy entityFieldFillStrategy) {
@@ -140,13 +140,13 @@ public class DbPluginContainer {
     }
 
     /** 实体类逻辑删除数据状态填充策略 **/
-    public EntityDataStatusFillStrategy<?> getEntityDataStatusFillStrategy() {
-        return dataStatusFillStrategy;
+    public EntityDataStateFillStrategy<?> getEntityDataStateFillStrategy() {
+        return dataStateFillStrategy;
     }
 
     /** 实体类逻辑删除数据状态填充策略 **/
-    public void setEntityDataStatusFillStrategy(EntityDataStatusFillStrategy<?> dataStatusFillStrategy) {
-        this.dataStatusFillStrategy = dataStatusFillStrategy;
+    public void setEntityDataStateFillStrategy(EntityDataStateFillStrategy<?> dataStateFillStrategy) {
+        this.dataStateFillStrategy = dataStateFillStrategy;
     }
 
     /** 数据库原生值的转换处理类(sysdate, CURRENT_TIMESTAMP等) **/

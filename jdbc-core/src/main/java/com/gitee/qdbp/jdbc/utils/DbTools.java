@@ -28,7 +28,7 @@ import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
-import com.gitee.qdbp.jdbc.plugins.EntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.EntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.RawValueConverter;
@@ -142,8 +142,8 @@ public abstract class DbTools {
     }
 
     /** 实体类逻辑删除数据状态填充策略 **/
-    public static EntityDataStatusFillStrategy<?> getEntityDataStatusFillStrategy() {
-        return DbPluginContainer.defaults().getEntityDataStatusFillStrategy();
+    public static EntityDataStateFillStrategy<?> getEntityDataStateFillStrategy() {
+        return DbPluginContainer.defaults().getEntityDataStateFillStrategy();
     }
 
     public static SqlDialect buildSqlDialect(DbType dbType) {

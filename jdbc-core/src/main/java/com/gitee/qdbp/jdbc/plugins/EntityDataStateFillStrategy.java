@@ -10,14 +10,14 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
  * 逻辑删除是指的使用一个字段来标记数据是否删除, 而并不物理删除记录的一种数据处理方式<br>
  * 实施数据状态填充策略的前提条件: 项目中所有表使用相同的字段名和字段值来标记数据状态<br>
  * <br>
- * 默认提供了SimpleEntityDataStatusFillStrategy和RandomNumberEntityDataStatusFillStrategy两种方式<br>
- * <b>SimpleEntityDataStatusFillStrategy</b>:<br>
+ * 默认提供了SimpleEntityDataStateFillStrategy和RandomNumberEntityDataStateFillStrategy两种方式<br>
+ * <b>SimpleEntityDataStateFillStrategy</b>:<br>
  * 使用固定的数字或字母或枚举来标记数据状态, 如1表示有效2表示删除; 或E表示有效D表示删除<br>
  * 填充策略:<br>
  * 逻辑删除时填充数据状态=无效标记<br>
  * 创建时如果实体中没有指定数据状态, 则填充dataState=有效标记, 即默认插入有效记录<br>
  * 查询/更新时如果Where条件中没有数据状态, 也填充dataState=有效标记, 即默认只操作有效记录<br>
- * <b>RandomNumberEntityDataStatusFillStrategy</b>(使用随机数标记已删除记录):<br>
+ * <b>RandomNumberEntityDataStateFillStrategy</b>(使用随机数标记已删除记录):<br>
  * 上面的方式是常见的一种处理策略, 但存在一个问题, 就是无法多次删除含有唯一索引键的记录<br>
  * 例如deptCode是部门表的唯一索引键(deptCode+dataState), <br>
  * 新建A001的部门, 再删除, 再次新建A001的部门, 都能正常处理<br>
@@ -44,7 +44,7 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
  * @author zhaohuihua
  * @version 20200725
  */
-public interface EntityDataStatusFillStrategy<DS> {
+public interface EntityDataStateFillStrategy<DS> {
 
     /** 逻辑删除字段名 **/
     String getLogicalDeleteField();
@@ -65,7 +65,7 @@ public interface EntityDataStatusFillStrategy<DS> {
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields);
+    void fillQueryWhereDataState(DbWhere where, String tableAlias, AllFieldColumn<?> allFields);
 
     /**
      * 填充更新时WHERE条件的数据状态标记<br>
@@ -76,7 +76,7 @@ public interface EntityDataStatusFillStrategy<DS> {
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillUpdateWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
+    void fillUpdateWhereDataState(DbWhere where, AllFieldColumn<?> allFields);
 
     /**
      * 填充删除时WHERE条件的数据状态标记<br>
@@ -87,7 +87,7 @@ public interface EntityDataStatusFillStrategy<DS> {
      * @param where 条件
      * @param allFields 全字段
      */
-    void fillDeleteWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields);
+    void fillDeleteWhereDataState(DbWhere where, AllFieldColumn<?> allFields);
 
     /**
      * 填充新增时的数据状态标记<br>
@@ -98,7 +98,7 @@ public interface EntityDataStatusFillStrategy<DS> {
      * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillEntityCreateDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
+    void fillEntityCreateDataState(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     // 不需要自动填充修改时的数据状态标记, 修改时不涉及数据状态的变更, 如需修改应使用logicalDelete
     // /**
@@ -107,7 +107,7 @@ public interface EntityDataStatusFillStrategy<DS> {
     //  * @param entity 实体对象
     //  * @param allFields 全字段
     //  */
-    // void fillEntityUpdateDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
+    // void fillEntityUpdateDataState(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     // 不需要自动填充修改时的数据状态标记, 修改时不涉及数据状态的变更, 如需修改应使用logicalDelete
     // /**
@@ -116,27 +116,27 @@ public interface EntityDataStatusFillStrategy<DS> {
     //  * @param ud 更新对象
     //  * @param allFields 全字段
     //  */
-    // void fillEntityUpdateDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
+    // void fillEntityUpdateDataState(DbUpdate ud, AllFieldColumn<?> allFields);
 
     /**
      * 填充逻辑删除时的数据状态标记<br>
-     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...<br>
+     * UPDATE table SET ..., dataState={在这里将数据状态设置为无效} WHERE ...<br>
      * 需要根据逻辑删除策略将字段修改为已删除状态<br>
      * 如使用随机数作为标记时, 应将字段修改为 dataState = 根据logicalDeleteRandoms生成的随机数
      * 
      * @param entity 实体对象
      * @param allFields 全字段
      */
-    void fillLogicalDeleteDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields);
+    void fillLogicalDeleteDataState(Map<String, Object> entity, AllFieldColumn<?> allFields);
 
     /**
      * 填充逻辑删除时的数据状态标记<br>
-     * UPDATE table SET ..., dataStatus={在这里将数据状态设置为无效} WHERE ...<br>
+     * UPDATE table SET ..., dataState={在这里将数据状态设置为无效} WHERE ...<br>
      * 需要根据逻辑删除策略将字段修改为已删除状态<br>
      * 如使用随机数作为标记时, 应将字段修改为 dataState = 根据logicalDeleteRandoms生成的随机数
      * 
      * @param ud 更新对象
      * @param allFields 全字段
      */
-    void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields);
+    void fillLogicalDeleteDataState(DbUpdate ud, AllFieldColumn<?> allFields);
 }

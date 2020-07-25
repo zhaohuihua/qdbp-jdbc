@@ -18,7 +18,7 @@ import com.gitee.qdbp.tools.utils.RandomTools;
  * @author zhaohuihua
  * @version 20200725
  */
-public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityDataStatusFillStrategy<DS> {
+public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataStateFillStrategy<DS> {
 
     /** 是否使用随机数标记已删除状态: 0=不使用, 大于0表示随机数的位数 **/
     private int logicalDeleteRandoms;
@@ -51,7 +51,7 @@ public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityData
     }
 
     /** 处理逻辑删除时的数据状态 **/
-    protected void handleLogicalDeleteDataStatus(Map<String, Object> entity, String fieldName,
+    protected void handleLogicalDeleteDataState(Map<String, Object> entity, String fieldName,
             AllFieldColumn<?> allFields) {
         if (!allFields.containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
@@ -62,18 +62,18 @@ public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityData
     }
 
     /** 处理逻辑删除时的数据状态 **/
-    protected void handleLogicalDeleteDataStatus(DbUpdate ud, String fieldName, AllFieldColumn<?> allFields) {
+    protected void handleLogicalDeleteDataState(DbUpdate ud, String fieldName, AllFieldColumn<?> allFields) {
         if (!allFields.containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
         }
         // 查找所有fieldName=logicalDeleteField的条件
         // 不管字段值和操作符是什么, 无条件替换为随机数
         String randomNumber = generateRandomNumber();
-        this.putLogicalDeleteDataStatus(ud, fieldName, randomNumber);
+        this.putLogicalDeleteDataState(ud, fieldName, randomNumber);
     }
 
     /** 处理实体创建时的数据状态 **/
-    protected void handleEntityCreateDataStatus(Map<String, Object> entity, String fieldName,
+    protected void handleEntityCreateDataState(Map<String, Object> entity, String fieldName,
             AllFieldColumn<?> allFields) {
         if (!allFields.containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
@@ -94,7 +94,7 @@ public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityData
     }
 
     /*** 处理Where条件中的数据状态 **/
-    protected void handleWhereDataStatus(DbWhere where, String fullFieldName, AllFieldColumn<?> allFields) {
+    protected void handleWhereDataState(DbWhere where, String fullFieldName, AllFieldColumn<?> allFields) {
         if (!allFields.containsByFieldName(fullFieldName)) {
             return; // 不支持逻辑删除
         }
@@ -106,13 +106,13 @@ public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityData
             if (this.useLogicalDeleteRandoms()) {
                 // 使用随机数标记已删除状态
                 // 将已删除条件(DataState.DELETED)替换为 dataState > maxUndeletedFlag
-                replaceWhereDeletedDataStatus(where, fullFieldName);
+                replaceWhereDeletedDataState(where, fullFieldName);
             }
         }
     }
 
     /** 将已删除条件(DataState.DELETED)替换为 dataState > maxUndeletedFlag **/
-    protected List<DbCondition> replaceWhereDeletedDataStatus(DbWhere where, String fullFieldName) {
+    protected List<DbCondition> replaceWhereDeletedDataState(DbWhere where, String fullFieldName) {
         // 前提条件: 1.使用随机数标记已删除状态; 2.已删除状态的码值(DataState.DELETED)是最大的
         DbBaseOperator equals = DbTools.getWhereOperator("="); // 只包含已删除的
         DbBaseOperator lessThen = DbTools.getWhereOperator("<"); // 不包含已删除的
@@ -163,38 +163,38 @@ public class RandomNumberEntityDataStatusFillStrategy<DS> extends BaseEntityData
 
     /** {@inheritDoc} **/
     @Override
-    public void fillQueryWhereDataStatus(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
+    public void fillQueryWhereDataState(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
         String fullFieldName = FieldTools.toTableFieldName(getLogicalDeleteField(), tableAlias);
-        handleWhereDataStatus(where, fullFieldName, allFields);
+        handleWhereDataState(where, fullFieldName, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillUpdateWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields) {
-        handleWhereDataStatus(where, getLogicalDeleteField(), allFields);
+    public void fillUpdateWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
+        handleWhereDataState(where, getLogicalDeleteField(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillDeleteWhereDataStatus(DbWhere where, AllFieldColumn<?> allFields) {
-        handleWhereDataStatus(where, getLogicalDeleteField(), allFields);
+    public void fillDeleteWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
+        handleWhereDataState(where, getLogicalDeleteField(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillEntityCreateDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields) {
-        handleEntityCreateDataStatus(entity, getLogicalDeleteField(), allFields);
+    public void fillEntityCreateDataState(Map<String, Object> entity, AllFieldColumn<?> allFields) {
+        handleEntityCreateDataState(entity, getLogicalDeleteField(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteDataStatus(Map<String, Object> entity, AllFieldColumn<?> allFields) {
-        handleLogicalDeleteDataStatus(entity, getLogicalDeleteField(), allFields);
+    public void fillLogicalDeleteDataState(Map<String, Object> entity, AllFieldColumn<?> allFields) {
+        handleLogicalDeleteDataState(entity, getLogicalDeleteField(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public void fillLogicalDeleteDataStatus(DbUpdate ud, AllFieldColumn<?> allFields) {
+    public void fillLogicalDeleteDataState(DbUpdate ud, AllFieldColumn<?> allFields) {
         Object ineffectiveFlag = getDataIneffectiveFlag();
         if (logicalDeleteRandoms > 0) {
             ineffectiveFlag = RandomTools.generateNumber(logicalDeleteRandoms);

@@ -7,7 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
-import com.gitee.qdbp.jdbc.plugins.EntityDataStatusFillStrategy;
+import com.gitee.qdbp.jdbc.plugins.EntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
@@ -32,7 +32,7 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
         this.majorTableAlias = t.getMajor().getTableAlias();
         List<JoinItem> joins = t.getJoins();
         for (JoinItem item : joins) {
-            entityFieldFillExecutor.fillQueryWhereDataStatus(item.getWhere(), item.getTableAlias());
+            entityFieldFillExecutor.fillQueryWhereDataState(item.getWhere(), item.getTableAlias());
         }
     }
 
@@ -47,8 +47,8 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
             throw new IllegalArgumentException("fields is empty");
         }
         EntityFieldFillStrategy fieldFillStrategy = DbTools.getEntityFieldFillStrategy();
-        EntityDataStatusFillStrategy<?> dataStatusFillStrategy = DbTools.getEntityDataStatusFillStrategy();
-        return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStatusFillStrategy);
+        EntityDataStateFillStrategy<?> dataStateFillStrategy = DbTools.getEntityDataStateFillStrategy();
+        return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStateFillStrategy);
     }
 
     private static <T> RowToBeanMapper<T> newRowToBeanMapper(TableJoin tables, Class<T> clazz) {
