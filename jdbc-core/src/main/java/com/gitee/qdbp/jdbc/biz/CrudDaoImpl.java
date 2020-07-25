@@ -8,6 +8,7 @@ import java.util.Set;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.result.ResultCode;
@@ -88,6 +89,24 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbWhere where = new DbWhere();
         where.on(primaryField, "=", id);
         return this.find(where);
+    }
+
+    @Override
+    public List<T> listByIds(List<String> ids, Orderings orderings) throws ServiceException {
+        VerifyTools.requireNotBlank(ids, "ids");
+        return listByIds(Fields.ALL, ids, orderings);
+    }
+
+    @Override
+    public List<T> listByIds(Fields fields, List<String> ids, Orderings orderings) throws ServiceException {
+        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        if (pk == null) { // 没有找到主键字段
+            String details = "UnsupportedFindById, class=" + beanClass.getName();
+            throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
+        }
+        DbWhere where = new DbWhere();
+        where.on(pk.getColumnName(), "in", ids);
+        return list(fields, where, orderings);
     }
 
     @Override

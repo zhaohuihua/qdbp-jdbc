@@ -158,6 +158,35 @@ public interface CrudDao<T> {
     PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) throws ServiceException;
 
     /**
+     * 主要功能: 根据ID查找所有的实体列表<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT {columnNames} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE ID IN ({ids}) AND DATA_STATE='E'<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
+     * 
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @return 列表数据
+     */
+    List<T> listByIds(List<String> ids, Orderings orderings) throws ServiceException;
+
+    /**
+     * 主要功能: 根据ID按指定字段查找实体列表<br>
+     * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
+     * <br>
+     * SELECT {columnNames} FROM {tableName}<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;WHERE ID IN ({ids}) AND DATA_STATE='E'<br>
+     * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
+     * 
+     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
+     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @return 列表数据
+     */
+    List<T> listByIds(Fields fields, List<String> ids, Orderings orderings) throws ServiceException;
+
+    /**
      * 根据条件查询某个字段的值<br>
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * <br>
