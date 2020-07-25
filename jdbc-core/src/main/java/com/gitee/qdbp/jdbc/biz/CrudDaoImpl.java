@@ -169,9 +169,21 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public String insert(T entity) throws ServiceException {
+        VerifyTools.requireNonNull(entity, "entity");
+        return executeInsert(entity, true);
+    }
+
+    @Override
     public String insert(T entity, boolean fillCreateParams) throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
         return executeInsert(entity, fillCreateParams);
+    }
+
+    @Override
+    public String insert(Map<String, Object> entity) throws ServiceException {
+        VerifyTools.requireNonNull(entity, "entity");
+        return executeInsert(entity, true);
     }
 
     @Override
@@ -189,6 +201,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         SqlBuffer buffer = getSqlBuilder().buildInsertSql(readyEntity);
         jdbc.insert(buffer);
         return id;
+    }
+
+    @Override
+    public List<String> inserts(List<?> entities) throws ServiceException {
+        return inserts(entities, true, this.defaultBatchSize);
     }
 
     @Override
@@ -234,6 +251,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int update(T entity) throws ServiceException {
+        return this.update(entity, true, false);
+    }
+
+    @Override
     public int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
         // 查找主键
@@ -257,6 +279,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         entityFieldFillExecutor.fillUpdateWhereDataState(where);
         entityFieldFillExecutor.fillUpdateWhereParams(where);
         return this.doUpdate(ud, where, errorOnUnaffected);
+    }
+
+    @Override
+    public int update(Map<String, Object> entity) throws ServiceException {
+        return this.update(entity, true, false);
     }
 
     @Override
@@ -329,6 +356,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int update(T entity, DbWhere where) throws ServiceException {
+        return this.update(entity, where, true, false);
+    }
+
+    @Override
     public int update(T entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
@@ -344,6 +376,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         entityFieldFillExecutor.fillUpdateWhereDataState(readyWhere);
         entityFieldFillExecutor.fillUpdateWhereParams(readyWhere);
         return this.doUpdate(readyEntity, readyWhere, errorOnUnaffected);
+    }
+
+    @Override
+    public int update(DbUpdate entity, DbWhere where) throws ServiceException {
+        return this.update(entity, where, true, false);
     }
 
     @Override
@@ -371,6 +408,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             throw new ServiceException(DbErrorCode.DB_AFFECTED_ROWS_IS_ZERO);
         }
         return rows;
+    }
+
+    @Override
+    public int updates(List<?> entities) throws ServiceException {
+        return updates(entities, true, this.defaultBatchSize);
     }
 
     @Override
@@ -443,6 +485,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int logicalDeleteByIds(List<String> ids) throws ServiceException {
+        return logicalDeleteByIds(ids, true, false);
+    }
+
+    @Override
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
@@ -461,6 +508,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int logicalDelete(T where) throws ServiceException {
+        return logicalDelete(where, true, false);
+    }
+
+    @Override
     public int logicalDelete(T where, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         if (where == null) {
             String details = "If you want to delete all records, please use DbWhere.NONE";
@@ -475,12 +527,22 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int logicalDelete(DbWhere where) throws ServiceException {
+        return logicalDelete(where, true, false);
+    }
+
+    @Override
     public int logicalDelete(DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         DbWhere readyWhere = checkWhere(where);
         entityFieldFillExecutor.fillDeleteWhereDataState(readyWhere);
         entityFieldFillExecutor.fillDeleteWhereParams(readyWhere);
         return this.doDelete(readyWhere, false, fillUpdateParams, errorOnUnaffected);
+    }
+
+    @Override
+    public int physicalDeleteByIds(List<String> ids) throws ServiceException {
+        return physicalDeleteByIds(ids, false);
     }
 
     @Override
@@ -499,6 +561,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
+    public int physicalDelete(T where) throws ServiceException {
+        return physicalDelete(where, false);
+    }
+
+    @Override
     public int physicalDelete(T where, boolean errorOnUnaffected) throws ServiceException {
         if (where == null) {
             String details = "If you want to delete all records, please use DbWhere.NONE";
@@ -508,6 +575,11 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbWhere beanWhere = converter.convertBeanToDbWhere(where);
         DbWhere readyWhere = checkWhere(beanWhere);
         return this.doDelete(readyWhere, true, false, errorOnUnaffected);
+    }
+
+    @Override
+    public int physicalDelete(DbWhere where) throws ServiceException {
+        return this.doDelete(where, true, false, false);
     }
 
     @Override
