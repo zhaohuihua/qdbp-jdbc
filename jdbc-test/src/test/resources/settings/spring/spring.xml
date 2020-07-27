@@ -43,8 +43,9 @@
 	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
-				<bean class="com.gitee.qdbp.base.converter.NumberToDataStateConverter" />
-				<bean class="com.gitee.qdbp.base.converter.StringToDataStateConverter" />
+				<bean class="com.gitee.qdbp.jdbc.support.EnumExcludedToLastConverter">
+					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.DataState" />
+				</bean>
 				<bean class="com.gitee.qdbp.jdbc.support.EnumInterfaceConverter">
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.AccountType" />
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.UserType" />
