@@ -33,7 +33,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
 
         DbWhere where = new DbWhere();
         where.on("name", "starts", "BatchTest");
-        dao.physicalDelete(where, false);
+        dao.physicalDelete(where);
     }
 
     @Test(priority = 101)
@@ -57,7 +57,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             entities.add(entity);
         }
         // 执行批量新增
-        dao.inserts(entities, true);
+        dao.inserts(entities);
     }
 
     @Test(priority = 102, dependsOnMethods = "testBatchInsert")
@@ -85,7 +85,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
         DbWhere where = new DbWhere();
         where.on("name", "starts", "BatchTest-Insert");
         where.on("sortIndex", ">", 1);
-        OrderPaging odpg = OrderPaging.of(new Paging(3, updateTotal), "sortIndex");
+        OrderPaging odpg = OrderPaging.of(new Paging(3, updateTotal, false), "sortIndex");
         PageList<String> ids = dao.listFieldValues("id", false, where, odpg, String.class);
         // 构造批量更新的实体数据
         List<SysLoggerEntity> changed = new ArrayList<>();
@@ -99,7 +99,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
             changed.add(entity);
         }
         // 执行批量更新
-        dao.updates(changed, true);
+        dao.updates(changed);
     }
 
     @Test(priority = 202, dependsOnMethods = { "testBatchInsert", "testBatchUpdate" })
