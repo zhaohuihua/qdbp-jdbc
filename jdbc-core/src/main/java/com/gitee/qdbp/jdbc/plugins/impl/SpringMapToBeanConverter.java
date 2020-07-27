@@ -37,7 +37,7 @@ public class SpringMapToBeanConverter
         implements MapToBeanConverter, ConditionalGenericConverter, ConversionServiceAware {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    /** 空值时是否调用调用方法 **/
+    /** 空值时是否调用Setter方法 **/
     private boolean invokeSetterWhenNullValue = false;
     /** ConversionService for binding map values to bean properties */
     private ConversionService conversionService; // = DefaultConversionService.getSharedInstance();
@@ -70,7 +70,7 @@ public class SpringMapToBeanConverter
             String field = entry.getKey();
             Object value = entry.getValue();
             if (value == null && !invokeSetterWhenNullValue) {
-                continue; // 空值时是否调用调用方法
+                continue; // 空值时是否调用Setter方法
             }
             PropertyDescriptor pd = mappedFields.get(field);
             if (pd == null) {
@@ -84,6 +84,13 @@ public class SpringMapToBeanConverter
                 @SuppressWarnings("unchecked")
                 Map<String, ?> valueMap = (Map<String, ?>) value;
                 value = convert(valueMap, pd.getPropertyType());
+            } else if (value != null) {
+                TypeDescriptor sourceType = TypeDescriptor.forObject(value);
+                TypeDescriptor targetType = TypeDescriptor.valueOf(pd.getPropertyType());
+                if (!sourceType.isAssignableTo(targetType) || !targetType.getObjectType().isInstance(value)) {
+                    // Map中的值与目标类型不匹配, 需要转换
+                    value = conversionService.convert(value, sourceType, targetType);
+                }
             }
             try {
                 bw.setPropertyValue(pd.getName(), value);
@@ -134,12 +141,12 @@ public class SpringMapToBeanConverter
         }
     }
 
-    /** 空值时是否调用调用方法 **/
+    /** 空值时是否调用Setter方法 **/
     public boolean isInvokeSetterWhenNullValue() {
         return invokeSetterWhenNullValue;
     }
 
-    /** 空值时是否调用调用方法 **/
+    /** 空值时是否调用Setter方法 **/
     public void setInvokeSetterWhenNullValue(boolean invokeSetterWhenNullValue) {
         this.invokeSetterWhenNullValue = invokeSetterWhenNullValue;
     }
@@ -197,9 +204,7 @@ public class SpringMapToBeanConverter
                 return (String) source;
             }
             Object object = JSON.parse((String) source);
-            if (object instanceof String) {
-                return TypeUtils.cast(object, targetType.getObjectType(), ParserConfig.getGlobalInstance());
-            } else if (object instanceof Map) {
+            if (object instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, ?> map = (Map<String, ?>) object;
                 return convert(map, targetType.getType());
