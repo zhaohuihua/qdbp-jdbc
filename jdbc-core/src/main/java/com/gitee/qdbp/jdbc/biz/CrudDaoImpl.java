@@ -101,11 +101,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public List<T> listByIds(Fields fields, List<String> ids, Orderings orderings) throws ServiceException {
         PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
-            String details = "UnsupportedFindById, class=" + beanClass.getName();
+            String details = "UnsupportedListByIds, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
         }
+        String primaryField = pk.getFieldName();
         DbWhere where = new DbWhere();
-        where.on(pk.getColumnName(), "in", ids);
+        where.on(primaryField, "in", ids);
         return list(fields, where, orderings);
     }
 

@@ -78,7 +78,7 @@ public abstract class BaseQueryerImpl<T> {
     }
 
     public List<T> listAll() {
-        return listAll(Orderings.NONE);
+        return listAll(Fields.ALL, Orderings.NONE);
     }
 
     public List<T> listAll(Fields fields) {
@@ -86,19 +86,14 @@ public abstract class BaseQueryerImpl<T> {
     }
 
     public List<T> listAll(Orderings orderings) {
-        DbWhere where = new DbWhere();
-        entityFieldFillExecutor.fillQueryWhereDataState(where, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
-        SqlBuffer buffer = sqlBuilder.buildListSql(where, orderings);
-        return jdbc.query(buffer, rowToBeanMapper);
+        return this.listAll(Fields.ALL, orderings);
     }
 
     public List<T> listAll(Fields fields, Orderings orderings) {
         DbWhere where = new DbWhere();
         entityFieldFillExecutor.fillQueryWhereDataState(where, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(where, getMajorTableAlias());
-        SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
-        return jdbc.query(buffer, rowToBeanMapper);
+        return this.doList(fields, where, orderings);
     }
 
     public PageList<T> list(DbWhere where, OrderPaging odpg) {
@@ -113,10 +108,7 @@ public abstract class BaseQueryerImpl<T> {
         }
         entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
-
-        // WHERE条件
-        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(readyWhere, true);
-        return this.doList(fields, wsb, odpg);
+        return this.doList(fields, where, odpg);
     }
 
     public List<T> list(DbWhere where, Orderings orderings) throws ServiceException {
@@ -124,11 +116,19 @@ public abstract class BaseQueryerImpl<T> {
     }
 
     public List<T> list(Fields fields, DbWhere where, Orderings orderings) throws ServiceException {
+        DbWhere readyWhere = checkWhere(where);
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        return this.doList(fields, readyWhere, orderings);
+    }
+
+    protected List<T> doList(Fields fields, DbWhere where, Orderings orderings) {
         SqlBuffer buffer = sqlBuilder.buildListSql(fields, where, orderings);
         return jdbc.query(buffer, rowToBeanMapper);
     }
 
-    protected PageList<T> doList(Fields fields, SqlBuffer wsb, OrderPaging odpg) {
+    protected PageList<T> doList(Fields fields, DbWhere where, OrderPaging odpg) {
+        SqlBuffer wsb = sqlBuilder.helper().buildWhereSql(where, true);
         SqlBuffer qsb = sqlBuilder.buildListSql(fields, wsb, odpg.getOrderings());
         SqlBuffer csb = null;
         if (odpg.isPaging() && odpg.isNeedCount()) {
