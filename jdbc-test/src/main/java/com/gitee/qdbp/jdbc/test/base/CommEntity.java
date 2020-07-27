@@ -9,7 +9,7 @@ public class CommEntity extends IdEntity {
     private static final long serialVersionUID = 1L;
     /** 创建时间 **/
     private Date createTime;
-    /** 数据状态:0为正常|其他为删除 **/
+    /** 数据状态:1为正常|随机数为已删除 **/
     private DataState dataState;
 
     /** 获取创建时间 **/
@@ -22,12 +22,12 @@ public class CommEntity extends IdEntity {
         this.createTime = createTime;
     }
 
-    /** 获取数据状态:0为正常|其他为删除 **/
+    /** 获取数据状态:1为正常|随机数为已删除 **/
     public DataState getDataState() {
         return dataState;
     }
 
-    /** 设置数据状态:0为正常|其他为删除 **/
+    /** 设置数据状态:1为正常|随机数为已删除 **/
     public void setDataState(DataState dataState) {
         this.dataState = dataState;
     }

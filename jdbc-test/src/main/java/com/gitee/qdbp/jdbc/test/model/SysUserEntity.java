@@ -306,7 +306,7 @@ public class SysUserEntity extends CommEntity {
         instance.setSuperman(this.getSuperman()); // 是否为超级用户
         instance.setUserState(this.getUserState()); // 状态(0.正常|1.锁定|2.待激活|3.注销)
         instance.setUserSource(this.getUserSource()); // 来源
-        instance.setDataState(this.getDataState()); // 数据状态:0为正常|其他为删除
+        instance.setDataState(this.getDataState()); // 数据状态:1为正常|随机数为已删除
         return instance;
     }
 

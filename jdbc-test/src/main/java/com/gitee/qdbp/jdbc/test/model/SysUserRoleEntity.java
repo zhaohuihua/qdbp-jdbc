@@ -18,7 +18,7 @@ public class SysUserRoleEntity extends IdEntity {
     private String userId;
     /** 角色ID **/
     private String roleId;
-    /** 数据状态:0为正常|其他为删除 **/
+    /** 数据状态:1为正常|随机数为已删除 **/
     private DataState dataState;
 
     /** 获取用户ID **/
@@ -41,12 +41,12 @@ public class SysUserRoleEntity extends IdEntity {
         this.roleId = roleId;
     }
 
-    /** 获取数据状态:0为正常|其他为删除 **/
+    /** 获取数据状态:1为正常|随机数为已删除 **/
     public DataState getDataState() {
         return dataState;
     }
 
-    /** 设置数据状态:0为正常|其他为删除 **/
+    /** 设置数据状态:1为正常|随机数为已删除 **/
     public void setDataState(DataState dataState) {
         this.dataState = dataState;
     }
@@ -68,7 +68,7 @@ public class SysUserRoleEntity extends IdEntity {
         instance.setId(this.getId()); // 主键ID
         instance.setUserId(this.getUserId()); // 用户ID
         instance.setRoleId(this.getRoleId()); // 角色ID
-        instance.setDataState(this.getDataState()); // 数据状态:0为正常|其他为删除
+        instance.setDataState(this.getDataState()); // 数据状态:1为正常|随机数为已删除
         return instance;
     }
 

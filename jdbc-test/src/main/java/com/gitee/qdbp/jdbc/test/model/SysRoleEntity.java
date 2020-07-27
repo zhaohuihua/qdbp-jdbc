@@ -156,7 +156,7 @@ public class SysRoleEntity extends CommEntity {
         instance.setCreateTime(this.getCreateTime()); // 创建时间
         instance.setDefaults(this.getDefaults()); // 默认角色(如果用户没有任何角色,默认会赋予该角色)
         instance.setOptions(this.getOptions()); // 选项
-        instance.setDataState(this.getDataState()); // 数据状态:0为正常|其他为删除
+        instance.setDataState(this.getDataState()); // 数据状态:1为正常|随机数为已删除
         return instance;
     }
 
