@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.core.convert.support.DefaultConversionService;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
@@ -12,7 +13,6 @@ import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
-import com.gitee.qdbp.jdbc.plugins.impl.FastJsonMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
@@ -20,6 +20,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 
 /**
  * 自定义插件容器
@@ -80,7 +81,12 @@ public class DbPluginContainer {
             container.setToDbValueConverter(new SimpleVarToDbValueConverter());
         }
         if (container.getMapToBeanConverter() == null) {
-            container.setMapToBeanConverter(new FastJsonMapToBeanConverter());
+            // 由于fastjson的TypeUtils.castToEnum()逻辑存在硬伤, 无法做到数字枚举值的自定义转换
+            // container.setMapToBeanConverter(new FastJsonMapToBeanConverter());
+            // 改为SpringMapToBeanConverter
+            SpringMapToBeanConverter converter = new SpringMapToBeanConverter();
+            converter.setConversionService(DefaultConversionService.getSharedInstance());
+            container.setMapToBeanConverter(converter);
         }
         if (container.getDbConditionConverter() == null) {
             container.setDbConditionConverter(new FastJsonDbConditionConverter());
