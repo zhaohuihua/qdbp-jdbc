@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -27,9 +26,6 @@ import com.gitee.qdbp.tools.utils.StringTools;
 public class EntityDataStateTest extends AbstractTestNGSpringContextTests {
 
     private static Logger log = LoggerFactory.getLogger(EntityDataStateTest.class);
-
-    @Autowired
-    private ConversionService conversionService;
 
     @Autowired
     private QdbcBoot qdbcBoot;
