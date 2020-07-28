@@ -69,8 +69,8 @@ public abstract class SqlTools {
                 if (i > 0) {
                     sql.ad(',');
                 }
-                if (count > 40) {
-                    sql.omit(i, count, 10);
+                if (count > 20) {
+                    sql.omit(i, count, 5);
                 }
                 sql.var(value);
             }
