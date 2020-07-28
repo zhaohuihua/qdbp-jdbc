@@ -11,7 +11,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.alibaba.fastjson.parser.ParserConfig;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
@@ -19,7 +18,6 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
-import com.gitee.qdbp.jdbc.support.UseSpringConversionDeserializer;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.tools.utils.JsonTools;
@@ -43,9 +41,6 @@ public class EntityDataStateTest extends AbstractTestNGSpringContextTests {
     @PostConstruct
     public void init() {
         this.dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
-        UseSpringConversionDeserializer deserializer = new UseSpringConversionDeserializer();
-        deserializer.setConversionService(conversionService);
-        ParserConfig.getGlobalInstance().putDeserializer(DataState.class, deserializer);
 
         DbWhere where = new DbWhere();
         where.on("name", "starts", "DsTest");
