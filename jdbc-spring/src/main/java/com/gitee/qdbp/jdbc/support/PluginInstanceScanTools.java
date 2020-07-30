@@ -15,14 +15,14 @@ import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * DbPlugin扫描工具
+ * 插件实例扫描工具
  *
  * @author zhaohuihua
  * @version 20200129
  */
-public class DbPluginScanTools {
+public class PluginInstanceScanTools {
 
-    private static final Logger log = LoggerFactory.getLogger(DbPluginScanTools.class);
+    private static final Logger log = LoggerFactory.getLogger(PluginInstanceScanTools.class);
 
     /** 扫描并注册所有的WhereSqlBuilder子类 **/
     public static void scanAndRegisterWhereSqlBuilder(DbPluginContainer plugins, ApplicationContext context) {

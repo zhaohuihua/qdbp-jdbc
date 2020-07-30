@@ -43,11 +43,11 @@ public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingB
             singletonInstance.setSqlBufferJdbcOperations(sqlBufferJdbcOperations);
         }
         if (pluginContainer != null) {
-            DbPluginScanTools.scanAndRegisterWhereSqlBuilder(pluginContainer, context);
-            DbPluginScanTools.scanAndRegisterUpdateSqlBuilder(pluginContainer, context);
-            DbPluginScanTools.scanAndRegisterOrderBySqlBuilder(pluginContainer, context);
-            DbPluginScanTools.scanAndRegisterBatchInsertExecutor(pluginContainer, context);
-            DbPluginScanTools.scanAndRegisterBatchUpdateExecutor(pluginContainer, context);
+            PluginInstanceScanTools.scanAndRegisterWhereSqlBuilder(pluginContainer, context);
+            PluginInstanceScanTools.scanAndRegisterUpdateSqlBuilder(pluginContainer, context);
+            PluginInstanceScanTools.scanAndRegisterOrderBySqlBuilder(pluginContainer, context);
+            PluginInstanceScanTools.scanAndRegisterBatchInsertExecutor(pluginContainer, context);
+            PluginInstanceScanTools.scanAndRegisterBatchUpdateExecutor(pluginContainer, context);
             DbPluginContainer.init(pluginContainer);
             if (conversionService != null) {
                 // 设置插件的ConversionService
