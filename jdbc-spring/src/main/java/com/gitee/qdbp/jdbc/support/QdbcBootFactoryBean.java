@@ -46,6 +46,8 @@ public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingB
             DbPluginScanTools.scanAndRegisterWhereSqlBuilder(pluginContainer, context);
             DbPluginScanTools.scanAndRegisterUpdateSqlBuilder(pluginContainer, context);
             DbPluginScanTools.scanAndRegisterOrderBySqlBuilder(pluginContainer, context);
+            DbPluginScanTools.scanAndRegisterBatchInsertExecutor(pluginContainer, context);
+            DbPluginScanTools.scanAndRegisterBatchUpdateExecutor(pluginContainer, context);
             DbPluginContainer.init(pluginContainer);
             if (conversionService != null) {
                 // 设置插件的ConversionService

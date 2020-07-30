@@ -47,6 +47,8 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         DbPluginScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
         DbPluginScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
         DbPluginScanTools.scanAndRegisterOrderBySqlBuilder(plugins, context);
+        DbPluginScanTools.scanAndRegisterBatchInsertExecutor(plugins, context);
+        DbPluginScanTools.scanAndRegisterBatchUpdateExecutor(plugins, context);
         // 设置数据库版本信息查询方式
         // DataSourceDbVersionFinder: 根据数据源查找数据库类型和版本信息
         plugins.setDbVersionFinder(new DataSourceDbVersionFinder());
