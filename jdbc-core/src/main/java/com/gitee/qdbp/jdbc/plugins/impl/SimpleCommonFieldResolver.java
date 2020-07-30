@@ -30,12 +30,14 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
      * 设置公共包名匹配模式<br>
      * regexp:开头的解析为RegexpStringMatcher<br>
      * ant:开头的解析为AntStringMatcher<br>
-     * 其余的解析为EqualsStringMatcher<br>
+     * equals:开头的解析为EqualsStringMatcher<br>
+     * contains:开头的解析为ContainsStringMatcher<br>
+     * 其余的, 解析为EqualsStringMatcher
      * 
      * @param text 文本
      */
     public void setCommonPackagePatterns(String text) {
-        setCommonPackageMatchers(InnerTools.parseStringMatcher(text));
+        setCommonPackageMatchers(InnerTools.parseStringMatcher(text, true));
     }
 
     /**
@@ -44,12 +46,12 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
      * ant:开头的解析为AntStringMatcher<br>
      * equals:开头的解析为EqualsStringMatcher<br>
      * contains:开头的解析为ContainsStringMatcher<br>
-     * 其余的也解析为ContainsStringMatcher<br>
+     * 其余的都解析为EqualsStringMatcher<br>
      * 
      * @param text 文本
      */
     public void setCommonFieldNamePatterns(String text) {
-        setCommonFieldNameMatchers(InnerTools.parseStringMatcher(text));
+        setCommonFieldNameMatchers(InnerTools.parseStringMatcher(text, true));
     }
 
     public void setCommonPackageMatchers(List<StringMatcher> matchers) {

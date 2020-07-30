@@ -43,16 +43,17 @@ public class InnerTools {
      * ant:开头的解析为AntStringMatcher<br>
      * equals:开头的解析为EqualsStringMatcher<br>
      * contains:开头的解析为ContainsStringMatcher<br>
-     * 其余的也解析为ContainsStringMatcher<br>
+     * 其余的, 严格模式下解析为EqualsStringMatcher, 否则解析为ContainsStringMatcher<br>
      * 
      * @param text 文本
+     * @param strict 是否使用严格格式
      * @return StringMatcher列表
      */
-    public static List<StringMatcher> parseStringMatcher(String text) {
+    public static List<StringMatcher> parseStringMatcher(String text, boolean strict) {
         List<StringMatcher> result = new ArrayList<>();
         List<String> list = InnerTools.tokenizeToStringList(text);
         for (String item : list) {
-            result.add(WrapStringMatcher.parseMatcher(item));
+            result.add(WrapStringMatcher.parseMatcher(item, strict));
         }
         return result;
     }
