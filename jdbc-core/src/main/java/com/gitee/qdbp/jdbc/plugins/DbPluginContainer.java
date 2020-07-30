@@ -311,7 +311,7 @@ public class DbPluginContainer {
         whereSqlBuilders.add(builder);
     }
 
-    public <T extends WhereCondition> void setWhereSqlBuilder(List<WhereSqlBuilder<T>> builders) {
+    public <T extends WhereCondition> void setWhereSqlBuilders(List<WhereSqlBuilder<T>> builders) {
         whereSqlBuilders.clear();
         whereSqlBuilders.addAll(builders);
     }
@@ -339,7 +339,7 @@ public class DbPluginContainer {
         UpdateSqlBuilders.add(builder);
     }
 
-    public <T extends UpdateCondition> void setUpdateSqlBuilder(List<UpdateSqlBuilder<T>> builders) {
+    public <T extends UpdateCondition> void setUpdateSqlBuilders(List<UpdateSqlBuilder<T>> builders) {
         UpdateSqlBuilders.clear();
         UpdateSqlBuilders.addAll(builders);
     }
@@ -367,7 +367,7 @@ public class DbPluginContainer {
         OrderBySqlBuilders.add(builder);
     }
 
-    public <T extends OrderByCondition> void setOrderBySqlBuilder(List<OrderBySqlBuilder<T>> builders) {
+    public <T extends OrderByCondition> void setOrderBySqlBuilders(List<OrderBySqlBuilder<T>> builders) {
         OrderBySqlBuilders.clear();
         OrderBySqlBuilders.addAll(builders);
     }
