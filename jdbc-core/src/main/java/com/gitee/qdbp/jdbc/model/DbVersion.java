@@ -131,6 +131,44 @@ public class DbVersion implements Serializable {
             return 0;
         }
     }
+    
+    /**
+     * 当前数据库类型与版本是否满足指定的最低要求<br>
+     * 先对比数据库类型, 如果一致再对比版本号<br>
+     * 最低要求是以分号分隔的多个数据库类型与版本号, 当前版本满足任一条件即为匹配<br>
+     * 如: MySql;MySQL;MariaDB;DB2;SqlServer:2008
+     * 
+     * @param minRequirement 最低要求
+     * @return 是否匹配
+     */
+    public boolean matchesWith(String minRequirement) {
+        if (VerifyTools.isBlank(minRequirement)) {
+            return false;
+        }
+        // 按分号拆分, 满足任一条件即为匹配
+        String[] items = StringTools.split(minRequirement, ';');
+        for (String item : items) {
+            if (itemMatchesWith(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private boolean itemMatchesWith(String item) {
+        int index = item.indexOf(':');
+        if (index < 0) { // 只指定了类型
+            return item.equals(dbType.name());
+        } else if (index == 0) {
+            // index=0, 是这种情况--> :1.0
+            // 只指定了版本号: 任何类型, 版本号匹配都算?
+            return this.compareTo(item.substring(1)) >= 0;
+        } else { // 指定了类型+版本号
+            String type = item.substring(0, index);
+            String code = item.substring(index + 1);
+            return type.equals(dbType.name()) && this.compareTo(code) >= 0;
+        }
+    }
 
     public String toString() {
         if (dbType == null) {
