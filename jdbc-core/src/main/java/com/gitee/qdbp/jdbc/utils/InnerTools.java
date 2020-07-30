@@ -41,7 +41,8 @@ public class InnerTools {
      * 解析StringMatcher<br>
      * regexp:开头的解析为RegexpStringMatcher<br>
      * ant:开头的解析为AntStringMatcher<br>
-     * 其余的解析为EqualsStringMatcher<br>
+     * contains:开头的解析为ContainsStringMatcher<br>
+     * 其余的也解析为ContainsStringMatcher<br>
      * 
      * @param text 文本
      * @return StringMatcher列表
