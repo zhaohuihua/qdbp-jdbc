@@ -271,7 +271,7 @@ public class SimpleSqlDialect implements SqlDialect {
         } else if (dbType == MainDbType.MySQL && dbVersion.getMajorVersion() < 8) {
             return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
                 builder);
-        } else if (dbType == MainDbType.MariaDB && dbVersion.compareTo("10.2.2") < 0) {
+        } else if (dbType == MainDbType.MariaDB && dbVersion.versionCompareTo("10.2.2") < 0) {
             // 听说MariaDB 10.2.2才开始提供递归语法
             // https://mariadb.com/kb/en/mariadb-1022-release-notes/
             // Recursive Common Table Expressions

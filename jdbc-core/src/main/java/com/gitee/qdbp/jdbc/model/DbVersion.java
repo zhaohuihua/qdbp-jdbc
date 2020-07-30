@@ -86,7 +86,7 @@ public class DbVersion implements Serializable {
      * @return 返回负数,0,正数, 分别代表当前对象小于等于大于指定版本
      * @see VersionCodeTools#compare(String, String)
      */
-    public int compareTo(String versionString) {
+    public int versionCompareTo(String versionString) {
         VerifyTools.requireNotBlank(versionString, "versionString");
         String[] targets = VersionCodeTools.splitVersionString(versionString);
         // 第1级版本号与主版本号对比
@@ -162,11 +162,11 @@ public class DbVersion implements Serializable {
         } else if (index == 0) {
             // index=0, 是这种情况--> :1.0
             // 只指定了版本号: 任何类型, 版本号匹配都算?
-            return this.compareTo(item.substring(1)) >= 0;
+            return this.versionCompareTo(item.substring(1)) >= 0;
         } else { // 指定了类型+版本号
             String type = item.substring(0, index);
             String code = item.substring(index + 1);
-            return type.equals(dbType.name()) && this.compareTo(code) >= 0;
+            return type.equals(dbType.name()) && this.versionCompareTo(code) >= 0;
         }
     }
 
