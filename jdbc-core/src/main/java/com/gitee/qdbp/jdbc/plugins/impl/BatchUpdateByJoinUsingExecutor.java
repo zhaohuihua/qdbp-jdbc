@@ -7,15 +7,14 @@ import java.util.Set;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
-import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
@@ -33,15 +32,13 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
  */
 public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
 
-    /**
-     * 是否支持指定数据库<br>
-     * 目前已知只有mysql支持<br>
-     * 如果有其他数据库支持, 可以继承此类, 覆盖supports方法
-     */
+    /** 是否支持指定数据库 **/
     @Override
     public boolean supports(DbVersion version) {
-        DbType dbType = version.getDbType();
-        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB;
+        String key = "qdbc." + this.getClass().getSimpleName();
+        String defvalue = "MySQL;MariaDB";
+        String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
+        return version.matchesWith(options);
     }
 
     @Override

@@ -7,9 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
@@ -52,15 +50,13 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  */
 public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, BatchUpdateExecutor {
 
-    /**
-     * 是否支持指定数据库<br>
-     * 目前实测只有mysql支持, oracle/db2都不支持<br>
-     * 如果有其他数据库支持, 可以继承此类, 覆盖supports方法
-     */
+    /** 是否支持指定数据库 **/
     @Override
     public boolean supports(DbVersion version) {
-        DbType dbType = version.getDbType();
-        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB;
+        String key = "qdbc." + this.getClass().getSimpleName();
+        String defvalue = "MySQL;MariaDB";
+        String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
+        return version.matchesWith(options);
     }
 
     /**

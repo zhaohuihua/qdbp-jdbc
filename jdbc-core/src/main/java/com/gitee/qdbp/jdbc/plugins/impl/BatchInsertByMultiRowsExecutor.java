@@ -7,14 +7,13 @@ import java.util.Map;
 import java.util.Set;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
  * 一个INSERT对应多个VALUES的批量新增接口实现类(要求字段对齐)<br>
@@ -29,17 +28,14 @@ import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
  */
 public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
 
-    /**
-     * 是否支持指定数据库<br>
-     * 如果有其他数据库支持, 可以继承此类, 覆盖supports方法
-     */
+    /** 是否支持指定数据库 **/
     @Override
     public boolean supports(DbVersion version) {
-        DbType dbType = version.getDbType();
-        return dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
-                || dbType == MainDbType.DB2
-                // SQL Server 2008 以上版本
-                || (dbType == MainDbType.SqlServer && version.getMajorVersion() >= 2008);
+        String key = "qdbc." + this.getClass().getSimpleName();
+        // SQL Server 需要2008以上版本
+        String defvalue = "MySQL;MariaDB;DB2;SqlServer:2008";
+        String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
+        return version.matchesWith(options);
     }
 
     @Override
