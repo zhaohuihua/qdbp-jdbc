@@ -84,7 +84,7 @@ public class PluginInstanceScanTools {
         }
     }
 
-    /** 扫描并注册所有的WhereSqlBuilder子类 **/
+    /** 扫描并注册所有的BatchUpdateExecutor子类 **/
     public static void scanAndRegisterBatchUpdateExecutor(DbPluginContainer plugins, ApplicationContext context) {
         // 查找所有的BatchUpdateExecutor的子类
         Map<String, ?> batchUpdateExecutorInstances = context.getBeansOfType(BatchUpdateExecutor.class);
