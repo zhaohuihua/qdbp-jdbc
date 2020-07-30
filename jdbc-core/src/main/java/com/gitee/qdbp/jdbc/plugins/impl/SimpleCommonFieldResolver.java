@@ -42,6 +42,7 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
      * 设置公共字段名匹配模式<br>
      * regexp:开头的解析为RegexpStringMatcher<br>
      * ant:开头的解析为AntStringMatcher<br>
+     * equals:开头的解析为EqualsStringMatcher<br>
      * contains:开头的解析为ContainsStringMatcher<br>
      * 其余的也解析为ContainsStringMatcher<br>
      * 
