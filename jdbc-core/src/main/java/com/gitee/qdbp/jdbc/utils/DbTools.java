@@ -40,6 +40,7 @@ import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -217,6 +218,11 @@ public abstract class DbTools {
     public static DbVersion findDbVersion(DataSource datasource) {
         DbVersionFinder finder = DbPluginContainer.defaults().getDbVersionFinder();
         return finder.findDbVersion(datasource);
+    }
+    
+    /** 获取数据库配置选项 **/
+    public static Config getDbConfig() {
+        return DbPluginContainer.defaults().getDbConfig(true);
     }
 
     /** 根据数据库类型获取批量新增处理类 **/

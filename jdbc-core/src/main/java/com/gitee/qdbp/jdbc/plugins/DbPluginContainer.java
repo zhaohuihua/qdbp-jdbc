@@ -2,6 +2,8 @@ package com.gitee.qdbp.jdbc.plugins;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.springframework.core.convert.support.DefaultConversionService;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
@@ -21,6 +23,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
+import com.gitee.qdbp.tools.utils.Config;
 
 /**
  * 自定义插件容器
@@ -115,6 +118,49 @@ public class DbPluginContainer {
             container.addBatchUpdateExecutor(new BatchUpdateByJoinUsingExecutor());
             container.addBatchUpdateExecutor(new BatchUpdateByCaseWhenExecutor());
         }
+    }
+
+    /** 数据库配置选项 **/
+    private Config dbConfig;
+
+    /** 设置数据库配置选项 **/
+    public void setDbConfig(Properties config) {
+        this.dbConfig = new Config(config);
+    }
+
+    /** 设置数据库配置选项 **/
+    public void setDbConfig(Map<String, ?> config) {
+        this.dbConfig = new Config();
+        for (Map.Entry<String, ?> entry : config.entrySet()) {
+            String value = entry.getValue() == null ? null : entry.getValue().toString();
+            this.dbConfig.put(entry.getKey(), value);
+        }
+    }
+
+    /** 设置数据库配置选项 **/
+    public void addDbConfig(String key, String value) {
+        if (dbConfig == null) {
+            dbConfig = new Config();
+        }
+        this.dbConfig.put(key, value);
+    }
+
+    /** 获取数据库配置选项 **/
+    public Config getDbConfig() {
+        return this.dbConfig;
+    }
+
+    /**
+     * 获取数据库配置选项
+     * 
+     * @param force 是否强制返回非空对象
+     * @return 配置选项
+     */
+    public Config getDbConfig(boolean force) {
+        if (dbConfig == null) {
+            dbConfig = new Config();
+        }
+        return this.dbConfig;
     }
 
     /** 数据表和列信息扫描类 **/
