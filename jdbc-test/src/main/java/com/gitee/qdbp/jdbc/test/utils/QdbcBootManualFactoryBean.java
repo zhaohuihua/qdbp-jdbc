@@ -22,7 +22,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans;
 import com.gitee.qdbp.jdbc.support.QdbcBootFactoryBean;
-import com.gitee.qdbp.jdbc.support.SqlBuilderScanTools;
+import com.gitee.qdbp.jdbc.support.DbPluginScanTools;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
 /**
@@ -44,9 +44,9 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
         registerMapToBeanConverter(plugins, context);
         registerEntityFieldFillStrategy(plugins, context);
         registerEntityDataStateFillStrategy(plugins, context);
-        SqlBuilderScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
-        SqlBuilderScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
-        SqlBuilderScanTools.scanAndRegisterOrderBySqlBuilder(plugins, context);
+        DbPluginScanTools.scanAndRegisterWhereSqlBuilder(plugins, context);
+        DbPluginScanTools.scanAndRegisterUpdateSqlBuilder(plugins, context);
+        DbPluginScanTools.scanAndRegisterOrderBySqlBuilder(plugins, context);
         // 设置数据库版本信息查询方式
         // DataSourceDbVersionFinder: 根据数据源查找数据库类型和版本信息
         plugins.setDbVersionFinder(new DataSourceDbVersionFinder());

@@ -13,14 +13,14 @@ import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * SqlBuilder扫描工具
+ * DbPlugin扫描工具
  *
  * @author zhaohuihua
  * @version 20200129
  */
-public class SqlBuilderScanTools {
+public class DbPluginScanTools {
 
-    private static final Logger log = LoggerFactory.getLogger(SqlBuilderScanTools.class);
+    private static final Logger log = LoggerFactory.getLogger(DbPluginScanTools.class);
 
     public static void scanAndRegisterWhereSqlBuilder(DbPluginContainer plugins, ApplicationContext context) {
         // 查找所有的WhereSqlBuilder的子类
@@ -32,7 +32,7 @@ public class SqlBuilderScanTools {
                 plugins.addWhereSqlBuilder(builder);
                 registered.add(builder.supported().getSimpleName());
             }
-            log.debug("DbPluginRegister.global.setWhereSqlBuilder({})", registered);
+            log.debug("DbPluginContainer.defaults().setWhereSqlBuilders({})", registered);
         }
     }
 
@@ -46,7 +46,7 @@ public class SqlBuilderScanTools {
                 plugins.addUpdateSqlBuilder(builder);
                 registered.add(builder.supported().getSimpleName());
             }
-            log.debug("DbPluginRegister.global.setUpdateSqlBuilder({})", registered);
+            log.debug("DbPluginContainer.defaults().setUpdateSqlBuilders({})", registered);
         }
     }
 
@@ -60,7 +60,7 @@ public class SqlBuilderScanTools {
                 plugins.addOrderBySqlBuilder(builder);
                 registered.add(builder.supported().getSimpleName());
             }
-            log.debug("DbPluginRegister.global.setOrderBySqlBuilder({})", registered);
+            log.debug("DbPluginContainer.defaults().setOrderBySqlBuilders({})", registered);
         }
     }
 
