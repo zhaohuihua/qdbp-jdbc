@@ -147,32 +147,43 @@ public abstract class DbTools {
         return DbPluginContainer.defaults().getEntityDataStateFillStrategy();
     }
 
+    /** 根据DbType生成SqlDialect **/
     public static SqlDialect buildSqlDialect(DbType dbType) {
         return buildSqlDialect(new DbVersion(dbType));
     }
 
+    /** 根据DbVersion生成SqlDialect **/
     public static SqlDialect buildSqlDialect(DbVersion version) {
         return new SimpleSqlDialect(version);
     }
 
+    /** 根据SqlDialect生成SqlParser **/
     public static SqlParser buildSqlParser(SqlDialect dialect) {
         return new SqlParser(dialect);
     }
 
-    public static <T extends WhereCondition> WhereSqlBuilder<T> getWhereSqlBuilder(T condition) {
-        Class<? extends WhereCondition> type = condition.getClass();
-        // JDK8+不用强转
-        @SuppressWarnings("unchecked")
-        WhereSqlBuilder<T> builder = (WhereSqlBuilder<T>) DbPluginContainer.defaults().getWhereSqlBuilder(type);
-        return builder;
+    /** 获取自定义WhereSqlBuilder **/
+    public static <T extends WhereCondition, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<T> type) {
+        return DbPluginContainer.defaults().getWhereSqlBuilder(type);
     }
 
-    public static <T extends UpdateCondition> UpdateSqlBuilder<T> getUpdateSqlBuilder(T condition) {
-        Class<? extends UpdateCondition> type = condition.getClass();
-        // JDK8+不用强转
+    /** 获取自定义WhereSqlBuilder **/
+    public static <T extends WhereCondition, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(T condition) {
         @SuppressWarnings("unchecked")
-        UpdateSqlBuilder<T> builder = (UpdateSqlBuilder<T>) DbPluginContainer.defaults().getUpdateSqlBuilder(type);
-        return builder;
+        Class<T> type = (Class<T>) condition.getClass();
+        return DbPluginContainer.defaults().getWhereSqlBuilder(type);
+    }
+
+    /** 获取自定义UpdateSqlBuilder **/
+    public static <T extends UpdateCondition, B extends UpdateSqlBuilder<T>> B getUpdateSqlBuilder(Class<T> type) {
+        return DbPluginContainer.defaults().getUpdateSqlBuilder(type);
+    }
+
+    /** 获取自定义UpdateSqlBuilder **/
+    public static <T extends UpdateCondition, B extends UpdateSqlBuilder<T>> B getUpdateSqlBuilder(T condition) {
+        @SuppressWarnings("unchecked")
+        Class<T> type = (Class<T>) condition.getClass();
+        return DbPluginContainer.defaults().getUpdateSqlBuilder(type);
     }
 
     /**
