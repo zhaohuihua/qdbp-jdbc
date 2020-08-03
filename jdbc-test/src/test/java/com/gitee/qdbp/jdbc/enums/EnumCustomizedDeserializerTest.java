@@ -22,6 +22,7 @@ import com.alibaba.fastjson.util.TypeUtils;
  * @author zhaohuihua
  * @version 20200728
  */
+@Test
 public class EnumCustomizedDeserializerTest {
 
     @BeforeTest

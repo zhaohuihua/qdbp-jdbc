@@ -17,6 +17,7 @@ import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.tools.utils.StringTools;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
 

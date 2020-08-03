@@ -17,6 +17,7 @@ import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
  * @author zhaohuihua
  * @version 20200721
  */
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class InConditionTest extends AbstractTestNGSpringContextTests {
 

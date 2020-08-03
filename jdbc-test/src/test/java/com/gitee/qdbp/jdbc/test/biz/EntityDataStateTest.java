@@ -22,6 +22,7 @@ import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.tools.utils.JsonTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class EntityDataStateTest extends AbstractTestNGSpringContextTests {
 

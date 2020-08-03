@@ -12,11 +12,14 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.exception.ServiceException;
+import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
+import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
 
@@ -29,16 +32,25 @@ public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
 
     @PostConstruct
     public void init() {
-        SqlBuilder buffer = new SqlBuilder();
-        buffer.ad("DELETE FROM TEST_SETTING");
-        qdbcBoot.getSqlBufferJdbcOperations().update(buffer.out());
+        {
+            CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+            DbWhere where = new DbWhere();
+            where.on("name", "starts", "MultiThreadInsert");
+            dao.physicalDelete(where);
+        }
+        {
+            CrudDao<SysLoggerEntity> dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
+            DbWhere where = new DbWhere();
+            where.on("content", "like", "MultiThreadInsert");
+            dao.physicalDelete(where);
+        }
     }
 
     @Test(priority = 2)
     public void testInsert() {
         SysSettingEntity entity = new SysSettingEntity();
-        entity.setName("setting-" + 0);
-        entity.setValue("测试 setting-" + 0);
+        entity.setName("MultiThreadInsert-" + 0);
+        entity.setValue("测试 MultiThreadInsert-" + 0);
         sysSettingService.createSetting(entity, 5000L);
     }
 
@@ -51,8 +63,8 @@ public class MultiThreadInsertTest extends AbstractTestNGSpringContextTests {
         for (int i = 1; i <= size; i++) {
             for (int j = 1; j <= times; j++) {
                 SysSettingEntity entity = new SysSettingEntity();
-                entity.setName("setting-" + i);
-                entity.setValue("测试 setting-" + i);
+                entity.setName("MultiThreadInsert-" + i);
+                entity.setValue("测试 MultiThreadInsert-" + i);
                 InsertThread thread = new InsertThread(entity, latch, counter);
                 thread.setName("setting-" + i + " " + j);
                 thread.start();

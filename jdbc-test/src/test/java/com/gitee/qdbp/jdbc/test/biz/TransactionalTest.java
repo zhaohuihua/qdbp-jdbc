@@ -9,8 +9,9 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
+import com.gitee.qdbp.jdbc.test.model.SysLoggerEntity;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService.TestModel;
@@ -21,6 +22,7 @@ import com.gitee.qdbp.jdbc.test.service.SysSettingService.TestModel;
  * @author zhaohuihua
  * @version 20200212
  */
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class TransactionalTest extends AbstractTestNGSpringContextTests {
 
@@ -32,18 +34,22 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
     @PostConstruct
     public void init() {
         {
-            SqlBuilder sql = new SqlBuilder("DELETE FROM TEST_SETTING");
-            qdbcBoot.getSqlBufferJdbcOperations().update(sql.out());
+            CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+            DbWhere where = new DbWhere();
+            where.on("name", "starts", "Transactional");
+            dao.physicalDelete(where);
         }
         {
-            SqlBuilder sql = new SqlBuilder("DELETE FROM TEST_LOGGER");
-            qdbcBoot.getSqlBufferJdbcOperations().update(sql.out());
+            CrudDao<SysLoggerEntity> dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
+            DbWhere where = new DbWhere();
+            where.on("content", "like", "Transactional");
+            dao.physicalDelete(where);
         }
     }
 
     @Test(priority = 20)
     public void testSuccessToInsert() {
-        String key = "setting-20";
+        String key = "Transactional-20";
         SysSettingEntity entity = new SysSettingEntity();
         entity.setName(key);
         entity.setValue("测试 " + key);
@@ -64,7 +70,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
 
     @Test(priority = 30)
     public void testFailedToInsert() {
-        String key = "setting-30";
+        String key = "Transactional-30";
         SysSettingEntity entity = new SysSettingEntity();
         entity.setName(key);
         entity.setValue("测试 " + key);
@@ -89,7 +95,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
 
     @Test(priority = 40)
     public void testFailedToLogging() {
-        String key = "setting-40";
+        String key = "Transactional-40";
         SysSettingEntity entity = new SysSettingEntity();
         entity.setName(key);
         entity.setValue("测试 " + key);

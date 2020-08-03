@@ -2,6 +2,8 @@ package com.gitee.qdbp.jdbc.sql;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer.StringItem;
@@ -13,16 +15,25 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @author zhaohuihua
  * @version 20200719
  */
+@Test
 public class SqlTextIndentSizeTest {
 
     public static void main(String[] args) {
-        test(null);
-        test(false);
-        test(true);
+        SqlTextIndentSizeTest instance = new SqlTextIndentSizeTest();
+        instance.test(null);
+        instance.test(false);
+        instance.test(true);
         System.out.println("test completed!");
     }
 
-    private static void test(Boolean inserBlank) {
+    @Test
+    public void test() {
+        test(null);
+        test(false);
+        test(true);
+    }
+
+    private void test(Boolean inserBlank) {
         // 这里要找的是DEF之前的那个换行符之后的空白字符, 即缩进量为3
         testFindLastIndentSize("\n\tABC\n\t\t\tDEF\t\t", inserBlank, 3);
         testFindLastIndentSize("\n\tABC\n\t\t    DEF\t\t", inserBlank, 3);
@@ -98,6 +109,7 @@ public class SqlTextIndentSizeTest {
         if (actualIndent != expectedIndent) {
             String sqlString = getSqlString(sql, dialect);
             System.out.printf("Error: expected=%s, expected=%s, sql=%s%n", expectedIndent, actualIndent, sqlString);
+            Assert.assertEquals(actualIndent, actualIndent, sqlString);
         }
     }
 

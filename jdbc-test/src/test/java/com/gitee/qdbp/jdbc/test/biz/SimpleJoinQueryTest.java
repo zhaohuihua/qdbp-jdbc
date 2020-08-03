@@ -23,6 +23,7 @@ import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.UserRole;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class SimpleJoinQueryTest extends AbstractTestNGSpringContextTests {
 

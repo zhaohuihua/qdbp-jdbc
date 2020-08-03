@@ -14,12 +14,14 @@ import org.testng.annotations.Test;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
+import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
+import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
 import com.gitee.qdbp.jdbc.test.service.SysSettingService;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
 
@@ -32,9 +34,10 @@ public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
 
     @PostConstruct
     public void init() {
-        SqlBuilder buffer = new SqlBuilder();
-        buffer.ad("DELETE FROM TEST_SETTING");
-        qdbcBoot.getSqlBufferJdbcOperations().update(buffer.out());
+        CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+        DbWhere where = new DbWhere();
+        where.on("name", "starts", "MultiThreadQuery");
+        dao.physicalDelete(where);
     }
 
     @Test(priority = 2)
@@ -53,7 +56,7 @@ public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
         for (int i = 1; i <= size; i++) {
             int times = 1;
             DbWhere where = new DbWhere();
-            where.on("name", "=", "setting-" + i);
+            where.on("name", "=", "MultiThreadQuery-" + i);
             where.on("state", "=", SettingState.ENABLED);
             QueryThread thread = new QueryThread(where, latch, counter, 2000L);
             thread.setName("setting-" + i + " group-" + times);
@@ -66,7 +69,7 @@ public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
         for (int i = 1; i <= size; i++) {
             int times = 2;
             DbWhere where = new DbWhere();
-            where.on("name", "=", "setting-" + i);
+            where.on("name", "=", "MultiThreadQuery-" + i);
             where.on("state", "=", SettingState.ENABLED);
             QueryThread thread = new QueryThread(where, latch, counter, 0L);
             thread.setName("setting-" + i + " group-" + times);

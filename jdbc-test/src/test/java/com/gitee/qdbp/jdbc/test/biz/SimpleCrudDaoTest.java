@@ -25,6 +25,7 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
+@Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
 public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
 
@@ -33,14 +34,14 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private QdbcBoot qdbcBoot;
 
-    @Test(priority = 2)
+    @Test(priority = 1)
     public void testVersionQuery() {
         DbVersion version = qdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
         log.debug("DbVersion: {}", version);
         Assert.assertNotNull(version);
     }
 
-    @Test(priority = 3)
+    @Test(priority = 2)
     public void testUserBeanQuery() {
         SysUserEntity bean = new SysUserEntity();
         bean.setUserCode("super");
