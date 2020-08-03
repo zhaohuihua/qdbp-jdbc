@@ -1,6 +1,8 @@
 package com.gitee.qdbp.jdbc.test.model;
 
 import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Table;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
 
@@ -10,20 +12,26 @@ import com.gitee.qdbp.jdbc.test.enums.SettingState;
  * @author zhaohuihua
  * @version 20200208
  */
+@Table(name="TEST_SETTING")
 public class SysSettingEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
-    /** 表名 **/
-    public static final String TABLE = "TEST_SETTING";
 
+    @Column
     private String name;
+    @Column
     private String value;
+    @Column
     private Integer version;
+    @Column
     private String remark;
+    @Column
     private SettingState state;
-    /** 与父类重复的字段 **/
+    /** 测试与父类重复的字段 **/
+    @Column
     private Date createTime;
+    @Column
     private Date updateTime;
 
     public String getName() {

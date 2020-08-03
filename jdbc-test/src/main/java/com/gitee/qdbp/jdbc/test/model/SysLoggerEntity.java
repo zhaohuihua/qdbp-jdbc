@@ -1,5 +1,7 @@
 package com.gitee.qdbp.jdbc.test.model;
 
+import javax.persistence.Column;
+import javax.persistence.Table;
 import com.gitee.qdbp.able.jdbc.annotations.ColumnDefault;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 
@@ -9,15 +11,17 @@ import com.gitee.qdbp.jdbc.test.base.CommEntity;
  * @author zhaohuihua
  * @version 20200208
  */
+@Table(name="TEST_LOGGER")
 public class SysLoggerEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
-    /** 表名 **/
-    public static final String TABLE = "TEST_LOGGER";
 
+    @Column
     private String name;
+    @Column
     private String content;
+    @Column
     @ColumnDefault("1")
     private Integer sortIndex;
 

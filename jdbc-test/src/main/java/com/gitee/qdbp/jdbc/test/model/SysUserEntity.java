@@ -2,6 +2,8 @@ package com.gitee.qdbp.jdbc.test.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Table;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.AccountType;
@@ -15,49 +17,65 @@ import com.gitee.qdbp.jdbc.test.enums.UserState;
  * @author zhh
  * @version 170712
  */
+@Table(name="SYS_USER_CORE_INFO")
 public class SysUserEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    /** 表名 **/
-    public static final String TABLE = "sys_user_core_info";
-
     /** 租户编号 **/
+    @Column
     private String tenantCode;
     /** 用户类型 **/
+    @Column
     private AccountType userType;
     /** 部门编号 **/
+    @Column
     private String deptCode;
     /** 账号/工号 **/
+    @Column
     private String userCode;
     /** 登录用户名 **/
+    @Column
     private String userName;
     /** 昵称 **/
+    @Column
     private String nickName;
     /** 真实姓名 **/
+    @Column
     private String realName;
     /** 电话 **/
+    @Column
     private String phone;
     /** 邮箱 **/
+    @Column
     private String email;
     /** 性别(0.未知|1.男|2.女) **/
+    @Column
     private Gender gender;
     /** 头像 **/
+    @Column
     private String photo;
     /** 城市 **/
+    @Column
     private String city;
     /** 身份证 **/
+    @Column
     private String identity;
     /** 密码 **/
+    @Column
     private String password;
     /** 是否为超级用户 **/
+    @Column
     private Boolean superman;
     /** 选项 **/
+    @Column
     private UserCoreOptions options;
     /** 状态(0.正常|1.锁定|2.待激活|3.注销) **/
+    @Column
     private UserState userState;
     /** 注册来源 **/
+    @Column
     private UserSource userSource;
 
     /** 获取租户编号 **/

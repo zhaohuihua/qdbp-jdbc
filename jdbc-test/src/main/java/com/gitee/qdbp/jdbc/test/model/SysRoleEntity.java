@@ -2,35 +2,44 @@ package com.gitee.qdbp.jdbc.test.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Table;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
 
+@Table(name = "SYS_ROLE_CORE_INFO")
 public class SysRoleEntity extends CommEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    /** 表名 **/
-    public static final String TABLE = "sys_role_core_info";
-
     /** 租户编号 **/
+    @Column
     private String tenantCode;
     /** 用户类型 **/
+    @Column
     private UserType userType;
     /** 角色名称 **/
+    @Column
     private String roleName;
     /** 描述 **/
+    @Column
     private String roleDesc;
     /** 排序号(越小越靠前) **/
+    @Column
     private Integer sortIndex;
     /** 创建人ID **/
+    @Column
     private String creatorId;
     /** 创建人姓名 **/
+    @Column
     private String creatorName;
     /** 默认角色(如果用户没有任何角色,默认会赋予该角色) **/
+    @Column
     private Boolean defaults;
     /** 选项 **/
+    @Column
     private RoleOptions options;
 
     /** 获取租户编号 **/

@@ -20,7 +20,8 @@
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter" />
 		</property>
 		<property name="tableInfoScans">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans">
+				<property name="useMissAnnotationField" value="false" />
 				<property name="primaryKeyMatcher">
 					<bean class="com.gitee.qdbp.able.matches.EqualsStringMatcher">
 						<constructor-arg value="${qdbc.entityData.primaryKeyField:id}" />
@@ -30,9 +31,7 @@
 					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleNameConverter" />
 				</property>
 				<property name="tableNameScans">
-					<bean class="com.gitee.qdbp.jdbc.plugins.impl.StaticFieldTableNameScans">
-						<constructor-arg value="${qdbc.entityData.tableNameField:TABLE}" />
-					</bean>
+					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleTableNameScans" />
 				</property>
 				<property name="commonFieldResolver">
 					<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleCommonFieldResolver">

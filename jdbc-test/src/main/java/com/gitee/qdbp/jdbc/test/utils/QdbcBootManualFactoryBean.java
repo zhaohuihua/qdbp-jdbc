@@ -39,7 +39,7 @@ public class QdbcBootManualFactoryBean extends QdbcBootFactoryBean {
     public void afterPropertiesSet() {
         ApplicationContext context = getApplicationContext();
         DbPluginContainer plugins = new DbPluginContainer();
-        registerTableInfoScans(plugins, context, false);
+        registerTableInfoScans(plugins, context, true);
         registerToDbValueConverter(plugins, context);
         registerMapToBeanConverter(plugins, context);
         registerEntityFieldFillStrategy(plugins, context);

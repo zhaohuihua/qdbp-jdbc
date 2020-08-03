@@ -2,23 +2,26 @@ package com.gitee.qdbp.jdbc.test.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Table;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.base.IdEntity;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
+@Table(name = "SYS_USER_ROLE_REF")
 public class SysUserRoleEntity extends IdEntity {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
 
-    /** 表名 **/
-    public static final String TABLE = "sys_user_role_ref";
-
     /** 用户ID **/
+    @Column
     private String userId;
     /** 角色ID **/
+    @Column
     private String roleId;
     /** 数据状态:1为正常|随机数为已删除 **/
+    @Column
     private DataState dataState;
 
     /** 获取用户ID **/

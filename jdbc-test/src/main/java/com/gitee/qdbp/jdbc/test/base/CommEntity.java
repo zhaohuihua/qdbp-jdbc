@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.test.base;
 
 import java.util.Date;
+import javax.persistence.Column;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
 public class CommEntity extends IdEntity {
@@ -8,8 +9,10 @@ public class CommEntity extends IdEntity {
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
     /** 创建时间 **/
+    @Column
     private Date createTime;
     /** 数据状态:1为正常|随机数为已删除 **/
+    @Column
     private DataState dataState;
 
     /** 获取创建时间 **/

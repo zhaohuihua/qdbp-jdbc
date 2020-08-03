@@ -14,12 +14,12 @@ import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleTableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.tools.utils.Config;
@@ -68,7 +68,7 @@ public class DbPluginContainer {
 
     private static void checkAndSetDefaultPorperty(DbPluginContainer container) {
         if (container.getTableInfoScans() == null) {
-            container.setTableInfoScans(new SimpleTableInfoScans());
+            container.setTableInfoScans(new PersistenceAnnotationTableScans());
         }
         if (container.getEntityFieldFillStrategy() == null) {
             container.setEntityFieldFillStrategy(new SimpleEntityFieldFillStrategy());
