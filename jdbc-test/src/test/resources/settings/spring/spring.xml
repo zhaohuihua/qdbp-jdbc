@@ -32,7 +32,7 @@
 		<property name="locations">
 			<list>
 				<value>classpath:settings/spring/qdbc.properties</value>
-				<value>classpath:setting.properties</value>
+				<value>classpath:jdbc.*.properties</value>
 			</list>
 		</property>
 	</bean>
@@ -43,6 +43,8 @@
 	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
+				<bean class="com.gitee.qdbp.jdbc.converter.NumberToBooleanConverter"/>
+				<bean class="com.gitee.qdbp.jdbc.converter.StringToDateConverter"/>
 				<bean class="com.gitee.qdbp.jdbc.support.EnumExcludedToLastConverter">
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.DataState" />
 				</bean>
