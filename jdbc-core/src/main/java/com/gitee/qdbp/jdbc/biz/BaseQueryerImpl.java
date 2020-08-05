@@ -108,7 +108,7 @@ public abstract class BaseQueryerImpl<T> {
         }
         entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
-        return this.doList(fields, where, odpg);
+        return this.doList(fields, readyWhere, odpg);
     }
 
     public List<T> list(DbWhere where, Orderings orderings) throws ServiceException {
