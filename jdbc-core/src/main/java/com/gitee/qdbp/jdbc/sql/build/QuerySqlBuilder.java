@@ -39,7 +39,9 @@ public class QuerySqlBuilder {
         buffer.ad("SELECT").ad(sqlHelper.buildSelectFieldsSql(fields));
         buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
+        if (VerifyTools.isNotBlank(where)) {
+            buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
+        }
         return buffer.out();
     }
 
@@ -63,7 +65,9 @@ public class QuerySqlBuilder {
         buffer.ad("SELECT").ad(sqlHelper.buildSelectFieldsSql(fields));
         buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.newline().ad(whereSql);
+        if (VerifyTools.isNotBlank(whereSql)) {
+            buffer.newline().ad(whereSql);
+        }
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.newline().ad(sqlHelper.buildOrderBySql(orderings, true));
         }
@@ -80,7 +84,9 @@ public class QuerySqlBuilder {
         // SELECT COUNT(*) FROM
         buffer.ad("SELECT").ad("COUNT(*)").ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.newline().ad(whereSql);
+        if (VerifyTools.isNotBlank(whereSql)) {
+            buffer.newline().ad(whereSql);
+        }
         return buffer.out();
     }
 
@@ -99,7 +105,9 @@ public class QuerySqlBuilder {
         buffer.ad(fieldSql).ad(',').ad("COUNT(*)");
         buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
+        if (VerifyTools.isNotBlank(where)) {
+            buffer.newline().ad(sqlHelper.buildWhereSql(where, true));
+        }
         // GROUP BY ...
         buffer.newline().ad("GROUP BY").ad(groupBySql);
         return buffer.out();
@@ -122,7 +130,9 @@ public class QuerySqlBuilder {
         buffer.ad(sqlHelper.buildSelectFieldsSql(fieldName));
         buffer.newline().ad(sqlHelper.buildFromSql());
         // WHERE ...
-        buffer.newline().ad(where);
+        if (VerifyTools.isNotBlank(where)) {
+            buffer.newline().ad(where);
+        }
         // ORDER BY ...
         if (VerifyTools.isNotBlank(orderings)) {
             buffer.newline().ad(sqlHelper.buildOrderBySql(orderings, true));
