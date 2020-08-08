@@ -1,5 +1,9 @@
 package com.gitee.qdbp.jdbc.support;
 
+import java.math.BigDecimal;
+import java.sql.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -12,9 +16,12 @@ import org.springframework.core.convert.converter.GenericConverter;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.biz.QdbcBootImpl;
-import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
+import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
+import com.gitee.qdbp.jdbc.support.convert.NumberToBooleanConverter;
+import com.gitee.qdbp.jdbc.support.convert.StringToDateConverter;
+import com.gitee.qdbp.jdbc.support.enums.AllEnumConverterRegister;
 
 /**
  * QdbcBootFactoryBean<br>
@@ -25,8 +32,10 @@ import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
  */
 public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingBean, ApplicationContextAware {
 
+    private static Logger log = LoggerFactory.getLogger(QdbcBootFactoryBean.class);
     private boolean singleton = true;
     private boolean initialized = false;
+    private boolean useDefaultConverter = true;
     private QdbcBootImpl singletonInstance;
 
     private ApplicationContext context;
@@ -49,13 +58,35 @@ public class QdbcBootFactoryBean implements FactoryBean<QdbcBoot>, InitializingB
             PluginInstanceScanTools.scanAndRegisterBatchInsertExecutor(pluginContainer, context);
             PluginInstanceScanTools.scanAndRegisterBatchUpdateExecutor(pluginContainer, context);
             DbPluginContainer.init(pluginContainer);
-            if (conversionService != null) {
-                // 设置插件的ConversionService
-                fillConversionService(pluginContainer, conversionService);
-                // 如果插件是Converter, 将其注册到ConverterRegistry
-                registerConverter(pluginContainer, conversionService);
-            }
         }
+        if (conversionService != null) {
+            initDefaultConverter();
+            // 设置插件的ConversionService
+            fillConversionService(pluginContainer, conversionService);
+            // 如果插件是Converter, 将其注册到ConverterRegistry
+            registerConverter(pluginContainer, conversionService);
+        }
+    }
+
+    protected void initDefaultConverter() {
+        if (!useDefaultConverter || conversionService == null) {
+            return;
+        }
+        if (!(conversionService instanceof ConverterRegistry)) {
+            return;
+        }
+        ConverterRegistry registry = (ConverterRegistry) conversionService;
+        if (!conversionService.canConvert(String.class, Date.class)) {
+            registry.addConverter(new StringToDateConverter());
+            log.debug("Registered String to Date default converter: {}", StringToDateConverter.class);
+        }
+        // oracle, 如果数字字段定义的类型是SMALLINT, 将会返回BigDecimal
+        if (!conversionService.canConvert(BigDecimal.class, Boolean.class)) {
+            registry.addConverter(new NumberToBooleanConverter());
+            log.debug("Registered BigDecimal to Boolean default converter: {}", NumberToBooleanConverter.class);
+        }
+        // 注册其他枚举值转换处理类: oracle的BigDecimal转Enum等
+        AllEnumConverterRegister.registerEnumConverterFactory(registry);
     }
 
     /** 设置插件的ConversionService **/
