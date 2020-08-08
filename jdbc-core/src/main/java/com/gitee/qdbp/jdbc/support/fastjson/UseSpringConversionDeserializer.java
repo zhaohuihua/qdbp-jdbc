@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.support;
+package com.gitee.qdbp.jdbc.support.fastjson;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -13,6 +13,7 @@ import com.alibaba.fastjson.parser.JSONToken;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.parser.deserializer.ObjectDeserializer;
 import com.alibaba.fastjson.util.TypeUtils;
+import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 
 /**
  * 调用Spring的转换服务体系进行反序列化的处理类(不支持数组)

@@ -7,7 +7,7 @@ import org.springframework.core.convert.ConversionService;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
-import com.gitee.qdbp.jdbc.support.UseSpringConversionDeserializer;
+import com.gitee.qdbp.jdbc.support.fastjson.UseSpringConversionDeserializer;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**

@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.support;
+package com.gitee.qdbp.jdbc.support.enums;
 
 /**
  * 枚举例外项转换为枚举最后一项的转换类
