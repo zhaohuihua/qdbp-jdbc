@@ -5,11 +5,11 @@
 	<parent>
 		<groupId>com.gitee.qdbp</groupId>
 		<artifactId>qdbp-parent</artifactId>
-		<version>4.0.0</version>
+		<version>5.0.0</version>
 	</parent>
 
 	<artifactId>qdbp-jdbc-test</artifactId>
-	<version>2.0.0</version>
+	<version>3.0.0</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
 	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
@@ -24,26 +24,44 @@
 		<project.build.jdk>1.8</project.build.jdk>
 	</properties>
 
+	<profiles>
+		<profile>
+			<id>mysql</id>
+			<properties> <jdbc.active>mysql</jdbc.active> </properties>
+			<activation> <activeByDefault>true</activeByDefault> </activation>
+		</profile>
+		<profile>
+			<id>oracle</id>
+			<properties> <jdbc.active>oracle</jdbc.active> </properties>
+		</profile>
+		<profile>
+			<id>db2</id>
+			<properties> <jdbc.active>db2</jdbc.active> </properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-able</artifactId>
+			<version>5.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-tools</artifactId>
+			<version>5.0.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-core</artifactId>
-			<version>2.0.1</version>
+			<version>3.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-spring</artifactId>
-			<version>2.0.0</version>
+			<version>3.0.0</version>
 		</dependency>
 		
 		<dependency>
@@ -125,4 +143,32 @@
 
 	</dependencies>
 
+	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<excludes>
+					<exclude>jdbc.*.properties</exclude>
+				</excludes>
+			</testResource>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>jdbc.${jdbc.active}.properties</include>
+				</includes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
