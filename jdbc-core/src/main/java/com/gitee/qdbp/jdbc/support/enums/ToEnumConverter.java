@@ -185,7 +185,7 @@ public class ToEnumConverter<E extends Enum<E>> implements ConditionalGenericCon
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
         if (targetType.isAssignableTo(targetDescriptor)) {
             for (ConvertiblePair pair : convertiblePairs) {
-                if (sourceType.getObjectType().isAssignableFrom(pair.getSourceType())) {
+                if (pair.getSourceType().isAssignableFrom(sourceType.getObjectType())) {
                     return true;
                 }
             }

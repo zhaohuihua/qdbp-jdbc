@@ -27,7 +27,9 @@ public class EnumInterfaceConverter<I extends EnumInterface, E extends Enum<E>> 
             String msg = String.format(fmt, enumType.getSimpleName(), interfaceType.getSimpleName());
             throw new IllegalArgumentException(msg);
         }
-        this.interfaceType = interfaceType;
+
+        // 初始化目标类型
+        this.initTargetType(interfaceType);
     }
 
     public EnumInterfaceConverter(Class<I> interfaceType, Class<E> enumType, String defaultValue) {
@@ -55,13 +57,17 @@ public class EnumInterfaceConverter<I extends EnumInterface, E extends Enum<E>> 
         this.nullToDefault = nullToDefault;
     }
 
-    @Override
-    protected void initConvertiblePairs() {
+    private void initTargetType(Class<I> interfaceType) {
+        this.interfaceType = interfaceType;
+        // 修改目标类型
         this.setTargetDescriptor(TypeDescriptor.valueOf(interfaceType));
-        Set<ConvertiblePair> convertiblePairs = new HashSet<>();
-        convertiblePairs.add(new ConvertiblePair(String.class, interfaceType));
-        convertiblePairs.add(new ConvertiblePair(Number.class, interfaceType));
-        this.setConvertibleTypes(convertiblePairs);
+        // 替换ConvertibleTypes中的目标类型
+        Set<ConvertiblePair> oldPairs = this.getConvertibleTypes();
+        Set<ConvertiblePair> newPairs = new HashSet<>();
+        for (ConvertiblePair item : oldPairs) {
+            newPairs.add(new ConvertiblePair(item.getSourceType(), interfaceType));
+        }
+        this.setConvertibleTypes(newPairs);
     }
 
     /** 获取接口类型 **/
