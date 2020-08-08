@@ -6,6 +6,7 @@ import java.util.List;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 
@@ -17,6 +18,9 @@ import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
  */
 public interface SqlDialect {
 
+    /** 获取数据库版本信息 **/
+    DbVersion getDbVersion();
+
     /** 生成新的分页SQL对象, 原对象不受影响 **/
     SqlBuffer buildPagingSql(SqlBuffer buffer, Paging paging);
 
@@ -25,7 +29,7 @@ public interface SqlDialect {
 
     /** 转换为按拼音排序的表达式 **/
     String toPinyinOrderByExpression(String columnName);
-    
+
     /** 当前时间的数据库原生写法 **/
     String rawCurrentTimestamp();
 

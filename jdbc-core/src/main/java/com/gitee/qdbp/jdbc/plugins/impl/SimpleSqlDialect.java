@@ -36,6 +36,11 @@ public class SimpleSqlDialect implements SqlDialect {
         this.dbVersion = dbVersion;
     }
 
+    /** 获取数据库版本信息 **/
+    public DbVersion getDbVersion() {
+        return dbVersion;
+    }
+
     @Override
     public String rawCurrentTimestamp() {
         DbType dbType = dbVersion.getDbType();
