@@ -1,9 +1,11 @@
 package com.gitee.qdbp.jdbc.support;
 
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +14,7 @@ import com.gitee.qdbp.tools.crypto.GlobalCipherTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.PropertyTools;
+import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 
 /**
@@ -119,6 +122,16 @@ public class AutoDruidDataSource extends DruidDataSource {
     protected String dbschema;
     protected String dbaddress;
 
+    /**
+     * 设置配置参数<br>
+     * 这个方法要在最前面调用, 因为配置信息中的参数优先级应低于直接通过setter方法设置的<br>
+     * 在最前面调用, 后面通过setter方法设置的参数就能覆盖配置信息中的参数<br>
+     * 这里面有2部分配置:<br>
+     * 1. DruidDataSource连接池配置信息, 这部分在setProperties()时加载;<br>
+     * 2. AutoDruidDataSource新增的, 与数据库类型相关的配置信息, 这部分在init()方法中通过findPropertyUseSuffix()调用<br>
+     * 
+     * @param properties 配置信息
+     */
     public void setProperties(Properties properties) {
         // 查找默认配置文件
         Properties defaults = loadDefaultProperties();
@@ -126,6 +139,49 @@ public class AutoDruidDataSource extends DruidDataSource {
             defaults.putAll(properties);
         }
         this.properties = defaults;
+
+        // 加载配置信息中的连接池信息
+        this.loadConfigFieldValue(properties);
+    }
+
+    // 加载配置信息中的连接池信息
+    protected void loadConfigFieldValue(Properties properties) {
+        // String excludeFields = "config,name,url,jdbcUrl,driverClassName,validationQuery,username,password";
+        String excludeFields = "config,name,url,jdbcUrl";
+        Map<String, ?> excludeMaps = ConvertTools.toKeyMaps(excludeFields);
+        Method[] setters = ReflectTools.getAllSetter(DruidDataSource.class);
+        String propertyKey = "jdbc.datasource.";
+        for (Method setter : setters) {
+            String methodName = setter.getName();
+            String fieldName = methodName.substring(3);
+            fieldName = fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
+            if (excludeMaps.containsKey(fieldName)) {
+                continue;
+            }
+            String configKey = propertyKey + fieldName;
+            String configValue = properties.getProperty(configKey);
+            if (configValue == null || configValue.length() == 0) {
+                continue;
+            }
+            Class<?> paramType = setter.getParameterTypes()[0];
+            Object realValue = null;
+            if (paramType == String.class) {
+                realValue = configValue;
+            } else if (paramType == boolean.class || paramType == Boolean.class) {
+                realValue = ConvertTools.toBoolean(configValue, null);
+            } else if (paramType == int.class || paramType == Integer.class) {
+                realValue = ConvertTools.toInteger(configValue, null);
+            } else if (paramType == long.class || paramType == Long.class) {
+                realValue = ConvertTools.toLong(configValue, null);
+            } else if (paramType == double.class || paramType == Double.class) {
+                realValue = ConvertTools.toDouble(configValue, null);
+            } else if (paramType == float.class || paramType == Float.class) {
+                realValue = ConvertTools.toFloat(configValue, null);
+            }
+            if (realValue != null) {
+                ReflectTools.invokeMethod(this, setter, realValue);
+            }
+        }
     }
 
     protected Properties loadDefaultProperties() {
