@@ -43,12 +43,12 @@
 	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
 		<property name="converters">
 			<list>
-				<bean class="com.gitee.qdbp.jdbc.converter.NumberToBooleanConverter"/>
-				<bean class="com.gitee.qdbp.jdbc.converter.StringToDateConverter"/>
-				<bean class="com.gitee.qdbp.jdbc.support.EnumExcludedToLastConverter">
+				<bean class="com.gitee.qdbp.jdbc.support.convert.NumberToBooleanConverter"/>
+				<bean class="com.gitee.qdbp.jdbc.support.convert.StringToDateConverter"/>
+				<bean class="com.gitee.qdbp.jdbc.support.enums.EnumExcludedToLastConverter">
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.DataState" />
 				</bean>
-				<bean class="com.gitee.qdbp.jdbc.support.EnumInterfaceConverter">
+				<bean class="com.gitee.qdbp.jdbc.support.enums.EnumInterfaceConverter">
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.AccountType" />
 					<constructor-arg value="com.gitee.qdbp.jdbc.test.enums.UserType" />
 				</bean>

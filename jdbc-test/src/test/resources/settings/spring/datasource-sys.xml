@@ -95,6 +95,7 @@
 
 	<bean id="sysQdbcBoot" class="com.gitee.qdbp.jdbc.support.QdbcBootFactoryBean">
 		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
+		<property name="conversionService" ref="conversionService" />
 		<property name="pluginContainer" ref="dbPluginContainer" />
 	</bean>
 
