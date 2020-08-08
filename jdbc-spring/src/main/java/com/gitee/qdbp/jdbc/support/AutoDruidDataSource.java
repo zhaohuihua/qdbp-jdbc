@@ -121,12 +121,19 @@ public class AutoDruidDataSource extends DruidDataSource {
 
     public void setProperties(Properties properties) {
         // 查找默认配置文件
+        Properties defaults = loadDefaultProperties();
+        if (properties != null) {
+            defaults.putAll(properties);
+        }
+        this.properties = defaults;
+    }
+
+    protected Properties loadDefaultProperties() {
+        // 查找默认配置文件
         // 1. {classpath}/settings/jdbc/druid.auto.properties<br>
         // 2. qdbc-jdbc-spring.jar!/settings/jdbc/druid.auto.properties<br>
         URL path = PathTools.findResource("settings/jdbc/druid.auto.properties", AutoDruidDataSource.class);
-        Properties defaults = PropertyTools.load(path);
-        defaults.putAll(properties);
-        this.properties = defaults;
+        return PropertyTools.load(path);
     }
 
     /**
@@ -203,7 +210,7 @@ public class AutoDruidDataSource extends DruidDataSource {
             return;
         }
         if (properties == null) {
-            throw new IllegalArgumentException("Missing argument for properties");
+            properties = loadDefaultProperties();
         }
         if (dbconfig == null || dbconfig.trim().length() == 0) {
             throw new IllegalArgumentException("Missing argument for dbconfig");
