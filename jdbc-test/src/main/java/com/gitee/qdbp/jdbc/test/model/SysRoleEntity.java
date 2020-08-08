@@ -8,7 +8,7 @@ import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.base.CommEntity;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
 
-@Table(name = "SYS_ROLE_CORE_INFO")
+@Table(name = "TEST_ROLE_CORE_INFO")
 public class SysRoleEntity extends CommEntity {
 
     /** 版本序列号 **/

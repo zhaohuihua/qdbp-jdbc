@@ -8,7 +8,7 @@ import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.base.IdEntity;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
 
-@Table(name = "SYS_USER_ROLE_REF")
+@Table(name = "TEST_USER_ROLE_REF")
 public class SysUserRoleEntity extends IdEntity {
 
     /** 版本序列号 **/

@@ -17,7 +17,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserState;
  * @author zhh
  * @version 170712
  */
-@Table(name="SYS_USER_CORE_INFO")
+@Table(name="TEST_USER_CORE_INFO")
 public class SysUserEntity extends CommEntity {
 
     /** 版本序列号 **/
