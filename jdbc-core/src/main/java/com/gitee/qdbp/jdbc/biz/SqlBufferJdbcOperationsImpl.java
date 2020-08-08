@@ -50,6 +50,13 @@ public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
     private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
 
+    public SqlBufferJdbcOperationsImpl() {
+    }
+
+    public SqlBufferJdbcOperationsImpl(NamedParameterJdbcOperations jdbcOperations) {
+        this.setNamedParameterJdbcOperations(jdbcOperations);
+    }
+
     /**
      * 查找数据库版本信息(从当前数据源查找)
      * 

@@ -26,6 +26,13 @@ public class QdbcBootImpl implements QdbcBoot {
     /** 批量执行时的默认大小限制(0为无限制) **/
     protected int defaultBatchSize = DEFAULT_BATCH_SIZE;
 
+    public QdbcBootImpl() {
+    }
+
+    public QdbcBootImpl(SqlBufferJdbcOperations operations) {
+        this.sqlBufferJdbcOperations = operations;
+    }
+
     /** 批量执行时的默认大小限制(0为无限制) **/
     public int getDefaultBatchSize() {
         return defaultBatchSize;

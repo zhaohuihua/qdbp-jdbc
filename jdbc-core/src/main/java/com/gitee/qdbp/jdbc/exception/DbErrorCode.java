@@ -27,7 +27,9 @@ public enum DbErrorCode implements IResultMessage {
     /** 参数有误, 未指定字段列表 **/
     DB_INCLUDE_FIELDS_IS_EMPTY("参数有误, 未指定字段列表"),
     /** 该数据不支持逻辑删除 **/
-    DB_UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除");
+    DB_UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除"),
+    /** 数据源初始化失败 **/
+    DB_DATA_SOURCE_INIT_ERROR("数据源初始化失败");
 
     /** 错误描述 **/
     private final String message;
