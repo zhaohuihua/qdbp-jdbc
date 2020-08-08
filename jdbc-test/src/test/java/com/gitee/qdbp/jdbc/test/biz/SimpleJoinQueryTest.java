@@ -20,7 +20,7 @@ import com.gitee.qdbp.jdbc.test.enums.DataState;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
-import com.gitee.qdbp.jdbc.test.model.UserRole;
+import com.gitee.qdbp.jdbc.test.model.UserRoleResult;
 import com.gitee.qdbp.tools.utils.JsonTools;
 
 @Test
@@ -53,9 +53,9 @@ public class SimpleJoinQueryTest extends AbstractTestNGSpringContextTests {
         // @formatter:on
         DbWhere where = new DbWhere();
         where.on("u.userCode", "in", userCodes);
-        JoinQueryer<UserRole> query = qdbcBoot.buildJoinQuery(tables, UserRole.class);
-        // UserRole = { SysUser user; SysRole role; }
-        PageList<UserRole> userRoles = query.list(where, OrderPaging.NONE);
+        JoinQueryer<UserRoleResult> query = qdbcBoot.buildJoinQuery(tables, UserRoleResult.class);
+        // UserRoleResult = { SysUser user; SysRole role; }
+        PageList<UserRoleResult> userRoles = query.list(where, OrderPaging.NONE);
         log.debug("UserRolesQueryResult: {}", JsonTools.toLogString(userRoles));
         Assert.assertNotNull(userRoles);
     }
