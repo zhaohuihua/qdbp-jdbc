@@ -14,12 +14,21 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.biz.QdbcBootImpl;
 import com.gitee.qdbp.jdbc.biz.SqlBufferJdbcOperationsImpl;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
+import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 
 /**
- * QdbcBoot工具类
+ * QdbcBoot工具类<br>
+ * <br>
+ * 通过QdbcBootTools提供的是一个默认版本<br>
+ * 未提供的特性包括:<br>
+ * • TableInfoScans.commonFieldResolver: 不会将公共字段放在查询列表的最后<br>
+ * • EntityFieldFillStrategy.entityFillBizResolver: 不会自动填充创建人/创建时间等业务参数<br>
+ * • EntityDataStateFillStrategy: 不会自动填充数据状态, 不支持逻辑删除<br>
+ * 需要通过DbPluginContainer.defaults()针对具体项目进行定制配置。<br>
  *
  * @author zhaohuihua
  * @version 20200808
+ * @see DbPluginContainer#checkAndSetDefaultPorperty(DbPluginContainer)
  */
 public class QdbcBootTools {
 
