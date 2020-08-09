@@ -437,17 +437,21 @@ public class DbPluginContainer {
         this.batchUpdateExecutors.add(batchUpdateExecutor);
     }
 
+    /** Where条件的自定义条件构造器 **/
     private List<WhereSqlBuilder<? extends WhereCondition>> whereSqlBuilders = new ArrayList<>();
 
+    /** 增加Where条件的自定义条件构造器 **/
     public <T extends WhereCondition> void addWhereSqlBuilder(WhereSqlBuilder<T> builder) {
         whereSqlBuilders.add(builder);
     }
 
+    /** 设置Where条件的自定义条件构造器 **/
     public <T extends WhereCondition> void setWhereSqlBuilders(List<WhereSqlBuilder<T>> builders) {
         whereSqlBuilders.clear();
         whereSqlBuilders.addAll(builders);
     }
 
+    /** 获取Where条件的自定义条件构造器 **/
     // JDK8+
     // public <T extends WhereCondition, C extends T, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<C> type) {
     @SuppressWarnings("unchecked")
@@ -465,17 +469,21 @@ public class DbPluginContainer {
         return null;
     }
 
+    /** DbUpdate条件的自定义条件构造器 **/
     private List<UpdateSqlBuilder<? extends UpdateCondition>> UpdateSqlBuilders = new ArrayList<>();
 
+    /** 增加DbUpdate条件的自定义条件构造器 **/
     public <T extends UpdateCondition> void addUpdateSqlBuilder(UpdateSqlBuilder<T> builder) {
         UpdateSqlBuilders.add(builder);
     }
 
+    /** 设置DbUpdate条件的自定义条件构造器 **/
     public <T extends UpdateCondition> void setUpdateSqlBuilders(List<UpdateSqlBuilder<T>> builders) {
         UpdateSqlBuilders.clear();
         UpdateSqlBuilders.addAll(builders);
     }
 
+    /** 获取DbUpdate条件的自定义条件构造器 **/
     // JDK8+
     // public <T extends UpdateCondition, C extends T, B extends UpdateSqlBuilder<T>> B getUpdateSqlBuilder(Class<C> type) {
     @SuppressWarnings("unchecked")
@@ -493,17 +501,21 @@ public class DbPluginContainer {
         return null;
     }
 
+    /** 排序条件的自定义条件构造器 **/
     private List<OrderBySqlBuilder<? extends OrderByCondition>> OrderBySqlBuilders = new ArrayList<>();
 
+    /** 增加排序条件的自定义条件构造器 **/
     public <T extends OrderByCondition> void addOrderBySqlBuilder(OrderBySqlBuilder<T> builder) {
         OrderBySqlBuilders.add(builder);
     }
 
+    /** 设置排序条件的自定义条件构造器 **/
     public <T extends OrderByCondition> void setOrderBySqlBuilders(List<OrderBySqlBuilder<T>> builders) {
         OrderBySqlBuilders.clear();
         OrderBySqlBuilders.addAll(builders);
     }
 
+    /** 获取排序条件的自定义条件构造器 **/
     @SuppressWarnings("unchecked")
     public <T extends OrderByCondition, B extends OrderBySqlBuilder<T>> B getOrderBySqlBuilder(Class<T> type) {
         for (OrderBySqlBuilder<? extends OrderByCondition> item : OrderBySqlBuilders) {
