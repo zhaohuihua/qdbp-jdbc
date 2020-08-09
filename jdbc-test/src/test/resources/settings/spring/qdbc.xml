@@ -104,12 +104,14 @@
 		</property>
 		<property name="batchInsertExecutors">
 			<list>
-				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiValuesExecutor"/>
+				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByUnionAllFromDualExecutor"/>
+				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiRowsExecutor"/>
 			</list>
 		</property>
 		<property name="batchUpdateExecutors">
 			<list>
 				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor"/>
+				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor"/>
 			</list>
 		</property>
 		-->

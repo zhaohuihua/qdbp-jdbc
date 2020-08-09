@@ -40,7 +40,7 @@ public class BatchUpdateByCaseWhenExecutor implements BatchUpdateExecutor {
     /** 是否支持指定数据库 **/
     @Override
     public boolean supports(DbVersion version) {
-        String key = "qdbc." + this.getClass().getSimpleName();
+        String key = "qdbc.supports." + this.getClass().getSimpleName();
         String defvalue = "MySQL;MariaDB;Oracle;DB2";
         String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
         return version.matchesWith(options);
