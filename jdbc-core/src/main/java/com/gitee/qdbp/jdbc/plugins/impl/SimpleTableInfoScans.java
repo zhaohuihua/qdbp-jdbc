@@ -24,6 +24,7 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
     /** 默认构造函数 **/
     public SimpleTableInfoScans() {
         this.setTableNameScans(new SimpleTableNameScans());
+        this.setNameConverter(new SimpleNameConverter());
     }
 
     /** 查找主键字段的处理器 **/

@@ -29,6 +29,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     /** 默认构造函数 **/
     public PersistenceAnnotationTableScans() {
         this.setTableNameScans(new SimpleTableNameScans());
+        this.setNameConverter(new SimpleNameConverter());
     }
 
     /** 是否使用无注解的字段 **/
