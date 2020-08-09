@@ -2,7 +2,7 @@ package com.gitee.qdbp.jdbc.test.biz;
 
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
@@ -77,7 +77,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
         try {
             sysSettingService.createSetting(entity, TestModel.mainErrorLogSuccess);
         } catch (ServiceException e) {
-            Assert.assertTrue(e.getCause() instanceof DataIntegrityViolationException);
+            Assert.assertTrue(e.getCause() instanceof DataAccessException);
         }
         { // 主记录失败
             DbWhere where = new DbWhere();
