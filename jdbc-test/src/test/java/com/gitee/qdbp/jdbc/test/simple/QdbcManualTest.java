@@ -1,13 +1,13 @@
 package com.gitee.qdbp.jdbc.test.simple;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.fastjson.JSON;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.support.QdbcBootTools;
 import com.gitee.qdbp.jdbc.test.enums.SettingState;
 import com.gitee.qdbp.jdbc.test.model.SysSettingEntity;
-import com.gitee.qdbp.tools.utils.JsonTools;
 
 /**
  * 纯手工连接数据库测试类
@@ -61,7 +61,7 @@ public class QdbcManualTest {
         }
         { // 测试查询
             SysSettingEntity entity = dao.findById(id);
-            System.out.println(JsonTools.toLogString(entity));
+            System.out.println(JSON.toJSONString(entity));
         }
     }
 }
