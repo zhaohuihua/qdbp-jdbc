@@ -36,3 +36,19 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
 * SQL模板首先应该是SQL，然后其中有一些XML的判断条件和循环语句，而不应该是XML格式。
 
 详见《[SQL模板构思](https://yuque.com/zhaohuihua/qdbc/bvk5gy)》(开发中)。
+
+# POM依赖
+* https://mvnrepository.com/artifact/com.gitee.qdbp/qdbp-jdbc-core
+* https://mvnrepository.com/artifact/com.gitee.qdbp/qdbp-jdbc-spring
+```xml
+    <dependency>
+        <groupId>com.gitee.qdbp</groupId>
+        <artifactId>qdbp-jdbc-core</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.gitee.qdbp</groupId>
+        <artifactId>qdbp-jdbc-spring</artifactId>
+        <version>3.0.0</version>
+    </dependency>
+```
