@@ -7,8 +7,8 @@ import com.gitee.qdbp.tools.utils.VersionCodeTools;
 
 /**
  * 数据库版本信息<br>
- * versionString纯粹是描述信息, 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; 
- * Oralce.12c返回的是Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+ * versionString纯粹是描述信息, 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; Oralce.12c返回的是Oracle Database 12c Enterprise Edition
+ * Release 12.2.0.1.0 - 64bit Production
  *
  * @author zhaohuihua
  * @version 190602
@@ -134,7 +134,7 @@ public class DbVersion implements Serializable {
             return 0;
         }
     }
-    
+
     /**
      * 当前数据库类型与版本是否满足指定的最低要求<br>
      * 先对比数据库类型, 如果一致再对比版本号<br>
@@ -157,7 +157,7 @@ public class DbVersion implements Serializable {
         }
         return false;
     }
-    
+
     private boolean itemMatchesWith(String item) {
         int index = item.indexOf(':');
         if (index < 0) { // 只指定了类型
@@ -179,6 +179,12 @@ public class DbVersion implements Serializable {
         }
         StringBuilder buffer = new StringBuilder();
         buffer.append(dbType);
+        if (this.majorVersion >= 0) {
+            buffer.append('.').append(this.majorVersion);
+            if (this.minorVersion >= 0) {
+                buffer.append('.').append(this.minorVersion);
+            }
+        }
         if (VerifyTools.isNotBlank(versionString)) {
             buffer.append('(').append(versionString).append(')');
         }
