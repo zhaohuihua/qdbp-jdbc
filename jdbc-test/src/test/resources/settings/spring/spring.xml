@@ -31,7 +31,7 @@
 		<property  name="fileEncoding" value="UTF-8" />
 		<property name="locations">
 			<list>
-				<value>classpath:settings/spring/datasource.properties</value>
+				<value>classpath:settings/spring/druid.properties</value>
 				<value>classpath:settings/spring/qdbc.properties</value>
 				<value>classpath:jdbc.*.properties</value>
 			</list>

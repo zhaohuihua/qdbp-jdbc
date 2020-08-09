@@ -1,11 +1,9 @@
 package com.gitee.qdbp.jdbc.support;
 
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +14,6 @@ import com.gitee.qdbp.tools.crypto.GlobalCipherTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.PropertyTools;
-import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 
 /**
@@ -145,52 +142,19 @@ public class AutoDruidDataSource extends DruidDataSource {
         this.properties = defaults;
 
         // 加载配置信息中的连接池信息
-        this.loadConfigFieldValue(properties);
-    }
-
-    // 加载配置信息中的连接池信息
-    protected void loadConfigFieldValue(Properties properties) {
-        // String excludeFields = "config,name,url,jdbcUrl,driverClassName,validationQuery,username,password";
-        String excludeFields = "config,name,url,jdbcUrl";
-        Map<String, ?> excludeMaps = ConvertTools.toKeyMaps(excludeFields);
-        Method[] setters = ReflectTools.getAllSetter(DruidDataSource.class);
-        String propertyKey = "datasource.";
-        List<String> traces = new ArrayList<>();
-        for (Method setter : setters) {
-            String methodName = setter.getName();
-            String fieldName = methodName.substring(3);
-            fieldName = fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
-            if (excludeMaps.containsKey(fieldName)) {
-                continue;
-            }
-            String configKey = propertyKey + fieldName;
-            String configValue = properties.getProperty(configKey);
-            if (configValue == null || configValue.length() == 0) {
-                continue;
-            }
-            Class<?> paramType = setter.getParameterTypes()[0];
-            Object realValue = null;
-            if (paramType == String.class) {
-                realValue = configValue;
-            } else if (paramType == boolean.class || paramType == Boolean.class) {
-                realValue = ConvertTools.toBoolean(configValue, null);
-            } else if (paramType == int.class || paramType == Integer.class) {
-                realValue = ConvertTools.toInteger(configValue, null);
-            } else if (paramType == long.class || paramType == Long.class) {
-                realValue = ConvertTools.toLong(configValue, null);
-            } else if (paramType == double.class || paramType == Double.class) {
-                realValue = ConvertTools.toDouble(configValue, null);
-            } else if (paramType == float.class || paramType == Float.class) {
-                realValue = ConvertTools.toFloat(configValue, null);
-            }
-            if (realValue != null) {
-                ReflectTools.invokeMethod(this, setter, realValue);
-                traces.add(configKey + " = " + realValue);
-            }
+        Properties druidProperties = PropertyTools.filter(properties, false, "druid");
+        String config = druidProperties.getProperty("druid.config");
+        if (config != null) {
+            this.setConfig(config);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("Success load config by properties: \n" + ConvertTools.joinToString(traces, '\n'));
-        }
+        druidProperties.remove("druid.config");
+        druidProperties.remove("druid.url");
+        druidProperties.remove("druid.jdbcUrl");
+        druidProperties.remove("druid.driverClassName");
+        druidProperties.remove("druid.validationQuery");
+        druidProperties.remove("druid.username");
+        druidProperties.remove("druid.password");
+        this.configFromPropety(druidProperties);
     }
 
     protected Properties loadDefaultProperties() {
@@ -237,35 +201,46 @@ public class AutoDruidDataSource extends DruidDataSource {
             throw new IllegalArgumentException("Config string format error. " + desc);
         }
 
-        this.setUsername(username);
+        super.setUsername(username);
         if (encrypted != null) {
-            this.setPassword(GlobalCipherTools.decrypt("db", encrypted));
+            super.setPassword(GlobalCipherTools.decrypt("db", encrypted));
         } else {
-            this.setPassword(password);
+            super.setPassword(password);
         }
     }
 
     @Override
     public void setUrl(String url) {
         if (!"auto".equalsIgnoreCase(url)) {
-            String m = "SetUrl not supported, we will automatically find content from the properties";
-            throw new UnsupportedOperationException(m);
+            log.warn("Method[setUrl] not supported, we will auto find content from the properties");
+        }
+    }
+
+    @Override
+    public void setUsername(String username) {
+        if (!"auto".equalsIgnoreCase(username)) {
+            log.warn("Method[setUsername] not supported, we will auto parse from the field of 'config'");
+        }
+    }
+
+    @Override
+    public void setPassword(String password) {
+        if (!"auto".equalsIgnoreCase(password)) {
+            log.warn("Method[setPassword] not supported, we will auto parse from the field of 'config'");
         }
     }
 
     @Override
     public void setDriverClassName(String driverClassName) {
         if (!"auto".equalsIgnoreCase(driverClassName)) {
-            String m = "SetDriverClassName not supported, we will automatically find content from the properties";
-            throw new UnsupportedOperationException(m);
+            log.warn("Method[setDriverClassName] not supported, we will auto find content from the properties");
         }
     }
 
     @Override
     public void setValidationQuery(String validationQuery) {
         if (!"auto".equalsIgnoreCase(validationQuery)) {
-            String m = "SetValidationQuery not supported, we will automatically find content from the properties";
-            throw new UnsupportedOperationException(m);
+            log.warn("Method[setValidationQuery] not supported, we will auto find content from the properties");
         }
     }
 
