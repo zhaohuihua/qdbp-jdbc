@@ -12,7 +12,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.biz.QdbcBootImpl;
-import com.gitee.qdbp.jdbc.biz.SqlBufferJdbcOperationsImpl;
+import com.gitee.qdbp.jdbc.biz.SqlBufferJdbcTemplate;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
 
@@ -101,7 +101,7 @@ public class QdbcBootTools {
      * @return QdbcBoot
      */
     public static QdbcBoot buildByJdbcOperations(NamedParameterJdbcOperations jdbcOperations) {
-        SqlBufferJdbcOperations options = new SqlBufferJdbcOperationsImpl(jdbcOperations);
+        SqlBufferJdbcOperations options = new SqlBufferJdbcTemplate(jdbcOperations);
         return new QdbcBootImpl(options);
     }
 }

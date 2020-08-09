@@ -61,7 +61,7 @@
 	<!-- 启用对事务注解的支持 -->
 	<tx:annotation-driven transaction-manager="sysTransactionManager" />
 	
-	<bean id="sysSqlBufferJdbcOperations" class="com.gitee.qdbp.jdbc.biz.SqlBufferJdbcOperationsImpl">
+	<bean id="sysSqlBufferJdbcOperations" class="com.gitee.qdbp.jdbc.biz.SqlBufferJdbcTemplate">
 		<property name="namedParameterJdbcOperations">
 			<bean class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
 				<constructor-arg ref="sysDataSource" />

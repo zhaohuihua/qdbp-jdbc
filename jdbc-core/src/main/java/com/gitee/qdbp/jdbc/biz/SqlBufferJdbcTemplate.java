@@ -41,19 +41,19 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author 赵卉华
  * @version 190601
  */
-public class SqlBufferJdbcOperationsImpl implements SqlBufferJdbcOperations {
+public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
-    private static Logger log = LoggerFactory.getLogger(SqlBufferJdbcOperationsImpl.class);
+    private static Logger log = LoggerFactory.getLogger(SqlBufferJdbcTemplate.class);
 
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
     private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
 
-    public SqlBufferJdbcOperationsImpl() {
+    public SqlBufferJdbcTemplate() {
     }
 
-    public SqlBufferJdbcOperationsImpl(NamedParameterJdbcOperations jdbcOperations) {
+    public SqlBufferJdbcTemplate(NamedParameterJdbcOperations jdbcOperations) {
         this.setNamedParameterJdbcOperations(jdbcOperations);
     }
 
