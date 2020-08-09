@@ -6,7 +6,9 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 import com.gitee.qdbp.tools.utils.VersionCodeTools;
 
 /**
- * 数据库版本信息
+ * 数据库版本信息<br>
+ * versionString纯粹是描述信息, 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; 
+ * Oralce.12c返回的是Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
  *
  * @author zhaohuihua
  * @version 190602
@@ -100,13 +102,14 @@ public class DbVersion implements Serializable {
         if (secondDiff != 0) {
             return secondDiff;
         }
-        // 后面的版本号, 与this.versionString对比
-        String[] sources;
-        if (VerifyTools.isBlank(this.versionString)) {
-            sources = new String[0];
-        } else {
-            sources = VersionCodeTools.splitVersionString(this.versionString);
-        }
+        // 后面的版本号, 只要不是对方不是全0, 都算对方大
+        String[] sources = new String[0];
+        // 不能根据versionString判断, versionString纯粹是描述信息
+        // 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; 
+        // Oralce.12c返回的是Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+        // if (VerifyTools.isNotBlank(this.versionString)) {
+        //    sources = VersionCodeTools.splitVersionString(this.versionString);
+        // }
         return VersionCodeTools.compareVersions(sources, targets, 2);
     }
 
