@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.support.logging.Log;
+import com.alibaba.druid.support.logging.LogFactory;
 import com.gitee.qdbp.tools.crypto.GlobalCipherTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -50,8 +52,8 @@ jdbc.xxx = h2.mem@~/dbname
     &lt;property  name="fileEncoding" value="UTF-8" /&gt;
     &lt;property name="locations"&gt;
         &lt;list&gt;
-            &lt;value&gt;classpath:settings/web/general.properties&lt;/value&gt;
-            &lt;value&gt;classpath:settings/web/business.properties&lt;/value&gt;
+            &lt;value&gt;classpath:settings/jdbc/datasource.properties&lt;/value&gt;
+            &lt;value&gt;classpath:settings/jdbc/qdbc.propertiess&lt;/value&gt;
             &lt;value&gt;classpath:setting.properties&lt;/value&gt;
         &lt;/list&gt;
     &lt;/property&gt;
@@ -75,6 +77,8 @@ public class AutoDruidDataSource extends DruidDataSource {
 
     /** 版本序列号 **/
     private static final long serialVersionUID = 1L;
+    // 这里使用DruidDataSource的日志路径吧
+    private final static Log log = LogFactory.getLog(DruidDataSource.class);
 
     // jdbc:oracle:thin:@//192.168.1.218:1521/DbName
     // jdbc:oracle:thin:192.168.1.218:1521:DbSid
@@ -150,7 +154,8 @@ public class AutoDruidDataSource extends DruidDataSource {
         String excludeFields = "config,name,url,jdbcUrl";
         Map<String, ?> excludeMaps = ConvertTools.toKeyMaps(excludeFields);
         Method[] setters = ReflectTools.getAllSetter(DruidDataSource.class);
-        String propertyKey = "jdbc.datasource.";
+        String propertyKey = "datasource.";
+        List<String> traces = new ArrayList<>();
         for (Method setter : setters) {
             String methodName = setter.getName();
             String fieldName = methodName.substring(3);
@@ -180,7 +185,11 @@ public class AutoDruidDataSource extends DruidDataSource {
             }
             if (realValue != null) {
                 ReflectTools.invokeMethod(this, setter, realValue);
+                traces.add(configKey + " = " + realValue);
             }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Success load config by properties: \n" + ConvertTools.joinToString(traces, '\n'));
         }
     }
 
@@ -271,6 +280,7 @@ public class AutoDruidDataSource extends DruidDataSource {
         if (dbconfig == null || dbconfig.trim().length() == 0) {
             throw new IllegalArgumentException("Missing argument for dbconfig");
         }
+        // 根据配置自动推断url/params/driver
         String url = findPropertyUseSuffix("jdbc.url", true, true);
         String params = findPropertyUseSuffix("jdbc.params", true, false);
         String driver = findPropertyUseSuffix("jdbc.driver", false, false);
@@ -282,6 +292,10 @@ public class AutoDruidDataSource extends DruidDataSource {
         if (driver != null && driver.length() > 0) {
             super.setDriverClassName(driver);
         }
+
+        // 根据配置自动推断ValidationQuery
+        String validationQuery = findPropertyUseSuffix("jdbc.testquery", false, false);
+        super.setValidationQuery(validationQuery);
 
         // 处理特殊的Driver
         resolveSpecialDriver();
@@ -313,31 +327,36 @@ public class AutoDruidDataSource extends DruidDataSource {
         }
         keys.add(key);
 
+        String realKey = null;
+        String realValue = null;
         for (String k : keys) {
             String value = PropertyTools.getString(properties, k, false);
             if (value == null) {
                 continue;
-            }
-            if (value.length() > 0) {
-                if (!replacePlaceholder) {
-                    return value;
-                } else {
-                    return replacePlaceholder(value);
-                }
             } else {
-                if (throwOnNotFound) {
-                    throw new IllegalArgumentException("Property value is blank, key=" + k);
-                } else {
-                    return null;
-                }
+                realKey = k;
+                realValue = value;
+                break;
             }
         }
-
-        if (!throwOnNotFound) {
-            return null;
+        if (realValue != null && realValue.length() > 0) {
+            String result = replacePlaceholder ? replacePlaceholder(realValue) : realValue;
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved property value: " + realKey + " = " + result);
+            }
+            return result;
+        } else {
+            if (!throwOnNotFound) {
+                return null;
+            }
+            String msg;
+            if (realValue == null) {
+                msg = "Property value not found: " + ConvertTools.joinToString(keys, " or ");
+            } else {
+                msg = "Property value is blank, key=" + realKey;
+            }
+            throw new IllegalArgumentException(msg);
         }
-
-        throw new IllegalArgumentException("Property value not found: " + ConvertTools.joinToString(keys, " or "));
     }
 
     private String replacePlaceholder(String s) {
@@ -348,6 +367,7 @@ public class AutoDruidDataSource extends DruidDataSource {
     }
 
     /** 推断Driver(1.1.22以上版本不需要了,已贡献到主版本) **/
+    // https://github.com/alibaba/druid/pull/3698
     protected void resolveSpecialDriver() {
         String driverClass = this.getDriverClassName();
         String jdbcUrl = this.getUrl();
