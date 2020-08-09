@@ -37,8 +37,15 @@ public class SimpleSqlDialect implements SqlDialect {
     }
 
     /** 获取数据库版本信息 **/
+    @Override
     public DbVersion getDbVersion() {
         return dbVersion;
+    }
+
+    @Override
+    public int getInItemLimit() {
+        DbType dbType = dbVersion.getDbType();
+        return dbType == MainDbType.Oracle ? 1000 : 0;
     }
 
     @Override

@@ -21,6 +21,14 @@ public interface SqlDialect {
     /** 获取数据库版本信息 **/
     DbVersion getDbVersion();
 
+    /**
+     * IN语句最多支持多少项<br>
+     * oracle的IN语句最多只支持1000项, 其他数据库无限制
+     * 
+     * @return 数量限制, 0表示无限制
+     */
+    int getInItemLimit();
+
     /** 生成新的分页SQL对象, 原对象不受影响 **/
     SqlBuffer buildPagingSql(SqlBuffer buffer, Paging paging);
 

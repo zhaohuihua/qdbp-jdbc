@@ -208,8 +208,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             e.setMessage("build where in sql unsupported field");
             throw e;
         }
-        SqlBuffer buffer = SqlTools.buildInSql(fieldValues);
-        prependWhereAndColumn(buffer, columnName, whole);
+        SqlBuffer buffer = SqlTools.buildInSql(columnName, fieldValues, dialect);
+        if (whole && !buffer.isEmpty()) {
+            buffer.shortcut().pd("WHERE");
+        }
         return buffer;
     }
 
@@ -224,8 +226,10 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             e.setMessage("build where not in sql unsupported field");
             throw e;
         }
-        SqlBuffer buffer = SqlTools.buildNotInSql(fieldValues);
-        prependWhereAndColumn(buffer, columnName, whole);
+        SqlBuffer buffer = SqlTools.buildNotInSql(columnName, fieldValues, dialect);
+        if (whole && !buffer.isEmpty()) {
+            buffer.shortcut().pd("WHERE");
+        }
         return buffer;
     }
 
@@ -307,15 +311,6 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             }
         }
         return result;
-    }
-
-    private static void prependWhereAndColumn(SqlBuffer buffer, String columnName, boolean whole) {
-        if (!buffer.isEmpty()) {
-            buffer.prepend(columnName);
-            if (whole) {
-                buffer.shortcut().pd("WHERE");
-            }
-        }
     }
 
     private static String PINYIN_SUFFIX = "(PINYIN)";

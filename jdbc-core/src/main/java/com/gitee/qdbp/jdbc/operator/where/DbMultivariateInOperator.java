@@ -5,7 +5,6 @@ import com.gitee.qdbp.jdbc.operator.DbMultivariateOperator;
 import com.gitee.qdbp.jdbc.operator.base.DbAbstractOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.SqlTools;
 
 /**
@@ -22,7 +21,7 @@ public class DbMultivariateInOperator extends DbAbstractOperator implements DbMu
 
     @Override
     public SqlBuffer buildSql(String columnName, Collection<?> columnValues, SqlDialect dialect) {
-        return new SqlBuilder().ad(columnName).ad(SqlTools.buildInSql(columnValues)).out();
+        return SqlTools.buildInSql(columnName, columnValues, dialect);
     }
 
 }
