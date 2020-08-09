@@ -1,8 +1,15 @@
 package com.gitee.qdbp.jdbc.plugins;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
@@ -14,14 +21,18 @@ import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.NoneEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
+import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
+import com.gitee.qdbp.jdbc.support.convert.NumberToBooleanConverter;
+import com.gitee.qdbp.jdbc.support.convert.StringToDateConverter;
+import com.gitee.qdbp.jdbc.support.enums.AllEnumConverterRegister;
 import com.gitee.qdbp.tools.utils.Config;
 
 /**
@@ -66,56 +77,128 @@ public class DbPluginContainer {
         }
     }
 
-    private static void checkAndSetDefaultPorperty(DbPluginContainer container) {
-        if (container.getTableInfoScans() == null) {
-            container.setTableInfoScans(new PersistenceAnnotationTableScans());
+    /**
+     * 检查并设置默认属性<br>
+     * <br>
+     * 灵活就意味着可配置的细节多, 也就难以上手<br>
+     * 提供一个默认版本, 用于满足基本需求, 基于约定,常用,无定制<br>
+     * <br>
+     * 未提供的特性包括:<br>
+     * TableInfoScans.commonFieldResolver: 不会将公共字段放在查询列表的最后<br>
+     * EntityFieldFillStrategy.entityFillBizResolver: 不会自动填充创建人/创建时间等业务参数<br>
+     * EntityDataStateFillStrategy: 不会自动填充数据状态, 不支持逻辑删除<br>
+     * 等等...
+     * 
+     * @param plugins 插件容器
+     */
+    protected static void checkAndSetDefaultPorperty(DbPluginContainer plugins) {
+        if (plugins.getConversionService() == null) {
+            plugins.setConversionService(DefaultConversionService.getSharedInstance());
         }
-        if (container.getEntityFieldFillStrategy() == null) {
-            container.setEntityFieldFillStrategy(new SimpleEntityFieldFillStrategy());
+        // 初始化默认的类型转换处理器
+        initDefaultConverter(plugins);
+
+        if (plugins.getTableInfoScans() == null) {
+            plugins.setTableInfoScans(new PersistenceAnnotationTableScans());
         }
-        if (container.getEntityDataStateFillStrategy() == null) {
-            container.setEntityDataStateFillStrategy(new SimpleEntityDataStateFillStrategy<>());
+        if (plugins.getEntityFieldFillStrategy() == null) {
+            plugins.setEntityFieldFillStrategy(new SimpleEntityFieldFillStrategy());
         }
-        if (container.getRawValueConverter() == null) {
-            container.setRawValueConverter(new SimpleRawValueConverter());
+        if (plugins.getEntityDataStateFillStrategy() == null) {
+            plugins.setEntityDataStateFillStrategy(new NoneEntityDataStateFillStrategy());
         }
-        if (container.getToDbValueConverter() == null) {
-            container.setToDbValueConverter(new SimpleVarToDbValueConverter());
+        if (plugins.getRawValueConverter() == null) {
+            plugins.setRawValueConverter(new SimpleRawValueConverter());
         }
-        if (container.getMapToBeanConverter() == null) {
+        if (plugins.getToDbValueConverter() == null) {
+            plugins.setToDbValueConverter(new SimpleVarToDbValueConverter());
+        }
+        if (plugins.getMapToBeanConverter() == null) {
             // 由于fastjson的TypeUtils.castToEnum()逻辑存在硬伤, 无法做到数字枚举值的自定义转换
             // container.setMapToBeanConverter(new FastJsonMapToBeanConverter());
             // 改为SpringMapToBeanConverter
             SpringMapToBeanConverter converter = new SpringMapToBeanConverter();
-            converter.setConversionService(DefaultConversionService.getSharedInstance());
-            container.setMapToBeanConverter(converter);
+            converter.setConversionService(plugins.getConversionService());
+            plugins.setMapToBeanConverter(converter);
         }
-        if (container.getDbConditionConverter() == null) {
-            container.setDbConditionConverter(new FastJsonDbConditionConverter());
+        if (plugins.getDbConditionConverter() == null) {
+            plugins.setDbConditionConverter(new FastJsonDbConditionConverter());
         }
-        if (container.getOperatorContainer() == null) {
-            container.setOperatorContainer(new SimpleDbOperatorContainer());
+        if (plugins.getOperatorContainer() == null) {
+            plugins.setOperatorContainer(new SimpleDbOperatorContainer());
         }
-        if (container.getSqlFormatter() == null) {
-            container.setSqlFormatter(new SimpleSqlFormatter());
+        if (plugins.getSqlFormatter() == null) {
+            plugins.setSqlFormatter(new SimpleSqlFormatter());
         }
-        if (container.getDbVersionFinder() == null) {
-            container.setDbVersionFinder(new DataSourceDbVersionFinder());
+        if (plugins.getDbVersionFinder() == null) {
+            plugins.setDbVersionFinder(new DataSourceDbVersionFinder());
         }
-        if (container.getDefaultBatchInsertExecutor() == null) {
-            container.setDefaultBatchInsertExecutor(new BatchOperateByForEachExecutor());
+        if (plugins.getDefaultBatchInsertExecutor() == null) {
+            plugins.setDefaultBatchInsertExecutor(new BatchOperateByForEachExecutor());
         }
-        if (container.getDefaultBatchUpdateExecutor() == null) {
-            container.setDefaultBatchUpdateExecutor(new BatchOperateByForEachExecutor());
+        if (plugins.getDefaultBatchUpdateExecutor() == null) {
+            plugins.setDefaultBatchUpdateExecutor(new BatchOperateByForEachExecutor());
         }
         // 初始化公共的批量操作处理器(专用的放前面,通用的放后面)
-        if (container.getBatchInsertExecutors().isEmpty()) {
-            container.addBatchInsertExecutor(new BatchInsertByUnionAllFromDualExecutor());
-            container.addBatchInsertExecutor(new BatchInsertByMultiRowsExecutor());
+        if (plugins.getBatchInsertExecutors().isEmpty()) {
+            plugins.addBatchInsertExecutor(new BatchInsertByUnionAllFromDualExecutor());
+            plugins.addBatchInsertExecutor(new BatchInsertByMultiRowsExecutor());
         }
-        if (container.getBatchUpdateExecutors().isEmpty()) {
-            container.addBatchUpdateExecutor(new BatchUpdateByJoinUsingExecutor());
-            container.addBatchUpdateExecutor(new BatchUpdateByCaseWhenExecutor());
+        if (plugins.getBatchUpdateExecutors().isEmpty()) {
+            plugins.addBatchUpdateExecutor(new BatchUpdateByJoinUsingExecutor());
+            plugins.addBatchUpdateExecutor(new BatchUpdateByCaseWhenExecutor());
+        }
+
+        // 设置插件的ConversionService
+        fillConversionService(plugins);
+        // 如果插件是Converter, 将其注册到ConverterRegistry
+        registerConverter(plugins);
+    }
+
+    protected static void initDefaultConverter(DbPluginContainer plugins) {
+        ConversionService conversionService = plugins.getConversionService();
+        if (conversionService instanceof ConverterRegistry) {
+            ConverterRegistry registry = (ConverterRegistry) conversionService;
+            if (!conversionService.canConvert(String.class, Date.class)) {
+                registry.addConverter(new StringToDateConverter());
+            }
+            // oracle, 如果数字字段定义的类型是SMALLINT, 将会返回BigDecimal
+            if (!conversionService.canConvert(BigDecimal.class, Boolean.class)) {
+                registry.addConverter(new NumberToBooleanConverter());
+            }
+            // 注册其他枚举值转换处理类: oracle的BigDecimal转Enum等
+            AllEnumConverterRegister.registerEnumConverterFactory(registry);
+        }
+    }
+
+    /** 设置插件的ConversionService **/
+    protected static void fillConversionService(DbPluginContainer plugins) {
+        ConversionService conversionService = plugins.getConversionService();
+        if (conversionService != null) {
+            MapToBeanConverter mapToBeanConverter = plugins.getMapToBeanConverter();
+            if (mapToBeanConverter instanceof ConversionServiceAware) {
+                ((ConversionServiceAware) mapToBeanConverter).setConversionService(conversionService);
+            }
+            VariableToDbValueConverter toDbValueConverter = plugins.getToDbValueConverter();
+            if (toDbValueConverter instanceof ConversionServiceAware) {
+                ((ConversionServiceAware) toDbValueConverter).setConversionService(conversionService);
+            }
+        }
+    }
+
+    /** 如果插件是Converter, 将其注册到ConverterRegistry **/
+    protected static void registerConverter(DbPluginContainer plugins) {
+        ConversionService conversionService = plugins.getConversionService();
+        if (conversionService instanceof ConverterRegistry) {
+            MapToBeanConverter mapToBeanConverter = plugins.getMapToBeanConverter();
+            ConverterRegistry registry = (ConverterRegistry) conversionService;
+            if (mapToBeanConverter instanceof GenericConverter) {
+                registry.addConverter((GenericConverter) mapToBeanConverter);
+            } else if (mapToBeanConverter instanceof Converter<?, ?>) {
+                registry.addConverter((Converter<?, ?>) mapToBeanConverter);
+            } else if (mapToBeanConverter instanceof ConverterFactory<?, ?>) {
+                registry.addConverterFactory((ConverterFactory<?, ?>) mapToBeanConverter);
+            }
         }
     }
 
@@ -151,6 +234,19 @@ public class DbPluginContainer {
             dbConfig = new Config();
         }
         return this.dbConfig;
+    }
+
+    /** Spring的类型转换处理类 **/
+    private ConversionService conversionService;
+
+    /** Spring的类型转换处理类 **/
+    public ConversionService getConversionService() {
+        return conversionService;
+    }
+
+    /** Spring的类型转换处理类 **/
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
     }
 
     /** 数据表和列信息扫描类 **/
