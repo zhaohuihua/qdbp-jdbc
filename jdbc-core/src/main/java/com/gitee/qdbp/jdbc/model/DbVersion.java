@@ -7,8 +7,8 @@ import com.gitee.qdbp.tools.utils.VersionCodeTools;
 
 /**
  * 数据库版本信息<br>
- * versionString纯粹是描述信息, 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; Oralce.12c返回的是Oracle Database 12c Enterprise Edition
- * Release 12.2.0.1.0 - 64bit Production
+ * versionString纯粹是描述信息, 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051;<br>
+ * Oralce.12c返回的是Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
  *
  * @author zhaohuihua
  * @version 190602
