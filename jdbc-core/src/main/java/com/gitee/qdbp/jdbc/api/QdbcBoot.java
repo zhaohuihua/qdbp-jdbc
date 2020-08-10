@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 
 /**
  * 数据库操作对象的构造器<br>
@@ -63,6 +64,13 @@ public interface QdbcBoot {
      * @return 表关联查询对象
      */
     <T> JoinQueryer<T> buildJoinQuery(TableJoin tables, Class<T> resultType);
+
+    /**
+     * 获取SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    SqlDialect getSqlDialect();
 
     /**
      * 获取SqlBuffer数据库操作类

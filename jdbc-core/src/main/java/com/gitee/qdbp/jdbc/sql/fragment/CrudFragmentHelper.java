@@ -7,6 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -16,6 +17,13 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @version 190606
  */
 public interface CrudFragmentHelper extends QueryFragmentHelper {
+
+    /**
+     * 获取SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    SqlDialect getSqlDialect();
 
     /**
      * 获取表名

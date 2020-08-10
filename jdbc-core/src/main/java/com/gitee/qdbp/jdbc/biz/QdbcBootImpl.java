@@ -7,6 +7,7 @@ import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 
 /**
  * 基础增删改查对象的构造器
@@ -78,6 +79,12 @@ public class QdbcBootImpl implements QdbcBoot {
 
     private String buildCacheKey(TableJoin tables, Class<?> resultType) {
         return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public SqlDialect getSqlDialect() {
+        return sqlBufferJdbcOperations == null ? null : sqlBufferJdbcOperations.findSqlDialect();
     }
 
     /** {@inheritDoc} **/

@@ -10,6 +10,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -19,6 +20,13 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  * @version 190606
  */
 public interface QueryFragmentHelper {
+
+    /**
+     * 获取SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    SqlDialect getSqlDialect();
 
     /**
      * DbWhere转换为Where SQL语句

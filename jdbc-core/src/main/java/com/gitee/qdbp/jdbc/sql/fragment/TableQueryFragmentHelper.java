@@ -62,6 +62,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         this.dialect = dialect;
     }
 
+    /**
+     * 获取SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    @Override
+    public SqlDialect getSqlDialect() {
+        return this.dialect;
+    }
+
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildWhereSql(DbWhere where, boolean whole) throws UnsupportedFieldException {

@@ -12,6 +12,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
 
 /**
@@ -22,7 +23,10 @@ import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
  */
 public interface CrudDao<T> {
 
-    /** SQL生成工具 **/
+    /** 获取SQL方言处理类 **/
+    SqlDialect getSqlDialect();
+
+    /** 获取SQL生成工具 **/
     CrudSqlBuilder getSqlBuilder();
 
     /**

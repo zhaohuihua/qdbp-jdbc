@@ -57,6 +57,15 @@ public abstract class BaseQueryerImpl<T> {
     }
 
     /**
+     * 获取SQL方言处理类
+     * 
+     * @return SQL方言处理类
+     */
+    public SqlDialect getSqlDialect() {
+        return this.dialect;
+    }
+
+    /**
      * 获取主表别名(用于表关联查询)
      * 
      * @return 主表别名

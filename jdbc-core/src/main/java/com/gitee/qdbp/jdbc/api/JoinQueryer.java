@@ -7,6 +7,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 
 /**
@@ -18,6 +19,9 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
  * @version 190608
  */
 public interface JoinQueryer<T> {
+
+    /** 获取SQL方言处理类 **/
+    SqlDialect getSqlDialect();
 
     /** SQL生成工具 **/
     QuerySqlBuilder getSqlBuilder();
