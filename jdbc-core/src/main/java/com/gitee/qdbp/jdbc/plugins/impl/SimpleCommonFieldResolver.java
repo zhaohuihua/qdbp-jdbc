@@ -141,7 +141,7 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
         }
         // 通过字段名指定的公共字段
         List<SimpleFieldColumn> commonFieldColumns = new ArrayList<>();
-        Map<String, Void> commonFieldNames = new HashMap<>();
+        Map<String, ?> commonFieldNames = new HashMap<>();
         // 按照配置的公共字段顺序排序, 而不管字段在类中的声明顺序
         for (StringMatcher matcher : commonFieldNameMatchers) {
             for (SimpleFieldColumn field : fields) {
@@ -156,7 +156,7 @@ public class SimpleCommonFieldResolver implements CommonFieldResolver {
         // 先放公共包下的字段(即先放不是通过字段指定的)
         if (commonFieldColumns.size() < fields.size()) {
             for (SimpleFieldColumn field : fields) {
-                if (!commonFieldNames.containsKey(field.getColumnName())) {
+                if (!commonFieldNames.containsKey(field.getFieldName())) {
                     result.add(field); // 不是通过字段指定的
                 }
             }
