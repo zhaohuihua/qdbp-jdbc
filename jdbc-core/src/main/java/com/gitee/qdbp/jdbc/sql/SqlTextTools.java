@@ -232,8 +232,8 @@ class SqlTextTools {
         return true;
     }
 
-    // 符号: ASCII码表顺序(去掉了'和`)
-    private static char[] SYMBOLS = "\t\r\n !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~".toCharArray();
+    // 符号: ASCII码表顺序, 去掉了'`_$
+    private static char[] SYMBOLS = "\t\r\n !\"#%&()*+,-./:;<=>?@[\\]^{|}~".toCharArray();
 
     /**
      * 是不是SQL符号
