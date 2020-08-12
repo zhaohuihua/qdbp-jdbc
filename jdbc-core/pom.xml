@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>qdbp-jdbc-core</artifactId>
-	<version>3.0.2</version>
+	<version>3.0.3</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
 	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
