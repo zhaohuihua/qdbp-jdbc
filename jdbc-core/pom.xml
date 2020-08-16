@@ -25,7 +25,12 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-able</artifactId>
-			<version>5.0.0</version>
+			<version>5.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gitee.qdbp</groupId>
+			<artifactId>qdbp-staticize</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 
 		<dependency>
