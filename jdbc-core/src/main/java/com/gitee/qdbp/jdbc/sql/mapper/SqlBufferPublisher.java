@@ -10,7 +10,7 @@ import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.publish.BasePublisher;
 
 /**
- * 根据标签数据发布一个页面, 输出到OutputStream<br>
+ * 根据标签数据发布一个SQL片段, 输出到SqlBuffer<br>
  * 不支持多线程<br>
  *
  * @author zhaohuihua
@@ -28,7 +28,7 @@ public class SqlBufferPublisher extends BasePublisher {
     }
 
     /**
-     * 根据标签数据发布一个页面
+     * 根据标签数据发布一个SQL片段
      *
      * @param preset 预置数据
      * @param dialect 数据库方言处理类

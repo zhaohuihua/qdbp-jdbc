@@ -1,0 +1,14 @@
+
+include = com.gitee.qdbp.staticize.tags.base.IncludeTag
+if = com.gitee.qdbp.staticize.tags.core.IfTag
+elseif = com.gitee.qdbp.staticize.tags.core.ElseIfTag
+else = com.gitee.qdbp.staticize.tags.core.ElseTag
+for = com.gitee.qdbp.staticize.tags.core.EachTag
+comment = com.gitee.qdbp.staticize.tags.core.CommentTag
+set = com.gitee.qdbp.staticize.tags.core.SetVariableTag
+
+append = 
+trim = 
+where = 
+
+fmt:date = com.gitee.qdbp.staticize.tags.core.DateFormatTag
