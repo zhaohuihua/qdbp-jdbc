@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-core</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
