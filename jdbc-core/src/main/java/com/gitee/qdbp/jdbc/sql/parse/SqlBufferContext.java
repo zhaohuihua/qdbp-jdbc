@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.sql.mapper;
+package com.gitee.qdbp.jdbc.sql.parse;
 
 import java.io.IOException;
 import java.util.HashMap;

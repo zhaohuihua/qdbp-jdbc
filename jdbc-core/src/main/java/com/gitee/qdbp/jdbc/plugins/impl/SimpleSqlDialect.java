@@ -15,7 +15,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;

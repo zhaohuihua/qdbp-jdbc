@@ -39,7 +39,7 @@ import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
-import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
 import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;

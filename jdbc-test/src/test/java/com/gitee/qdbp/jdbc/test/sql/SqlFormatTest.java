@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
-import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 public class SqlFormatTest {

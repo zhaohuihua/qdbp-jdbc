@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.sql.mapper;
+package com.gitee.qdbp.jdbc.sql.parse;
 
 import java.util.Map;
 import java.util.regex.Matcher;
