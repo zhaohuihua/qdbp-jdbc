@@ -76,11 +76,12 @@ class SqlTemplateScanner {
         String fileId = result.getFileId();
         String fragmentId = result.getFragmentId();
         String dbType = VerifyTools.nvl(result.getDbType(), "*");
+        String dbKey = result.getDbType() == null ? "" : '(' + dbType + ')';
         IReader reader = new SimpleReader(sqlFragment.getContent());
         if (fragmentId == null) {
             String sqlLocation = filePath;
             String sqlId = fileId + ':' + "{default}" + ':' + dbType;
-            String sqlKey = fileId + (dbType == null ? "" : '(' + dbType + ')');
+            String sqlKey = fileId + dbKey;
             if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
                 cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
             }
@@ -88,14 +89,14 @@ class SqlTemplateScanner {
             String sqlLocation = fragmentId + " @ " + filePath + " line " + sqlFragment.getLine();
             { // 先注册fileId:fragmentId:dbType
                 String sqlId = fileId + ':' + fragmentId + ':' + dbType;
-                String sqlKey = fileId + ':' + fragmentId + (dbType == null ? "" : '(' + dbType + ')');
+                String sqlKey = fileId + ':' + fragmentId + dbKey;
                 if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
             { // 再注册fragmentId:dbType
                 String sqlId = fragmentId + ':' + dbType;
-                String sqlKey = fragmentId + (dbType == null ? "" : '(' + dbType + ')');
+                String sqlKey = fragmentId + dbKey;
                 if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
