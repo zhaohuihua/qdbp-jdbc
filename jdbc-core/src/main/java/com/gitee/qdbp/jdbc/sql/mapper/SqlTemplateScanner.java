@@ -3,16 +3,24 @@ package com.gitee.qdbp.jdbc.sql.mapper;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ResourceNotFoundException;
+import com.gitee.qdbp.able.instance.ToStringComparator;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.staticize.common.IReader;
 import com.gitee.qdbp.staticize.io.IReaderCreator;
+import com.gitee.qdbp.staticize.io.SimpleReader;
 import com.gitee.qdbp.tools.files.PathTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * SQL模板扫描
@@ -22,70 +30,190 @@ import com.gitee.qdbp.tools.utils.StringTools;
  */
 class SqlTemplateScanner {
 
+    private static Logger log = LoggerFactory.getLogger(SqlTemplateScanner.class);
+
     private String commentTagName = "comment";
     private String importTagName = "import";
+    private Map<String, ?> dbTypes = new HashMap<>();
+
+    public SqlTemplateScanner() {
+        for (MainDbType dbType : MainDbType.values()) {
+            this.dbTypes.put(dbType.name().toLowerCase(), null);
+        }
+    }
 
     public void scanSqlTemplates(String folder) {
         List<URL> urls = PathTools.scanResources(folder, "*.sql");
-        CacheBox cache = new CacheBox();
-        List<String> errors = new ArrayList<>();
-        List<String> conflicts = new ArrayList<>();
+        Collections.sort(urls, ToStringComparator.INSTANCE);
+        CacheBox cacheBox = new CacheBox();
+        // 已加入缓存中的内容, key=sqlKey, value=location
+        Map<String, String> cachedMaps = new HashMap<>();
+        // 冲突列表, key=sqlKey, value=[location]
+        Map<String, List<String>> conflicts = new HashMap<>();
         for (URL url : urls) {
             try {
-                String content = PathTools.downloadString(url);
-                clearCommentContent(content, "/*--", "--*/");
-                clearCommentContent(content, "<%--", "--%>");
-                clearCommentContent(content, "<comment>", "</comment>");
-                String absolutePath = url.toString();
-                String relativePath = removeLeftAt(absolutePath, folder);
-                registerSqlFragment(cache, absolutePath, relativePath, content);
-            } catch (IOException e) {
-                errors.add(url.toString() + ' ' + e.getMessage());
+                StringBuilder content = new StringBuilder(PathTools.downloadString(url));
+                clearCommentContent(content, '<' + commentTagName + '>', '<' + '/' + commentTagName + '>', true);
+                clearCommentContent(content, "/*--", "--*/", true);
+                clearCommentContent(content, "<%--", "--%>", true);
+                String absolutePath = PathTools.toUriPath(url);
+
+                List<SqlFragment> sqlFragments = splitSqlFile(absolutePath, content.toString());
+                for (SqlFragment sqlFragment : sqlFragments) {
+                    registerSqlFragment(absolutePath, sqlFragment, cacheBox, cachedMaps, conflicts);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse sql template: {}", url.toString(), e);
             }
         }
     }
 
-    /** 清除注释内容, 替换为comment标签; 为避免影响源码位置, 保留所有换行符 **/
-    // /* */ 这个注释是SQL的正常注释, 注释中的内容仍然会解析, 也将会输出到最终生成的SQL中
-    // /*-- --*/ 约定这个注释符号为模板注释, 不会解析也不会输出到SQL中, 作用等同于jsp中的<%-- --%>
-    private String clearCommentContent(String string, String leftSymbol, String rightSymbol) {
-        StringBuilder buffer = new StringBuilder(string);
-        int index = 0;
-        while (true) {
-            int nextStartIndex = buffer.indexOf(leftSymbol, index);
-            if (nextStartIndex < 0) {
-                break;
+    private void registerSqlFragment(String filePath, SqlFragment sqlFragment, CacheBox cacheBox,
+            Map<String, String> cachedMaps, Map<String, List<String>> conflicts) {
+        SqlId result = parseSqlId(filePath, sqlFragment.getId(), sqlFragment.getLine());
+        // 如 fileId=user.manage, fragmentId=user.resource.query, dbType=mysql
+        // fragmentId和dbType都有可能为空
+        String fileId = result.getFileId();
+        String fragmentId = result.getFragmentId();
+        String dbType = VerifyTools.nvl(result.getDbType(), "*");
+        IReader reader = new SimpleReader(sqlFragment.getContent());
+        if (fragmentId == null) {
+            String sqlLocation = filePath;
+            String sqlId = fileId + ':' + "{default}" + ':' + dbType;
+            String sqlKey = fileId + (dbType == null ? "" : '(' + dbType + ')');
+            if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+                cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
             }
-            int nextEndIndex = buffer.indexOf(rightSymbol, nextStartIndex);
-            if (nextEndIndex < 0) {
-                break;
-            }
-            StringBuilder replacement = new StringBuilder();
-            replacement.append('<').append(commentTagName).append('>');
-            for (int i = nextStartIndex + leftSymbol.length(); i < nextEndIndex; i++) {
-                char c = buffer.charAt(i);
-                if (c == '\r' || c == '\n') {
-                    replacement.append(c);
+        } else {
+            String sqlLocation = fragmentId + " @ " + filePath + " line " + sqlFragment.getLine();
+            { // 先注册fileId:fragmentId:dbType
+                String sqlId = fileId + ':' + fragmentId + ':' + dbType;
+                String sqlKey = fileId + ':' + fragmentId + (dbType == null ? "" : '(' + dbType + ')');
+                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+                    cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
-            replacement.append('<').append('/').append(commentTagName).append('>');
-            buffer.replace(nextStartIndex, nextEndIndex + rightSymbol.length(), replacement.toString());
-            index = nextStartIndex + replacement.length();
+            { // 再注册fragmentId:dbType
+                String sqlId = fragmentId + ':' + dbType;
+                String sqlKey = fragmentId + (dbType == null ? "" : '(' + dbType + ')');
+                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+                    cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
+                }
+            }
         }
-        return buffer.toString();
     }
 
-    private void registerSqlFragment(CacheBox cache, String absolutePath, String relativePath, String content) {
+    private boolean checkCachedSqlFragment(String sqlId, String sqlKey, String sqlLocation,
+            Map<String, String> cachedMaps, Map<String, List<String>> conflicts) {
+        if (!cachedMaps.containsKey(sqlKey)) {
+            cachedMaps.put(sqlKey, sqlLocation);
+            return true;
+        } else {
+            String oldLocation = cachedMaps.get(sqlKey);
+            if (!conflicts.containsKey(sqlKey)) {
+                conflicts.put(sqlKey, ConvertTools.toList(oldLocation));
+            }
+            conflicts.get(sqlKey).add("[ignored] " + sqlLocation);
+            return false;
+        }
+    }
+
+    protected static class SqlId {
+
+        private final String fileId;
+        private final String fragmentId;
+        private final String dbType;
+
+        public SqlId(String fileId, String fragmentId, String dbType) {
+            this.fileId = fileId;
+            this.fragmentId = fragmentId;
+            this.dbType = dbType;
+        }
+
+        public String getFileId() {
+            return fileId;
+        }
+
+        public String getFragmentId() {
+            return fragmentId;
+        }
+
+        public String getDbType() {
+            return dbType;
+        }
+    }
+
+    private SqlId parseSqlId(String filePath, String fragmentId, int lineIndex) {
+        // 如 fileName=user.manage.sql, fileId=user.manage, dbType=null
+        // 如 fileName=user.manage.mysql.sql, fileId=user.manage, dbType=mysql
+        String fileName = PathTools.getFileName(filePath);
+        String fileId = PathTools.removeExtension(fileName);
+        String dbType = null;
+        int fileDotIndex = fileId.lastIndexOf('.');
+        if (fileDotIndex > 0) {
+            String tempType = fileId.substring(fileDotIndex + 1);
+            if (dbTypes.containsKey(tempType)) {
+                dbType = tempType.toLowerCase();
+                fileId = fileId.substring(0, fileDotIndex);
+            }
+        }
+        if (fragmentId == null) {
+            return new SqlId(fileId, null, dbType);
+        }
+
+        // 如 user.resource.query 或 user.resource.query:*
+        // 如 user.resource.query.mysql 或 user.resource.query:mysql
+        String originalId = fragmentId;
+        String fragmentDbType = null;
+        int fragmentColonIndex = fragmentId.indexOf(':');
+        if (fragmentColonIndex >= 0) {
+            // user.resource.query:mysql 或 user.resource.query:*
+            fragmentId = fragmentId.substring(0, fragmentColonIndex).trim();
+            String tempType = fragmentId.substring(fragmentColonIndex + 1).trim();
+            if ("*".equals(tempType)) {
+                fragmentDbType = null;
+            } else if (dbTypes.containsKey(tempType)) {
+                fragmentDbType = tempType.toLowerCase();
+            } else {
+                String msg = "DbType[{}] of the SqlFragment[{}] is unsupported, {} line {}";
+                log.warn(msg, tempType, fragmentId, filePath, lineIndex);
+            }
+        } else {
+            int fragmentDotIndex = fragmentId.lastIndexOf('.');
+            if (fragmentDotIndex > 0) {
+                // user.resource.query.mysql
+                String tempType = fragmentId.substring(fragmentDotIndex + 1);
+                if (dbTypes.containsKey(tempType)) {
+                    fragmentDbType = tempType.toLowerCase();
+                    fragmentId = fragmentId.substring(0, fragmentDotIndex);
+                }
+            }
+        }
+        // 文件上指定的DbType与SQL片段指定的是否一致
+        // 如果不一致, 以SQL片段的为准
+        if (fragmentDbType != null) {
+            if (dbType == null) {
+                dbType = fragmentDbType;
+            } else if (!dbType.equals(fragmentDbType)) {
+                String msg = "DbType[{}] of the file conflicts with SqlFragment[{}], use [{}], {} line {}";
+                log.warn(msg, dbType, originalId, fragmentDbType, filePath, lineIndex);
+                dbType = fragmentDbType;
+            }
+        }
+
+        // fileId=user.manage, fragmentId=user.resource.query, dbType=mysql
+        return new SqlId(fileId, fragmentId, dbType);
     }
 
     /**
      * 按SqlId将一个文本内容拆分为SQL片断<br>
      * 为避免影响源码位置, 第2个片断会从第1个片断结束的位置开始, 前面填充换行符
      * 
+     * @param filePath 文件路径
      * @param content 文本内容
      * @return SQL片断列表
      */
-    private List<SqlFragment> splitSqlFile(String absolutePath, String relativePath, String content) {
+    protected List<SqlFragment> splitSqlFile(String filePath, String content) {
         String[] lines = StringTools.split(content, '\n');
         // 当前的SqlId
         String sqlId = null;
@@ -106,46 +234,36 @@ class SqlTemplateScanner {
                     buffer.add(item.getText());
                 }
             } else if (item instanceof SqlIdDefinition) {
-                if (!buffer.isEmpty() && sqlId == null) {
-                    // TODO 判断buffer中除了注释和换行之外有没有SQL语句, 因为这部分内容将被丢弃
-                } else if (!buffer.isEmpty() && sqlId != null) {
-                    // 遇到新的SqlId, 先处理上一个SQL片断
-                    String sqlContent = generateSqlContent(sqlLine, buffer, importMaps);
-                    sqlFragments.add(new SqlFragment(absolutePath, relativePath, sqlId, sqlContent));
+                if (!buffer.isEmpty()) {
+                    // 遇到新的SqlId, 处理这个SqlId上面已经缓存的SQL片断
+                    handleSqlFragment(filePath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
                 }
                 buffer.clear();
                 sqlId = ((SqlIdDefinition) item).getSqlId();
-                sqlLine = i;
+                sqlLine = i + 1;
             } else {
                 buffer.add(item.getText());
             }
         }
-        if (!buffer.isEmpty() && sqlId == null) {
-            // 整个文档没有SqlId
-            String sqlContent = generateSqlContent(sqlLine, buffer, importMaps);
-            sqlFragments.add(new SqlFragment(absolutePath, relativePath, null, sqlContent));
-        } else if (!buffer.isEmpty() && sqlId != null) {
-            // 处理最后一个SQL片断
-            String sqlContent = generateSqlContent(sqlLine, buffer, importMaps);
-            sqlFragments.add(new SqlFragment(absolutePath, relativePath, sqlId, sqlContent));
+        if (!buffer.isEmpty()) {
+            // 处理剩下的Sql片断
+            handleSqlFragment(filePath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
         }
+        return sqlFragments;
     }
 
-    // 保留sql片断在原始文件中的行号
-    // 保留公共的import语句
-    private String generateSqlContent(int sqlLine, List<String> contents,
-            Map<Integer, String> importMaps) {
-        StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < sqlLine; i++) {
-            if (importMaps.containsKey(i)) {
-                buffer.append(importMaps.get(i));
-            }
-            buffer.append('\n');
+    private void handleSqlFragment(String filePath, String sqlId, int sqlLine, List<String> buffer,
+            Map<Integer, String> importMaps, List<SqlFragment> sqlFragments) {
+        // 生成SQL内容, 为避免影响源码位置, 第2个片断会从第1个片断结束的位置开始, 前面填充换行符(或公共import语句)
+        String sqlContent = generateSqlContent(sqlLine, buffer, importMaps);
+        // 判断除了import/注释/空格/换行之外有没有实质的SQL语句
+        if (existSqlFragment(sqlContent)) {
+            // 这里的sqlId有可能为空
+            sqlFragments.add(new SqlFragment(sqlId, sqlLine, sqlContent));
+        } else if (sqlId != null) {
+            String msg = "Not found content under the SqlFragment[{}], {} line {}";
+            log.warn(msg, sqlId, filePath, sqlLine);
         }
-        for (String line : contents) {
-            buffer.append(line).append('\n');
-        }
-        return buffer.toString();
     }
 
     /** 解析行内容, 识别为SqlId声明或import语句或普通文本 **/
@@ -157,7 +275,7 @@ class SqlTemplateScanner {
     // /** import com.gitee.qdbp.jdbc.sql.SqlTools **/
     // 替换为
     // <import>com.gitee.qdbp.jdbc.sql.SqlTools</import>
-    private LineItem parseLineContent(String string) {
+    protected LineItem parseLineContent(String string) {
         String trimed = string.trim();
         if (trimed.startsWith("--")) {
             trimed = StringTools.removePrefix(trimed, "--");
@@ -183,11 +301,8 @@ class SqlTemplateScanner {
             } else {
                 className = className.trim();
                 // 替换为<import>com.gitee.qdbp.jdbc.sql.SqlTools</import>
-                StringBuilder importTag = new StringBuilder();
-                importTag.append('<').append(importTagName).append('>');
-                importTag.append(className);
-                importTag.append('<').append('/').append(importTagName).append('>');
-                return new SqlIdDefinition(className, importTag.toString());
+                String importTag = generateSimpleTag(importTagName, className);
+                return new SqlIdDefinition(className, importTag);
             }
         } else {
             // 普通文本
@@ -195,12 +310,122 @@ class SqlTemplateScanner {
         }
     }
 
-    // string = jar:file:/E:/repository/qdbp-jdbc-core-3.0.0.jar!/settings/sqls/account/usermanage.sql
-    // substring = settings/sqls/
-    // result = settings/sqls/account/usermanage.sql
-    private static String removeLeftAt(String string, String substring) {
-        int index = string.indexOf(substring);
-        return index < 0 ? string : string.substring(index);
+    // 保留sql片断在原始文件中的行号
+    // 保留公共的import语句
+    protected String generateSqlContent(int startLine, List<String> contents, Map<Integer, String> importMaps) {
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < startLine; i++) {
+            if (importMaps.containsKey(i)) {
+                buffer.append(importMaps.get(i));
+            }
+            buffer.append('\n');
+        }
+        for (String line : contents) {
+            buffer.append(line).append('\n');
+        }
+        return buffer.toString();
+    }
+
+    protected String generateSimpleTag(String tagName, String tagContent) {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append('<').append(tagName).append('>');
+        buffer.append(tagContent);
+        buffer.append('<').append('/').append(tagName).append('>');
+        return buffer.toString();
+    }
+
+    /** 清除注释内容, 替换为comment标签; 为避免影响源码位置, 保留所有换行符 **/
+    // /* */ 这个注释是SQL的正常注释, 注释中的内容仍然会解析, 也将会输出到最终生成的SQL中
+    // /*-- --*/ 约定这个注释符号为模板注释, 不会解析也不会输出到SQL中, 作用等同于jsp中的<%-- --%>
+    protected void clearCommentContent(StringBuilder string, String leftSymbol, String rightSymbol, boolean keepLines) {
+        int index = 0;
+        while (true) {
+            int nextStartIndex = string.indexOf(leftSymbol, index);
+            if (nextStartIndex < 0) {
+                break;
+            }
+            int nextEndIndex = string.indexOf(rightSymbol, nextStartIndex);
+            if (nextEndIndex < 0) {
+                break;
+            }
+            if (!keepLines) {
+                string.delete(nextStartIndex, nextEndIndex + rightSymbol.length());
+                index = nextStartIndex;
+            } else {
+                int startIndex = nextStartIndex + leftSymbol.length();
+                String replacement = generateKeepLinesCommentTag(string, startIndex, nextEndIndex);
+                string.replace(nextStartIndex, nextEndIndex + rightSymbol.length(), replacement);
+                index = nextStartIndex + replacement.length();
+            }
+        }
+    }
+
+    protected void clearLineComment(StringBuilder string, String leadingSymbol, boolean keepLines,
+            boolean allowBehindWithAscii) {
+        String trailingSymbol = "\n";
+        int index = 0;
+        while (true) {
+            int nextStartIndex = string.indexOf(leadingSymbol, index);
+            if (nextStartIndex < 0) {
+                break;
+            }
+            if (nextStartIndex > 0 && !allowBehindWithAscii) {
+                // --前面的字符不能是英文字母, 以免i--这样的情况被清除
+                char c = string.charAt(nextStartIndex - 1);
+                if (c >= 'a' && c <= 'z' || c >= 'A' || c <= 'Z') {
+                    index = nextStartIndex + leadingSymbol.length();
+                    continue;
+                }
+            }
+            int nextEndIndex = string.indexOf(trailingSymbol, nextStartIndex);
+            if (nextEndIndex < 0) {
+                nextEndIndex = string.length();
+            }
+            if (!keepLines) {
+                string.delete(nextStartIndex, nextEndIndex + trailingSymbol.length());
+                index = nextStartIndex;
+            } else {
+                int startIndex = nextStartIndex + leadingSymbol.length();
+                String replacement = generateKeepLinesCommentTag(string, startIndex, nextEndIndex);
+                string.replace(nextStartIndex, nextEndIndex + trailingSymbol.length(), replacement);
+                index = nextStartIndex + replacement.length();
+            }
+        }
+    }
+
+    protected String generateKeepLinesCommentTag(CharSequence original, int startIndex, int endIndex) {
+        StringBuilder replacement = new StringBuilder();
+        replacement.append('<').append(commentTagName).append('>');
+        for (int i = startIndex; i < endIndex; i++) {
+            char c = original.charAt(i);
+            if (c == '\r' || c == '\n') {
+                replacement.append(c);
+            }
+        }
+        replacement.append('<').append('/').append(commentTagName).append('>');
+        return replacement.toString();
+    }
+
+    /** 判断除了import/注释/空格/换行之外有没有实质的SQL语句 **/
+    protected boolean existSqlFragment(String string) {
+        StringBuilder buffer = new StringBuilder(string);
+        clearCommentContent(buffer, '<' + importTagName + '>', '<' + '/' + importTagName + '>', false);
+        clearCommentContent(buffer, '<' + commentTagName + '>', '<' + '/' + commentTagName + '>', false);
+        clearCommentContent(buffer, "<%--", "--%>", false);
+        clearCommentContent(buffer, "/*", "*/", false);
+        clearLineComment(buffer, "--", false, false);
+        return countAsciiChars(buffer) > 0;
+    }
+
+    protected int countAsciiChars(StringBuilder string) {
+        int count = 0;
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if (c >= 'a' && c <= 'z' || c >= 'A' || c <= 'Z' || c >= '0' || c <= '9') {
+                count++;
+            }
+        }
+        return count;
     }
 
     protected static class LineItem {
@@ -248,32 +473,26 @@ class SqlTemplateScanner {
 
     protected static class SqlFragment {
 
-        private final String absolutePath;
-        private final String relativePath;
-        private final String sqlId;
-        private final String sqlContent;
+        private final String id;
+        private final int line;
+        private final String content;
 
-        public SqlFragment(String absolutePath, String relativePath, String sqlId, String sqlContent) {
-            this.absolutePath = absolutePath;
-            this.relativePath = relativePath;
-            this.sqlId = sqlId;
-            this.sqlContent = sqlContent;
+        public SqlFragment(String id, int line, String content) {
+            this.id = id;
+            this.line = line;
+            this.content = content;
         }
 
-        public String getAbsolutePath() {
-            return absolutePath;
+        public String getId() {
+            return id;
         }
 
-        public String getRelativePath() {
-            return relativePath;
+        public int getLine() {
+            return line;
         }
 
-        public String getSqlId() {
-            return sqlId;
-        }
-
-        public String getSqlContent() {
-            return sqlContent;
+        public String getContent() {
+            return content;
         }
 
     }
@@ -305,14 +524,16 @@ class SqlTemplateScanner {
             cache.put(sqlId, item);
         }
 
-        public boolean exist(String sqlId) {
-            return cache.containsKey(sqlId);
-        }
-
         @Override
         public IReader create(String sqlId) throws IOException, ResourceNotFoundException {
             CacheItem item = cache.get(sqlId);
             return item == null ? null : item.getReader();
+        }
+
+        @Override
+        public String getRealPath(String sqlId) throws IOException, ResourceNotFoundException {
+            CacheItem item = cache.get(sqlId);
+            return item == null ? null : item.getLocation();
         }
 
         @Override
