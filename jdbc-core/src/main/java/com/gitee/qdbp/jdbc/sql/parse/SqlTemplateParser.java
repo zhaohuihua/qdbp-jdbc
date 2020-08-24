@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.sql.parse;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,21 +46,43 @@ class SqlTemplateParser {
         }
     }
 
-    public void parseSqlContent(String filePath, String sqlContent) {
+    public void parseSqlContent(String sqlPath, String sqlContent) {
         StringBuilder buffer = new StringBuilder(sqlContent);
         clearCommentContent(buffer, '<' + commentTagName + '>', '<' + '/' + commentTagName + '>', true);
         clearCommentContent(buffer, "/*--", "--*/", true);
         clearCommentContent(buffer, "<%--", "--%>", true);
 
-        List<SqlFragment> sqlFragments = splitSqlFile(filePath, buffer.toString());
+        List<SqlFragment> sqlFragments = splitSqlFile(sqlPath, buffer.toString());
         for (SqlFragment sqlFragment : sqlFragments) {
-            registerSqlFragment(filePath, sqlFragment, cacheBox, cachedMaps, conflicts);
+            registerSqlFragment(sqlPath, sqlFragment);
         }
     }
 
-    private void registerSqlFragment(String filePath, SqlFragment sqlFragment, CacheBox cacheBox,
-            Map<String, String> cachedMaps, Map<String, List<String>> conflicts) {
-        SqlId result = parseSqlId(filePath, sqlFragment.getId(), sqlFragment.getLine());
+    public void onParseFinished() {
+        this.printConflictLogs();
+    }
+    
+    private void printConflictLogs() {
+        if (conflicts.isEmpty() || !log.isWarnEnabled()) {
+            return;
+        }
+        // 输出冲突日志
+        StringBuilder buffer = new StringBuilder();
+        List<String> sqlKeys = new ArrayList<>(conflicts.keySet());
+        Collections.sort(sqlKeys);
+        for (String sqlKey : sqlKeys) {
+            if (buffer.length() > 0) {
+                buffer.append('\n');
+            }
+            buffer.append(sqlKey).append(' ').append("conflict with:");
+            List<String> conflictPaths = conflicts.get(sqlKey);
+            buffer.append("\n  ").append(ConvertTools.joinToString(conflictPaths, "\n  "));
+        }
+        log.warn("Sql template conflict list:\n{}", buffer.toString());
+    }
+
+    private void registerSqlFragment(String sqlPath, SqlFragment sqlFragment) {
+        SqlId result = parseSqlId(sqlPath, sqlFragment.getId(), sqlFragment.getLine());
         // 如 fileId=user.manage, fragmentId=user.resource.query, dbType=mysql
         // fragmentId和dbType都有可能为空
         String fileId = result.getFileId();
@@ -68,33 +91,32 @@ class SqlTemplateParser {
         String dbKey = result.getDbType() == null ? "" : '(' + dbType + ')';
         IReader reader = new SimpleReader(sqlFragment.getContent());
         if (fragmentId == null) {
-            String sqlLocation = filePath;
+            String sqlLocation = sqlPath;
             String sqlId = fileId + ':' + "{default}" + ':' + dbType;
             String sqlKey = fileId + dbKey;
-            if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+            if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
                 cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
             }
         } else {
-            String sqlLocation = fragmentId + " @ " + filePath + " line " + sqlFragment.getLine();
+            String sqlLocation = fragmentId + " @ " + sqlPath + " line " + sqlFragment.getLine();
             { // 先注册fileId:fragmentId:dbType
                 String sqlId = fileId + ':' + fragmentId + ':' + dbType;
                 String sqlKey = fileId + ':' + fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
             { // 再注册fragmentId:dbType
                 String sqlId = fragmentId + ':' + dbType;
                 String sqlKey = fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation, cachedMaps, conflicts)) {
+                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
         }
     }
 
-    private boolean checkCachedSqlFragment(String sqlId, String sqlKey, String sqlLocation,
-            Map<String, String> cachedMaps, Map<String, List<String>> conflicts) {
+    private boolean checkCachedSqlFragment(String sqlId, String sqlKey, String sqlLocation) {
         if (!cachedMaps.containsKey(sqlKey)) {
             cachedMaps.put(sqlKey, sqlLocation);
             return true;
@@ -133,10 +155,10 @@ class SqlTemplateParser {
         }
     }
 
-    private SqlId parseSqlId(String filePath, String fragmentId, int lineIndex) {
+    private SqlId parseSqlId(String sqlPath, String fragmentId, int lineIndex) {
         // 如 fileName=user.manage.sql, fileId=user.manage, dbType=null
         // 如 fileName=user.manage.mysql.sql, fileId=user.manage, dbType=mysql
-        String fileName = PathTools.getFileName(filePath);
+        String fileName = PathTools.getFileName(sqlPath);
         String fileId = PathTools.removeExtension(fileName);
         String dbType = null;
         int fileDotIndex = fileId.lastIndexOf('.');
@@ -166,7 +188,7 @@ class SqlTemplateParser {
                 fragmentDbType = tempType.toLowerCase();
             } else {
                 String msg = "DbType[{}] of the SqlFragment[{}] is unsupported, {} line {}";
-                log.warn(msg, tempType, fragmentId, filePath, lineIndex);
+                log.warn(msg, tempType, fragmentId, sqlPath, lineIndex);
             }
         } else {
             int fragmentDotIndex = fragmentId.lastIndexOf('.');
@@ -186,7 +208,7 @@ class SqlTemplateParser {
                 dbType = fragmentDbType;
             } else if (!dbType.equals(fragmentDbType)) {
                 String msg = "DbType[{}] of the file conflicts with SqlFragment[{}], use [{}], {} line {}";
-                log.warn(msg, dbType, originalId, fragmentDbType, filePath, lineIndex);
+                log.warn(msg, dbType, originalId, fragmentDbType, sqlPath, lineIndex);
                 dbType = fragmentDbType;
             }
         }
@@ -199,11 +221,11 @@ class SqlTemplateParser {
      * 按SqlId将一个文本内容拆分为SQL片断<br>
      * 为避免影响源码位置, 第2个片断会从第1个片断结束的位置开始, 前面填充换行符
      * 
-     * @param filePath 文件路径
+     * @param sqlPath 文件路径
      * @param content 文本内容
      * @return SQL片断列表
      */
-    protected List<SqlFragment> splitSqlFile(String filePath, String content) {
+    protected List<SqlFragment> splitSqlFile(String sqlPath, String content) {
         String[] lines = StringTools.split(content, '\n');
         // 当前的SqlId
         String sqlId = null;
@@ -226,7 +248,7 @@ class SqlTemplateParser {
             } else if (item instanceof SqlIdDefinition) {
                 if (!buffer.isEmpty()) {
                     // 遇到新的SqlId, 处理这个SqlId上面已经缓存的SQL片断
-                    handleSqlFragment(filePath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
+                    handleSqlFragment(sqlPath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
                 }
                 buffer.clear();
                 sqlId = ((SqlIdDefinition) item).getSqlId();
@@ -237,12 +259,12 @@ class SqlTemplateParser {
         }
         if (!buffer.isEmpty()) {
             // 处理剩下的Sql片断
-            handleSqlFragment(filePath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
+            handleSqlFragment(sqlPath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
         }
         return sqlFragments;
     }
 
-    private void handleSqlFragment(String filePath, String sqlId, int sqlLine, List<String> buffer,
+    private void handleSqlFragment(String sqlPath, String sqlId, int sqlLine, List<String> buffer,
             Map<Integer, String> importMaps, List<SqlFragment> sqlFragments) {
         // 生成SQL内容, 为避免影响源码位置, 第2个片断会从第1个片断结束的位置开始, 前面填充换行符(或公共import语句)
         String sqlContent = generateSqlContent(sqlLine, buffer, importMaps);
@@ -252,7 +274,7 @@ class SqlTemplateParser {
             sqlFragments.add(new SqlFragment(sqlId, sqlLine, sqlContent));
         } else if (sqlId != null) {
             String msg = "Not found content under the SqlFragment[{}], {} line {}";
-            log.warn(msg, sqlId, filePath, sqlLine);
+            log.warn(msg, sqlId, sqlPath, sqlLine);
         }
     }
 

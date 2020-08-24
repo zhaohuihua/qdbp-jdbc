@@ -35,6 +35,8 @@ class SqlTemplateScanner {
                 log.warn("Failed to parse sql template: {}", absolutePath, e);
             }
         }
+        parser.onParseFinished();
+        
     }
 
 }
