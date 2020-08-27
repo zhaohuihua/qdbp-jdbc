@@ -26,7 +26,7 @@ import com.gitee.qdbp.tools.utils.StringTools;
  * dbtype:username:password@address/dbname:schema // 明文密码<br>
  * dbtype:username@address/dbname:schema?EncryptedPassword // 加密密码<br>
  * 数据库密码加密: java -cp qdbp-able.jar com.gitee.qdbp.tools.crypto.GlobalCipherTools db password<br>
- * config第1段是dbtype.subtype, subtype可以没有. 例如mysql, mysql.8, oralce, oralce.sid<br>
+ * config第1段是dbtype.subtype, subtype可以没有. 例如mysql, mysql.8, oracle, oracle.sid<br>
  * 通过dbtype.subtype从properties之中自动查找jdbc.url/jdbc.params/jdbc.driver/jdbc.testquery<br>
  * 查找时优先查找jdbc.url.dbtype.subtype, 如果没有再查找jdbc.url.dbtype, 最后查找jdbc.url<br>
  * <pre>
@@ -36,14 +36,36 @@ jdbc.xxx = mysql:username:password@address/dbname
 jdbc.xxx = mysql.8:username:password@address/dbname
 ## MySQL(加密的密码放在最后)
 jdbc.xxx = mysql:username@address/dbname?EncryptedPassword
-## Oralce-DbName
-jdbc.xxx = oralce:username:password@address/dbname
-## Oralce-SID
-jdbc.xxx = oralce.sid:username:password@address/dbname
-## DB2需要schema
-jdbc.xxx = db2:username:password@127.0.0.1:50000/dbname:schema
-## 内存模式,不需要username/password/address
-jdbc.xxx = h2.mem@~/dbname
+## MariaDB
+# jdbc.xxx = mariadb:username:password@127.0.0.1:3306/dbname
+## Oracle-DbName
+# jdbc.xxx = oracle:username:password@127.0.0.1:1521/dbname
+## Oracle-SID
+# jdbc.xxx = oracle.sid@127.0.0.1:1521/DbSid
+## Oracle-TNS
+# jdbc.xxx = oracle.tns@~/TnsName
+## DB2 需要schema
+# jdbc.xxx = db2:username:password@127.0.0.1:50000/dbname:schema
+## H2 嵌入式(不需要ip:port)
+# jdbc.xxx = h2.embed:username:password@~/dbname
+## H2 TCP模式
+# jdbc.xxx = h2.tcp:username:password@127.0.0.1:8082/dbname
+## H2 内存模式(不需要username/password/ip:port)
+# jdbc.xxx = h2.mem@~/dbname
+## SqlServer
+# jdbc.xxx = sqlserver:username:password@127.0.0.1:1433/dbname
+## SqlServer 老版本
+# jdbc.xxx = sqlserver.2000:username:password@127.0.0.1:1433/dbname
+## PostgreSQL
+# jdbc.xxx = postgresql:username:password@127.0.0.1:5432/dbname:schema
+## SQLite 内存模式
+# jdbc.xxx = sqlite.mem@~/dbname
+## SQLite 文件模式(windows)
+# jdbc.xxx = sqlite.file@~/F:/sqlite/main.db
+## SQLite 文件模式(linux)
+# jdbc.xxx = sqlite.file@~/home/sqlite/main.db
+## SQLite 类路径中的文件
+# jdbc.xxx = sqlite.res@~/settings/sqlite/main.db
 
 &lt;bean id="setting" class="org.springframework.beans.factory.config.PropertiesFactoryBean"&gt;
     &lt;property  name="fileEncoding" value="UTF-8" /&gt;
@@ -85,36 +107,19 @@ public class AutoDruidDataSource extends DruidDataSource {
     // jdbc:h2:~/DbName // 嵌入式
     // jdbc:h2:mem:DbName // 内存数据库
     // jdbc:h2:tcp://192.168.1.218:8084/~/DbName
-    // jdbc:sqlserver://192.168.1.218:1433;DatabaseName=DB_BBMJ
+    // jdbc:sqlserver://192.168.1.218:1433;DatabaseName=DbName
+    // jdbc:sqlite::memory:
+    // jdbc:sqlite://F:/sqlite/main.db
+    // jdbc:sqlite://home/sqlite/main.db
+    // jdbc:sqlite::resource:settings/sqlite/main.db
 
-    // ## MySQL
-    // # jdbc.xxx = mysql:username:password@127.0.0.1:3306/dbname
-    // ## MySQL(加密的密码放在最后)
-    // # jdbc.xxx = mysql:username@127.0.0.1:3306/dbname?EncryptedPassword
-    // ## MariaDB
-    // # jdbc.xxx = mariadb:username:password@127.0.0.1:3306/dbname
-    // ## Oralce-DbName
-    // # jdbc.xxx = oralce:username:password@127.0.0.1:1521/dbname
-    // ## Oralce-SID
-    // # jdbc.xxx = oralce.sid:username:password@127.0.0.1:1521/dbname
-    // ## DB2 需要schema
-    // # jdbc.xxx = db2:username:password@127.0.0.1:50000/dbname:schema
-    // ## H2 嵌入式(不需要ip:port)
-    // # jdbc.xxx = h2.embed:username:password@~/dbname
-    // ## H2 TCP模式
-    // # jdbc.xxx = h2.tcp:username:password@127.0.0.1:8082/dbname
-    // ## H2 内存模式(不需要username/password/ip:port)
-    // # jdbc.xxx = h2.mem@~/dbname
-    // ## SqlServer
-    // # jdbc.xxx = sqlserver:username:password@127.0.0.1:1433/dbname
-    // ## SqlServer 老版本
-    // # jdbc.xxx = sqlserver.2000:username:password@127.0.0.1:1433/dbname
-    // ## PostgreSQL
-    // # jdbc.xxx = postgresql:username:password@127.0.0.1:5432/dbname
+    // dbname可以是一个文件路径
+    // 如 jdbc.xxx=sqlite.file@~/E:/sqlite/main.db
+    // 如 jdbc.xxx=sqlite.file@~/home/sqlite/main.db
     /** 解析数据库配置的正则表达式 **/
-    private static final Pattern CONFIG = Pattern.compile(
-        //    dbtype.subtype     : username       : password   @ address /   dbname    :   schema   ?EncryptedPassword
-        "(\\w+?(?:\\.\\w+)?)(?:\\:([\\-\\.\\w]+))?(?:\\:(.+?))?@([^@/?]+)/([\\-\\.\\w]+)(?:\\:(.+?))?(?:\\?(.+))?");
+    protected static final Pattern CONFIG = Pattern.compile(
+        //    dbtype.subtype     : username       : password   @ address /            dbname             :   schema   ?EncryptedPassword
+        "(\\w+?(?:\\.\\w+)?)(?:\\:([\\-\\.\\w]+))?(?:\\:(.+?))?@([^@/?]+)/((?:[a-zA-Z]\\:/)?[/\\-\\.\\w]+)(?:\\:(.+?))?(?:\\?(.+))?");
 
     protected String dbconfig;
     protected Properties properties;
@@ -184,7 +189,8 @@ public class AutoDruidDataSource extends DruidDataSource {
         if (!matcher.matches()) {
             String one = "dbtype:username:password@address/dbname";
             String two = "dbtype:username@address/dbname?EncryptedPassword";
-            throw new IllegalArgumentException("Config string format error. format <1> " + one + " <2> " + two);
+            String msg = "Config string format error -->  " + config + "\nformat <1> " + one + " <2> " + two;
+            throw new IllegalArgumentException(msg);
         }
 
         // dbtype:username:password@address/dbname:schema?EncryptedPassword
@@ -249,6 +255,18 @@ public class AutoDruidDataSource extends DruidDataSource {
         if (inited) {
             return;
         }
+        this.initProperty();
+        super.init();
+
+        String msg = "{dataSource-" + this.getID();
+        if (this.name != null && !this.name.isEmpty()) {
+            msg += "," + this.name;
+        }
+        msg += "} " + this.getUrl();
+        log.info(msg);
+    }
+
+    protected void initProperty() {
         if (properties == null) {
             properties = loadDefaultProperties();
         }
@@ -274,7 +292,6 @@ public class AutoDruidDataSource extends DruidDataSource {
 
         // 处理特殊的Driver
         resolveSpecialDriver();
-        super.init();
     }
 
     /**
