@@ -1,5 +1,7 @@
 package com.gitee.qdbp.jdbc.biz;
 
+import java.net.URL;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -7,6 +9,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.support.EncodedResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -17,6 +21,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.jdbc.support.JdbcAccessor;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -31,6 +37,7 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -84,25 +91,24 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             return;
         }
         JdbcOperations jdbcOperations = namedParameterJdbcOperations.getJdbcOperations();
-        if (jdbcOperations instanceof JdbcAccessor) {
-            JdbcAccessor accessor = (JdbcAccessor) jdbcOperations;
-            DataSource datasource = accessor.getDataSource();
-            if (datasource == null) {
-                throw new IllegalStateException("Datasource is null.");
-            }
-            jdbcInitLock.lock();
-            try {
-                if (dbVersion == null) {
-                    dbVersion = DbTools.findDbVersion(datasource);
-                    sqlDialect = DbTools.buildSqlDialect(dbVersion);
-                    log.trace("Database version: {}", dbVersion);
-                }
-            } finally {
-                jdbcInitLock.unlock();
-            }
-            return;
+        if (!(jdbcOperations instanceof JdbcAccessor)) {
+            throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
         }
-        throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
+        JdbcAccessor accessor = (JdbcAccessor) jdbcOperations;
+        DataSource datasource = accessor.getDataSource();
+        if (datasource == null) {
+            throw new IllegalStateException("Datasource is null.");
+        }
+        jdbcInitLock.lock();
+        try {
+            if (dbVersion == null) {
+                dbVersion = DbTools.findDbVersion(datasource);
+                sqlDialect = DbTools.buildSqlDialect(dbVersion);
+                log.debug("Database version: {}", dbVersion);
+            }
+        } finally {
+            jdbcInitLock.unlock();
+        }
     }
 
     private <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
@@ -513,6 +519,30 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(errorCode, details, e);
         }
+    }
+
+    @Override
+    public void executeSqlScript(String sqlFilePath, Class<?>... classes) {
+        VerifyTools.requireNotBlank(sqlFilePath, "sqlFilePath");
+        URL url = PathTools.findResource(sqlFilePath);
+
+        JdbcOperations jdbcOperations = namedParameterJdbcOperations.getJdbcOperations();
+        if (!(jdbcOperations instanceof JdbcAccessor)) {
+            throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
+        }
+        JdbcAccessor accessor = (JdbcAccessor) jdbcOperations;
+        DataSource datasource = accessor.getDataSource();
+        if (datasource == null) {
+            throw new IllegalStateException("Datasource is null.");
+        }
+
+        EncodedResource resource = new EncodedResource(new UrlResource(url));
+        Connection connection = DataSourceUtils.getConnection(datasource);
+        ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
+            ScriptUtils.DEFAULT_COMMENT_PREFIX, // 行注释前缀: --
+            ScriptUtils.DEFAULT_STATEMENT_SEPARATOR, // SQL代码块分隔符: ;
+            ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER, // 块注释开始符号: /*
+            ScriptUtils.DEFAULT_BLOCK_COMMENT_END_DELIMITER); // 块注释结束符号: */
     }
 
     protected String getCompressedSqlString(SqlBuffer sb, int indent) {
