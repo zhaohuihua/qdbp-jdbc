@@ -30,5 +30,7 @@ public enum MainDbType implements DbType {
     /** Informix **/
     Informix,
     /** Sybase **/
-    Sybase
+    Sybase,
+    /** SQLite **/
+    SQLite
 }
