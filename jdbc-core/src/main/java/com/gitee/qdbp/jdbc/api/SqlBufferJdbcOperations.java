@@ -14,6 +14,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.tools.files.PathTools;
 
 /**
  * SqlBuffer数据库操作类<br>
@@ -231,6 +232,17 @@ public interface SqlBufferJdbcOperations {
      * @throws ServiceException if there is any problem issuing the update
      */
     int batchUpdate(SqlBuffer sb) throws ServiceException;
+
+    /**
+     * 执行SQL脚本<br>
+     * 如: executeSqlScript("file:/home/sqls/create.tables.oracle.sql");<br>
+     * 如: executeSqlScript("classpath:settings/sqls/create.tables.oracle.sql");<br>
+     * 如: executeSqlScript("classpath:settings/sqls/create.tables.oracle.sql", Xxx.class);<br>
+     * 
+     * @param sqlFilePath SQL文件路径
+     * @see PathTools#findResource(String, Class...)
+     */
+    void executeSqlScript(String sqlFilePath, Class<?>... classes);
 
     /**
      * Expose the classic Spring JdbcTemplate to allow invocation of
