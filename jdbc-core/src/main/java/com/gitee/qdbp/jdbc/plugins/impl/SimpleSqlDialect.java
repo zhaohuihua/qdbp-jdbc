@@ -86,8 +86,11 @@ public class SimpleSqlDialect implements SqlDialect {
             processPagingForH2(buffer, paging);
         } else if (dbType == MainDbType.PostgreSQL) {
             processPagingForPostgreSql(buffer, paging);
+        } else if (dbType == MainDbType.SQLite) {
+            processPagingForSqlite(buffer, paging);
         } else {
-            throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+            // throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+            processPagingForLimitOffset(buffer, paging);
         }
     }
 
@@ -104,24 +107,25 @@ public class SimpleSqlDialect implements SqlDialect {
 
     protected void processPagingForH2(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.H2Dialect
-        SqlBuilder sql = buffer.shortcut();
-        if (paging.getStart() <= 0) {
-            // limit {rows}
-            sql.newline().ad("LIMIT").var(paging.getRows());
-        } else {
-            // limit {start} offset {rows}
-            sql.newline().ad("LIMIT").var(paging.getRows()).ad("OFFSET").var(paging.getStart());
-        }
+        processPagingForLimitOffset(buffer, paging);
     }
 
     protected void processPagingForPostgreSql(SqlBuffer buffer, Paging paging) {
         // 逻辑参考自: org.hibernate.dialect.PostgreSQLDialect
+        processPagingForLimitOffset(buffer, paging);
+    }
+
+    protected void processPagingForSqlite(SqlBuffer buffer, Paging paging) {
+        processPagingForLimitOffset(buffer, paging);
+    }
+
+    protected void processPagingForLimitOffset(SqlBuffer buffer, Paging paging) {
         SqlBuilder sql = buffer.shortcut();
         if (paging.getStart() <= 0) {
             // limit {rows}
             sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
-            // limit {start} offset {rows}
+            // limit {rows} offset {start}
             sql.newline().ad("LIMIT").var(paging.getRows()).ad("OFFSET").var(paging.getStart());
         }
     }
@@ -292,14 +296,14 @@ public class SimpleSqlDialect implements SqlDialect {
         } else { // 标准递归语法
             // MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可
             String key;
-            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
+            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
+                    || dbType == MainDbType.SQLite) {
                 key = "WITH RECURSIVE";
-            } else if (dbType == MainDbType.DB2) {
-                key = "WITH";
-            } else if (dbType == MainDbType.SqlServer) {
+            } else if (dbType == MainDbType.DB2 || dbType == MainDbType.SqlServer) {
                 key = "WITH";
             } else {
-                throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+                // throw new UnsupportedOperationException("Unsupported db type: " + dbType);
+                key = "WITH RECURSIVE";
             }
             return normalRecursiveFindChildren(key, startCodes, codeField, parentField, selectFields, where, orderings,
                 builder);
