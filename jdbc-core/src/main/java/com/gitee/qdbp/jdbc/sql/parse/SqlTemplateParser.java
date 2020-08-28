@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ResourceNotFoundException;
 import com.gitee.qdbp.jdbc.model.MainDbType;
+import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.common.IReader;
 import com.gitee.qdbp.staticize.io.IReaderCreator;
 import com.gitee.qdbp.staticize.io.SimpleReader;
+import com.gitee.qdbp.staticize.parse.TagParser;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -58,10 +60,26 @@ class SqlTemplateParser {
         }
     }
 
-    public void onParseFinished() {
+    public Map<String, IMetaData> parseCachedSqlTemplates() {
         this.printConflictLogs();
+        List<String> paths = cacheBox.getSqlIds();
+        Map<String, IMetaData> tagMaps = new HashMap<>();
+        for (String path : paths) {
+            TagParser parser = new TagParser(cacheBox);
+            try {
+                IMetaData metadata = parser.parse(path);
+                tagMaps.put(path, metadata);
+            } catch (Exception e) {
+                log.warn("Sql template parse error: {}", path, e);
+            }
+        }
+        return tagMaps;
     }
-    
+
+    public CacheBox getCacheBox() {
+        return this.cacheBox;
+    }
+
     private void printConflictLogs() {
         if (conflicts.isEmpty() || !log.isWarnEnabled()) {
             return;
@@ -534,6 +552,10 @@ class SqlTemplateParser {
 
         public void register(String sqlId, CacheItem item) {
             cache.put(sqlId, item);
+        }
+
+        public List<String> getSqlIds() {
+            return new ArrayList<>(cache.keySet());
         }
 
         @Override
