@@ -9,6 +9,7 @@
 	</appender>
 
 	<logger name="com.gitee.qdbp" level="DEBUG" additivity="true" />
+	<logger name="org.springframework.jdbc.datasource.init" level="DEBUG" additivity="true" />
 	<!-- <logger name="com.alibaba.druid.pool" level="DEBUG" additivity="true" /> -->
 
 	<root level="INFO">

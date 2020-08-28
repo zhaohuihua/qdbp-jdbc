@@ -536,7 +536,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         if (datasource == null) {
             throw new IllegalStateException("Datasource is null.");
         }
-
+        
         EncodedResource resource = new EncodedResource(new UrlResource(url), Charset.forName("UTF-8"));
         Connection connection = DataSourceUtils.getConnection(datasource);
         ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
