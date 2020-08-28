@@ -5,6 +5,7 @@
 		<packages>
 			<package name="com.gitee.qdbp.jdbc.enums" />
 			<package name="com.gitee.qdbp.jdbc.sql" />
+			<package name="com.gitee.qdbp.jdbc.support" />
 			<package name="com.gitee.qdbp.jdbc.test.biz" />
 		</packages>
 	</test>
