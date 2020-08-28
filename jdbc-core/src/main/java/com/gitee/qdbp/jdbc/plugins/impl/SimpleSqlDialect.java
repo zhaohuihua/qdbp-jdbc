@@ -110,7 +110,7 @@ public class SimpleSqlDialect implements SqlDialect {
             sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
             // limit {start} offset {rows}
-            sql.newline().ad("LIMIT").var(paging.getStart()).ad("OFFSET").var(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getRows()).ad("OFFSET").var(paging.getStart());
         }
     }
 
@@ -122,7 +122,7 @@ public class SimpleSqlDialect implements SqlDialect {
             sql.newline().ad("LIMIT").var(paging.getRows());
         } else {
             // limit {start} offset {rows}
-            sql.newline().ad("LIMIT").var(paging.getStart()).ad("OFFSET").var(paging.getRows());
+            sql.newline().ad("LIMIT").var(paging.getRows()).ad("OFFSET").var(paging.getStart());
         }
     }
 
