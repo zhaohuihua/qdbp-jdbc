@@ -54,7 +54,7 @@ public class AutoDruidRegexpTest {
         test("postgresql:username:password@127.0.0.1:5432/dbname:schemaname", "username", "password",
             "jdbc:postgresql://127.0.0.1:5432/dbname?currentSchema=schemaname&useUnicode=true&characterEncoding=UTF-8");
         // SQLite 内存模式
-        test("sqlite.mem@~/dbname", null, null, "jdbc:sqlite::memory:dbname");
+        test("sqlite.mem@~/dbname", null, null, "jdbc:sqlite::memory:");
         // SQLite 文件模式(windows)
         test("sqlite.file@~/F:/sqlite/main.db", null, null, "jdbc:sqlite://F:/sqlite/main.db");
         // SQLite 文件模式(linux)
