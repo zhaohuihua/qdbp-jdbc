@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.biz;
 
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -536,7 +537,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             throw new IllegalStateException("Datasource is null.");
         }
 
-        EncodedResource resource = new EncodedResource(new UrlResource(url));
+        EncodedResource resource = new EncodedResource(new UrlResource(url), Charset.forName("UTF-8"));
         Connection connection = DataSourceUtils.getConnection(datasource);
         ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
             ScriptUtils.DEFAULT_COMMENT_PREFIX, // 行注释前缀: --
