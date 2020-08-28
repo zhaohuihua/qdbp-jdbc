@@ -2,7 +2,6 @@ package com.gitee.qdbp.jdbc.test.biz;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
@@ -32,7 +32,7 @@ public class MultiThreadQueryTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private SysSettingService sysSettingService;
 
-    @PostConstruct
+    @BeforeClass
     public void init() {
         CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
         DbWhere where = new DbWhere();

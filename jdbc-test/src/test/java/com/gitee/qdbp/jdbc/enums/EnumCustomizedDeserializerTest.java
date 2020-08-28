@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.testng.Assert;
 import org.testng.Assert.ThrowingRunnable;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.parser.DefaultJSONParser;
@@ -25,7 +25,7 @@ import com.alibaba.fastjson.util.TypeUtils;
 @Test
 public class EnumCustomizedDeserializerTest {
 
-    @BeforeTest
+    @BeforeClass
     protected void init() {
         // 给UserState注册定制的反序列化处理类
         ParserConfig.getGlobalInstance().putDeserializer(UserState.class, new CodeEnumDeserializer());

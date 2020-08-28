@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.api.CrudDao;
@@ -33,7 +34,8 @@ public class InConditionTest extends AbstractTestNGSpringContextTests {
         DbWhere where = new DbWhere();
         where.on("deptCode", "in", values);
         CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
-        System.out.println(dao.count(where));
+        int count = dao.count(where);
+        Assert.assertEquals(count, 0, "InQueryResult");
     }
 
     private static String calcCode(int number) {

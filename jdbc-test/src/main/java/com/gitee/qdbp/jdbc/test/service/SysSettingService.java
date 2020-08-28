@@ -67,7 +67,7 @@ public class SysSettingService {
         if (sleepMills > 0) {
             try {
                 // 业务处理
-                log.debug("Start to business handle");
+                log.debug("Start to business handle (sleep {} ms)", sleepMills);
                 Thread.sleep(sleepMills);
                 log.debug("Success to business handle");
             } catch (InterruptedException e) {
@@ -102,7 +102,7 @@ public class SysSettingService {
         if (sleepMills > 0) {
             try {
                 // 业务处理
-                log.debug("Start to business handle");
+                log.debug("Start to business handle (sleep {} ms)", sleepMills);
                 Thread.sleep(sleepMills);
                 log.debug("Success to business handle");
             } catch (InterruptedException e) {
@@ -128,7 +128,7 @@ public class SysSettingService {
             }
             return id;
         } catch (Throwable e) {
-            log.debug("Failed to update setting, id={}", id);
+            log.debug("Failed to update setting, id={}, {}", id, e.toString());
             if (testModel != TestModel.skipLogging) {
                 recordLogger("SysSetting", "Failed to update setting for " + entity.getName(), logSuccess);
             }

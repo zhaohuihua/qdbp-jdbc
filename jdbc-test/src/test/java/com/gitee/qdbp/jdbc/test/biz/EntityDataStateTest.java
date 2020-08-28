@@ -2,13 +2,13 @@ package com.gitee.qdbp.jdbc.test.biz;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
@@ -35,7 +35,7 @@ public class EntityDataStateTest extends AbstractTestNGSpringContextTests {
     private int updateTotal = 25;
     private List<String> deletedIds;
 
-    @PostConstruct
+    @BeforeClass
     public void init() {
         this.dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
 
@@ -107,7 +107,8 @@ public class EntityDataStateTest extends AbstractTestNGSpringContextTests {
             where.on("dataState", "=", DataState.DELETED);
             List<SysLoggerEntity> entities = dao.list(where, Orderings.NONE);
             Assert.assertEquals(entities.size(), deletedIds.size(), "DataState=DELETED");
-            log.info(JsonTools.toLogString(entities.get(0)));
+            log.info("Deleted entity data: {}", JsonTools.toLogString(entities.get(0)));
+            Assert.assertEquals(entities.get(0).getDataState(), DataState.DELETED, "dataState field value");
         }
     }
 }

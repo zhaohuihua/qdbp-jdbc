@@ -2,11 +2,11 @@ package com.gitee.qdbp.jdbc.test.biz;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
@@ -28,7 +28,7 @@ public class BatchInsertUpdateTest extends AbstractTestNGSpringContextTests {
     private int defaultIndex;
     private int updateTotal = 25;
 
-    @PostConstruct
+    @BeforeClass
     public void init() {
         this.dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
 
