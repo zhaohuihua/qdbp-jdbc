@@ -1,11 +1,11 @@
 package com.gitee.qdbp.jdbc.test.biz;
 
-import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
@@ -31,7 +31,7 @@ public class TransactionalTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private SysSettingService sysSettingService;
 
-    @PostConstruct
+    @BeforeClass
     public void init() {
         {
             CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);

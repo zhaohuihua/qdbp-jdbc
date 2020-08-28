@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
@@ -38,7 +39,7 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     private QdbcBoot qdbcBoot;
 
-    @Test(priority = 1)
+    @BeforeClass
     public void testVersionQuery() {
         DbVersion version = qdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
         log.debug("DbVersion: {}", version);
