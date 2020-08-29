@@ -11,6 +11,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.fields.ExcludeFields;
+import com.gitee.qdbp.able.jdbc.fields.Fields;
+import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
@@ -171,6 +174,88 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test(priority = 2020)
+    public void testFindIncludeFields() {
+        Fields fields = new IncludeFields("id,userCode,userName,nickName,realName,phone,email");
+        DbWhere where = new DbWhere();
+        where.on("tenantCode", "=", "test");
+        where.on("userType", "=", UserType.USER);
+        where.on("userCode", "=", "kelly");
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        SysUserEntity entity = dao.find(fields, where);
+        log.debug("FindIncludeFieldsQueryResult: {}", JsonTools.toLogString(entity));
+        Assert.assertNotNull(entity, "FindIncludeFieldsQueryResult");
+        Assert.assertNotNull(entity.getId(), "UserEntity.id");
+        Assert.assertNull(entity.getTenantCode(), "UserEntity.tenantCode");
+        Assert.assertNull(entity.getDeptCode(), "UserEntity.deptCode");
+        Assert.assertNull(entity.getUserType(), "UserEntity.userType");
+        Assert.assertNull(entity.getUserState(), "UserEntity.userState");
+        Assert.assertNull(entity.getCreateTime(), "UserEntity.createTime");
+        Assert.assertEquals(entity.getUserCode(), "kelly", "UserEntity.userCode");
+    }
+
+    @Test(priority = 2021)
+    public void testFindExcludeFields() {
+        Fields fields = new ExcludeFields("tenantCode,userState,createTime");
+        DbWhere where = new DbWhere();
+        where.on("tenantCode", "=", "test");
+        where.on("userType", "=", UserType.USER);
+        where.on("userCode", "=", "kelly");
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        SysUserEntity entity = dao.find(fields, where);
+        log.debug("FindExcludeFieldsQueryResult: {}", JsonTools.toLogString(entity));
+        Assert.assertNotNull(entity, "FindExcludeFieldsQueryResult");
+        Assert.assertNotNull(entity.getId(), "UserEntity.id");
+        Assert.assertNull(entity.getTenantCode(), "UserEntity.tenantCode");
+        Assert.assertNotNull(entity.getDeptCode(), "UserEntity.deptCode");
+        Assert.assertNotNull(entity.getUserType(), "UserEntity.userType");
+        Assert.assertNull(entity.getUserState(), "UserEntity.userState");
+        Assert.assertNull(entity.getCreateTime(), "UserEntity.createTime");
+        Assert.assertEquals(entity.getUserCode(), "kelly", "UserEntity.userCode");
+    }
+
+    @Test(priority = 2022)
+    public void testListIncludeFields() {
+        IncludeFields fields = new IncludeFields("id,userCode,userName,nickName,realName,phone,email");
+        DbWhere where = new DbWhere();
+        where.on("tenantCode", "=", "test");
+        where.on("userType", "=", UserType.USER);
+        where.on("userCode", "in", "kelly", "evan", "coral");
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        PageList<SysUserEntity> entities = dao.list(fields, where, OrderPaging.of("createTime"));
+        Assert.assertEquals(entities.size(), 3, "ListIncludeFieldsQueryResult");
+        for (SysUserEntity entity : entities) {
+            Assert.assertNotNull(entity.getId(), "UserEntity.id");
+            Assert.assertNull(entity.getTenantCode(), "UserEntity.tenantCode");
+            Assert.assertNull(entity.getDeptCode(), "UserEntity.deptCode");
+            Assert.assertNull(entity.getUserType(), "UserEntity.userType");
+            Assert.assertNull(entity.getUserState(), "UserEntity.userState");
+            Assert.assertNull(entity.getCreateTime(), "UserEntity.createTime");
+            Assert.assertNotNull(entity.getUserCode(), "UserEntity.userCode");
+        }
+    }
+
+    @Test(priority = 2023)
+    public void testListExcludeFields() {
+        Fields fields = new ExcludeFields("tenantCode,userState,createTime");
+        DbWhere where = new DbWhere();
+        where.on("tenantCode", "=", "test");
+        where.on("userType", "=", UserType.USER);
+        where.on("userCode", "in", "kelly", "evan", "coral");
+        CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
+        PageList<SysUserEntity> entities = dao.list(fields, where, OrderPaging.of("createTime"));
+        Assert.assertEquals(entities.size(), 3, "ListExcludeFieldsQueryResult");
+        for (SysUserEntity entity : entities) {
+            Assert.assertNotNull(entity.getId(), "UserEntity.id");
+            Assert.assertNull(entity.getTenantCode(), "UserEntity.tenantCode");
+            Assert.assertNotNull(entity.getDeptCode(), "UserEntity.deptCode");
+            Assert.assertNotNull(entity.getUserType(), "UserEntity.userType");
+            Assert.assertNull(entity.getUserState(), "UserEntity.userState");
+            Assert.assertNull(entity.getCreateTime(), "UserEntity.createTime");
+            Assert.assertNotNull(entity.getUserCode(), "UserEntity.userCode");
+        }
+    }
+
+    @Test(priority = 3010)
     public void testUserPaging() {
         CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
         DbWhere where = DbWhere.NONE;
