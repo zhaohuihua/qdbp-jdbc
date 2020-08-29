@@ -107,7 +107,7 @@ public class QdbcBootImpl implements QdbcBoot {
      * 
      * @param datasource 数据源
      * @return QdbcBoot
-     * @since V3.1.1
+     * @since 3.1.1
      */
     public static QdbcBootImpl buildWith(DataSource datasource) {
         JdbcTemplate jdbcOperations = new JdbcTemplate(datasource);
@@ -119,7 +119,7 @@ public class QdbcBootImpl implements QdbcBoot {
      * 
      * @param jdbcOperations JdbcOperations
      * @return QdbcBoot
-     * @since V3.1.1
+     * @since 3.1.1
      */
     public static QdbcBootImpl buildWith(JdbcOperations jdbcOperations) {
         NamedParameterJdbcOperations operations = new NamedParameterJdbcTemplate(jdbcOperations);
@@ -131,7 +131,7 @@ public class QdbcBootImpl implements QdbcBoot {
      * 
      * @param jdbcOperations NamedParameterJdbcOperations
      * @return QdbcBoot
-     * @since V3.1.1
+     * @since 3.1.1
      */
     public static QdbcBootImpl buildWith(NamedParameterJdbcOperations jdbcOperations) {
         SqlBufferJdbcOperations options = new SqlBufferJdbcTemplate(jdbcOperations);

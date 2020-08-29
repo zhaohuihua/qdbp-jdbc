@@ -45,12 +45,17 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-core</artifactId>
-			<version>3.1.0</version>
+			<version>3.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-spring</artifactId>
-			<version>3.1.0</version>
+			<version>3.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gitee.qdbp</groupId>
+			<artifactId>qdbp-able</artifactId>
+			<version>5.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>

@@ -241,7 +241,7 @@ public interface SqlBufferJdbcOperations {
      * 
      * @param sqlFilePath SQL文件路径
      * @see PathTools#findResource(String, Class...)
-     * @since V3.1.0
+     * @since 3.1.0
      */
     void executeSqlScript(String sqlFilePath, Class<?>... classes);
 

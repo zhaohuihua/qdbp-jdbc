@@ -682,7 +682,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      * @see BatchInsertExecutor 具体实现由<code>BatchInsertExecutor</code>的子类提供
-     * @since V3.0.0
+     * @since 3.0.0
      */
     List<String> inserts(List<?> entities) throws ServiceException;
 
@@ -701,7 +701,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      * @see BatchInsertExecutor 具体实现由<code>BatchInsertExecutor</code>的子类提供
-     * @since V3.0.0
+     * @since 3.0.0
      */
     List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
@@ -722,7 +722,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      * @see BatchUpdateExecutor 具体实现由<code>BatchUpdateExecutor</code>的子类提供
-     * @since V3.0.0
+     * @since 3.0.0
      */
     int updates(List<?> entities) throws ServiceException;
 
@@ -743,7 +743,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      * @see BatchUpdateExecutor 具体实现由<code>BatchUpdateExecutor</code>的子类提供
-     * @since V3.0.0
+     * @since 3.0.0
      */
     int updates(List<?> entities, boolean fillUpdateParams) throws ServiceException;
 
