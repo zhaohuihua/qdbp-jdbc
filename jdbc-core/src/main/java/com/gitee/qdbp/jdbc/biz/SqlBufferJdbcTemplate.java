@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.biz;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.Connection;
@@ -38,6 +39,7 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.files.FileTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -536,8 +538,18 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         if (datasource == null) {
             throw new IllegalStateException("Datasource is null.");
         }
-        
-        EncodedResource resource = new EncodedResource(new UrlResource(url), Charset.forName("UTF-8"));
+
+        Charset charset = Charset.forName("UTF-8");
+        // 自动识别文件的编码格式
+        try (InputStream input = url.openStream()) {
+            String charsetName = FileTools.getEncoding(input);
+            charset = Charset.forName(charsetName);
+            log.trace("Success to get file encoding [{}], {}, {}.", charsetName, url.toString());
+        } catch (Exception e) {
+            log.warn("Failed to get file encoding, {}, {}.", url.toString(), e.toString());
+        }
+
+        EncodedResource resource = new EncodedResource(new UrlResource(url), charset);
         Connection connection = DataSourceUtils.getConnection(datasource);
         ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
             ScriptUtils.DEFAULT_COMMENT_PREFIX, // 行注释前缀: --
