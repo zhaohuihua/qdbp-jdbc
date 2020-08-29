@@ -2,6 +2,11 @@ package com.gitee.qdbp.jdbc.biz;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
@@ -97,4 +102,36 @@ public class QdbcBootImpl implements QdbcBoot {
         this.sqlBufferJdbcOperations = sqlBufferJdbcOperations;
     }
 
+    /**
+     * 根据数据库构造QdbcBoot
+     * 
+     * @param datasource 数据源
+     * @return QdbcBoot
+     */
+    public static QdbcBootImpl buildWith(DataSource datasource) {
+        JdbcTemplate jdbcOperations = new JdbcTemplate(datasource);
+        return buildWith(jdbcOperations);
+    }
+
+    /**
+     * 根据JdbcOperations构造QdbcBoot
+     * 
+     * @param jdbcOperations JdbcOperations
+     * @return QdbcBoot
+     */
+    public static QdbcBootImpl buildWith(JdbcOperations jdbcOperations) {
+        NamedParameterJdbcOperations operations = new NamedParameterJdbcTemplate(jdbcOperations);
+        return buildWith(operations);
+    }
+
+    /**
+     * 根据JdbcOperations构造QdbcBoot
+     * 
+     * @param jdbcOperations NamedParameterJdbcOperations
+     * @return QdbcBoot
+     */
+    public static QdbcBootImpl buildWith(NamedParameterJdbcOperations jdbcOperations) {
+        SqlBufferJdbcOperations options = new SqlBufferJdbcTemplate(jdbcOperations);
+        return new QdbcBootImpl(options);
+    }
 }

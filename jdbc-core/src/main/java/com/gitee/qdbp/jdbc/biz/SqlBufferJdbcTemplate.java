@@ -1,8 +1,6 @@
 package com.gitee.qdbp.jdbc.biz;
 
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +9,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.EncodedResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -39,7 +35,6 @@ import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.files.FileTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -539,19 +534,8 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             throw new IllegalStateException("Datasource is null.");
         }
 
-        Charset charset = Charset.forName("UTF-8");
-        // 自动识别文件的编码格式
-        try (InputStream input = url.openStream()) {
-            String charsetName = FileTools.getEncoding(input);
-            charset = Charset.forName(charsetName);
-            log.trace("Success to get file encoding [{}], {}, {}.", charsetName, url.toString());
-        } catch (Exception e) {
-            log.warn("Failed to get file encoding, {}, {}.", url.toString(), e.toString());
-        }
-
-        EncodedResource resource = new EncodedResource(new UrlResource(url), charset);
         Connection connection = DataSourceUtils.getConnection(datasource);
-        ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
+        SqlScriptTools.executeSqlScript(connection, url, true, true, // 遇到错误继续, 忽略失败的DROP语句
             ScriptUtils.DEFAULT_COMMENT_PREFIX, // 行注释前缀: --
             ScriptUtils.DEFAULT_STATEMENT_SEPARATOR, // SQL代码块分隔符: ;
             ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER, // 块注释开始符号: /*
