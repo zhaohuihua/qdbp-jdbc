@@ -24,7 +24,7 @@
 	<!-- dataSource 配置 -->
 	<bean id="sysDataSource" class="com.gitee.qdbp.jdbc.support.AutoDruidDataSource" init-method="init" destroy-method="close">
 		<property name="properties" ref="setting" />
-		<property name="config" value="${jdbc.sys}" />
+		<property name="urlKey" value="jdbc.sys" />
 		<property name="url" value="auto" />
 		<property name="driverClassName" value="auto" />
 		<property name="validationQuery" value="auto" />
