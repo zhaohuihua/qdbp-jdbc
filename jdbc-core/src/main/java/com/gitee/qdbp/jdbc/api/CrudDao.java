@@ -64,7 +64,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @param where 查询条件<br>
      *            如果没有查询条件应传入DbWhere.NONE<br>
@@ -92,7 +92,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @return 列表数据
      */
@@ -118,7 +118,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @param orderings 排序条件<br>
      *            不需要排序时应传入Orderings.NONE<br>
@@ -166,13 +166,14 @@ public interface CrudDao<T> {
      *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @param odpg 分页/排序条件<br>
      *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
-     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只分页不排序: OrderPaging.of(pageIndex, pageSize);<br>
      *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
-     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(pageIndex, pageSize, "name asc, createTime desc");<br>
      *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @return 列表数据
      * @see ParseTools#parseBeanToDbWhere(Object)
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(int, int, String)
      * @see OrderPaging#of(Paging, String)
      */
     PageList<T> list(DbWhere where, OrderPaging odpg) throws ServiceException;
@@ -187,7 +188,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @param where 查询条件<br>
      *            如果没有查询条件应传入DbWhere.NONE<br>
@@ -214,7 +215,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @param where 查询条件<br>
      *            如果没有查询条件应传入DbWhere.NONE<br>
@@ -222,13 +223,14 @@ public interface CrudDao<T> {
      *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @param odpg 分页/排序条件<br>
      *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
-     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只分页不排序: OrderPaging.of(pageIndex, pageSize);<br>
      *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
-     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(pageIndex, pageSize, "name asc, createTime desc");<br>
      *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @return 列表数据
      * @see ParseTools#parseBeanToDbWhere(Object)
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(int, int, String)
      * @see OrderPaging#of(Paging, String)
      */
     PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) throws ServiceException;
@@ -265,7 +267,7 @@ public interface CrudDao<T> {
      * 
      * @param fields 查询的字段<br>
      *            全部字段传入Fields.ALL<br>
-     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id,userCode");<br>
      *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @param where 查询条件<br>
      *            如果没有查询条件应传入DbWhere.NONE<br>
@@ -342,14 +344,15 @@ public interface CrudDao<T> {
      *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @param odpg 分页/排序条件<br>
      *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
-     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只分页不排序: OrderPaging.of(pageIndex, pageSize);<br>
      *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
-     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(pageIndex, pageSize, "name asc, createTime desc");<br>
      *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @param valueClazz 字段值类型
      * @return 字段的值列表
      * @see ParseTools#parseBeanToDbWhere(Object)
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(int, int, String)
      * @see OrderPaging#of(Paging, String)
      */
     <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
@@ -634,10 +637,14 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE='E'
      * 
-     * @param entity 实体对象
+     * @param entity 更新内容<br>
+     *            由实体类转换为DbUpdate: ParseTools.parseBeanToDbUpdate(bean);<br>
+     *            由请求参数转换为DbUpdate: ParseTools.parseParamsToDbUpdate(request.getParameterMap());<br>
      * @param where 匹配条件
      * @return 受影响行数
      * @throws ServiceException 操作失败
+     * @see ParseTools#parseBeanToDbUpdate(Object)
+     * @see ParseTools#parseParamsToDbUpdate(Map, Class, boolean)
      */
     int update(DbUpdate entity, DbWhere where) throws ServiceException;
 
@@ -646,12 +653,16 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 默认只处理有效项<br>
      * UPDATE {tableName} SET {columnName}={fieldValue}, ... WHERE {whereConditions} AND DATA_STATE='E'
      * 
-     * @param entity 实体对象
+     * @param entity 更新内容<br>
+     *            由实体类转换为DbUpdate: ParseTools.parseBeanToDbUpdate(bean);<br>
+     *            由请求参数转换为DbUpdate: ParseTools.parseParamsToDbUpdate(request.getParameterMap());<br>
      * @param where 匹配条件
      * @param fillUpdateParams 是否自动填充更新参数(修改人/修改时间等)
      * @param errorOnUnaffected 受影响行数为0时是否抛异常
      * @return 受影响行数
      * @throws ServiceException 操作失败
+     * @see ParseTools#parseBeanToDbUpdate(Object)
+     * @see ParseTools#parseParamsToDbUpdate(Map, Class, boolean)
      */
     int update(DbUpdate entity, DbWhere where, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException;

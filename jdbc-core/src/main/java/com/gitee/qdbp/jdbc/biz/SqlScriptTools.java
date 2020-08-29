@@ -50,7 +50,7 @@ class SqlScriptTools {
     // copy from ScriptUtils.executeSqlScript(Connection, EncodedResource, boolean, boolean, String, ...)
     // 修复问题: 
     // 1. 未清除警告信息, 警告信息一直累加
-    // 2. DROP语句如果设置了ignoreFailedDrops就不需要输出异常堆栈信息, 会扰乱日志信息
+    // 2. DROP语句如果设置了ignoreFailedDrops就不输出异常堆栈信息, 会扰乱日志信息
     // 3. 优化日志信息, 输出执行了多少个SQL片断
     public static void executeSqlScript(Connection connection, URL url, boolean continueOnError,
             boolean ignoreFailedDrops, String commentPrefix, String separator, String blockCommentStartDelimiter,
@@ -116,7 +116,7 @@ class SqlScriptTools {
             stmt.execute(sql);
             int rowsAffected = stmt.getUpdateCount();
             if (log.isDebugEnabled()) {
-                log.debug(rowsAffected + " returned as update count for SQL: " + sql);
+                log.debug(rowsAffected + " returned for SQL: " + sql);
                 SQLWarning warn = stmt.getWarnings();
                 while (warn != null) {
                     String msg = "SQLWarning ignored, SqlState:{}, ErrorCode:{}, Message:[{}]";
