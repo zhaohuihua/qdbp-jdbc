@@ -74,7 +74,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     /**
      * 从请求参数request.getParameterMap()中构建Where对象<br>
-     * 只会包含clazz注解中通过@JoyInColumn指定的字段名<br>
+     * 只会包含clazz注解中通过@Column指定的字段名<br>
      * 应注意, 此时参数由前端传入, 条件不可控, 也有可能条件为空, 需要仔细检查条件内容, 防止越权操作 <pre>
      * 转换规则:
         fieldName$Equals(=), fieldName$NotEquals(!=), 
@@ -217,7 +217,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     /**
      * 从请求参数request.getParameterMap()中构建Update对象<br>
-     * 只会包含clazz注解中通过@JoyInColumn指定的字段名<br>
+     * 只会包含clazz注解中通过@Column指定的字段名<br>
      * 应注意, 此时参数由前端传入, 条件不可控, 也有可能条件为空, 需要仔细检查条件内容, 防止越权操作 <pre>
      * 转换规则:
         fieldName 或 fieldName$Equals(=)

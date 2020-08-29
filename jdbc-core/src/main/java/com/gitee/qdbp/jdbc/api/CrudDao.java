@@ -9,11 +9,13 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.utils.ParseTools;
 
 /**
  * 基础增删改查数据库操作
@@ -44,8 +46,14 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND DATA_STATE='E'
      * 
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * 
      * @return 实体对象
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     T find(DbWhere where) throws ServiceException;
 
@@ -54,9 +62,17 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE {whereConditions} AND DATA_STATE='E'
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @return 实体对象
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     T find(Fields fields, DbWhere where) throws ServiceException;
 
@@ -74,7 +90,10 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE='E'
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
      * @return 列表数据
      */
     List<T> listAll(Fields fields) throws ServiceException;
@@ -84,8 +103,11 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE='E' ORDER BY {orderByConditions}
      * 
-     * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see Orderings#of(String)
      */
     List<T> listAll(Orderings orderings) throws ServiceException;
 
@@ -94,9 +116,15 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT {columnNames} FROM {tableName} WHERE DATA_STATE='E' ORDER BY {orderByConditions}
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
-     * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see Orderings#of(String)
      */
     List<T> listAll(Fields fields, Orderings orderings) throws ServiceException;
 
@@ -109,9 +137,17 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<T> list(DbWhere where, Orderings orderings) throws ServiceException;
 
@@ -124,9 +160,20 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}
      * 
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param odpg 分页/排序条件<br>
+     *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
+     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(Paging, String)
      */
     PageList<T> list(DbWhere where, OrderPaging odpg) throws ServiceException;
 
@@ -138,10 +185,21 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<T> list(Fields fields, DbWhere where, Orderings orderings) throws ServiceException;
 
@@ -154,10 +212,24 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param odpg 分页/排序条件<br>
+     *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
+     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(Paging, String)
      */
     PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) throws ServiceException;
 
@@ -169,9 +241,17 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE ID IN ({ids}) AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<T> listByIds(List<String> ids, Orderings orderings) throws ServiceException;
 
@@ -183,10 +263,21 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE ID IN ({ids}) AND DATA_STATE='E'<br>
      * &nbsp;&nbsp;&nbsp;&nbsp;ORDER BY {orderByConditions}<br>
      * 
-     * @param fields 查询的字段: 全部字段传入Fields.ALL, 指定字段传入IncludeFields对象, 排除字段传入ExcludeFields对象
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param fields 查询的字段<br>
+     *            全部字段传入Fields.ALL<br>
+     *            指定字段传入IncludeFields对象, 如只查询ID,USER_CODE字段: new IncludeFields("id", "userCode");<br>
+     *            排除字段传入ExcludeFields对象, 如排除USER_REMARK字段: new ExcludeFields("userRemark");<br>
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<T> listByIds(Fields fields, List<String> ids, Orderings orderings) throws ServiceException;
 
@@ -198,9 +289,14 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E'
      * 
      * @param fieldName 指定字段名
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @param valueClazz 字段值类型
      * @return 字段的值列表
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     <V> V findFieldValue(String fieldName, DbWhere where, Class<V> valueClazz) throws ServiceException;
 
@@ -214,10 +310,18 @@ public interface CrudDao<T> {
      * 
      * @param fieldName 指定字段名
      * @param distinct 是否去重
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @param valueClazz 字段值类型
      * @return 字段的值列表
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, Orderings orderings,
             Class<V> valueClazz) throws ServiceException;
@@ -232,10 +336,21 @@ public interface CrudDao<T> {
      * 
      * @param fieldName 指定字段名
      * @param distinct 是否去重
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param odpg 分页/排序条件<br>
+     *            不需要分页也不需要排序时应传入OrderPaging.NONE<br>
+     *            只分页不排序: OrderPaging.of(new Paging(pageIndex, pageSize));<br>
+     *            只排序不分页: OrderPaging.of("name asc, createTime desc");<br>
+     *            分页加排序: OrderPaging.of(new Paging(pageIndex, pageSize), "name asc, createTime desc");<br>
+     *            不统计总记录数: OrderPaging.of(new Paging(pageIndex, pageSize, false), "name asc, createTime desc");<br>
      * @param valueClazz 字段值类型
      * @return 字段的值列表
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see OrderPaging#of(Paging, String)
      */
     <V> PageList<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, OrderPaging odpg,
             Class<V> valueClazz) throws ServiceException;
@@ -250,9 +365,17 @@ public interface CrudDao<T> {
      * @param startCode 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 如果不排序应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 子节点编号
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where, Orderings orderings);
 
@@ -266,8 +389,13 @@ public interface CrudDao<T> {
      * @param startCodes 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @return 子节点编号
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             Orderings orderings);
@@ -282,9 +410,17 @@ public interface CrudDao<T> {
      * @param startCode 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 如果不排序应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 子节点编号
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
             Orderings orderings);
@@ -299,9 +435,17 @@ public interface CrudDao<T> {
      * @param startCodes 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
-     * @param orderings 排序条件, 如果不排序应传入Orderings.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param orderings 排序条件<br>
+     *            不需要排序时应传入Orderings.NONE<br>
+     *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
      * @return 子节点编号
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
+     * @see Orderings#of(String)
      */
     List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
             Orderings orderings);
@@ -311,8 +455,13 @@ public interface CrudDao<T> {
      * 注意: 默认查询条件由entityFieldFillExecutor添加, 只查有效项<br>
      * SELECT COUNT(*) FROM {tableName} WHERE {whereConditions} AND DATA_STATE='E'
      * 
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @return 数据数量
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     int count(DbWhere where) throws ServiceException;
 
@@ -323,8 +472,13 @@ public interface CrudDao<T> {
      * &nbsp;&nbsp;&nbsp;&nbsp;WHERE {whereConditions} AND DATA_STATE='E' GROUP BY {groupByColumnName}
      * 
      * @param groupBy 分组条件
-     * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
+     * @param where 查询条件<br>
+     *            如果没有查询条件应传入DbWhere.NONE<br>
+     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
+     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
      * @return 列表数据
+     * @see ParseTools#parseBeanToDbWhere(Object)
+     * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
     Map<String, Integer> groupCount(String groupBy, DbWhere where) throws ServiceException;
 
@@ -517,6 +671,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      * @see BatchInsertExecutor 具体实现由<code>BatchInsertExecutor</code>的子类提供
+     * @since V3.0.0
      */
     List<String> inserts(List<?> entities) throws ServiceException;
 
@@ -535,6 +690,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToInsertMap(Object) 参数转换说明
      * @see BatchInsertExecutor 具体实现由<code>BatchInsertExecutor</code>的子类提供
+     * @since V3.0.0
      */
     List<String> inserts(List<?> entities, boolean fillCreateParams) throws ServiceException;
 
@@ -555,6 +711,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      * @see BatchUpdateExecutor 具体实现由<code>BatchUpdateExecutor</code>的子类提供
+     * @since V3.0.0
      */
     int updates(List<?> entities) throws ServiceException;
 
@@ -575,6 +732,7 @@ public interface CrudDao<T> {
      * @throws ServiceException 操作失败
      * @see DbConditionConverter#convertBeanToDbUpdate(Object) entity参数转换说明
      * @see BatchUpdateExecutor 具体实现由<code>BatchUpdateExecutor</code>的子类提供
+     * @since V3.0.0
      */
     int updates(List<?> entities, boolean fillUpdateParams) throws ServiceException;
 
