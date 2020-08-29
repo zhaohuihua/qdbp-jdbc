@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.logging.Log;
 import com.alibaba.druid.support.logging.LogFactory;
+import com.gitee.qdbp.able.exception.ServiceException;
+import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.tools.crypto.GlobalCipherTools;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
@@ -121,8 +123,9 @@ public class AutoDruidDataSource extends DruidDataSource {
         //    dbtype.subtype     : username       : password   @ address /            dbname             :   schema   ?EncryptedPassword
         "(\\w+?(?:\\.\\w+)?)(?:\\:([\\-\\.\\w]+))?(?:\\:(.+?))?@([^@/?]+)/((?:[a-zA-Z]\\:/)?[/\\-\\.\\w]+)(?:\\:(.+?))?(?:\\?(.+))?");
 
-    protected String dbconfig;
     protected Properties properties;
+    protected String dbconfig;
+    protected String urlKey;
     protected String dbtype;
     protected String dbname;
     protected String dbschema;
@@ -168,6 +171,25 @@ public class AutoDruidDataSource extends DruidDataSource {
         // 2. qdbc-jdbc-spring.jar!/settings/jdbc/druid.auto.properties<br>
         URL path = PathTools.findResource("settings/jdbc/druid.auto.properties", AutoDruidDataSource.class);
         return PropertyTools.load(path);
+    }
+
+    /** 获取URL在Properties中的key **/
+    public String getUrlKey(String urlKey) {
+        return this.urlKey;
+    }
+
+    /**
+     * 设置URL在Properties中的key
+     * 
+     * @param urlKey URL在Properties中的key<br>
+     *            如 properties中配置了jdbc.sys=mysql:username:password@127.0.0.1:3306/dbname<br>
+     *            则 urlKey应为jdbc.sys
+     */
+    public void setUrlKey(String urlKey) {
+        if (inited) {
+            throw new UnsupportedOperationException("Initialization is complete");
+        }
+        this.urlKey = urlKey;
     }
 
     /**
@@ -269,6 +291,11 @@ public class AutoDruidDataSource extends DruidDataSource {
     protected void initProperty() {
         if (properties == null) {
             properties = loadDefaultProperties();
+        }
+        if (dbconfig == null || dbconfig.trim().length() == 0) {
+            if (urlKey != null) {
+                dbconfig = properties.getProperty(urlKey);
+            }
         }
         if (dbconfig == null || dbconfig.trim().length() == 0) {
             throw new IllegalArgumentException("Missing argument for dbconfig");
@@ -383,4 +410,47 @@ public class AutoDruidDataSource extends DruidDataSource {
         }
     }
 
+    /**
+     * 根据单行url参数构造默认的数据源<br>
+     * 只能自定义username,password,address, 其他参数都使用默认值
+     * 
+     * @param jdbcUrl 数据库连接地址单行url参数<br>
+     *            如 mysql:username:password@127.0.0.1:3306/dbname<br>
+     *            如 oracle:username:password@127.0.0.1:1521/orcl<br>
+     *            如 db2:username:password@127.0.0.1:50000/dbname:schema<br>
+     * @return 数据源
+     */
+    public static AutoDruidDataSource buildWith(String jdbcUrl) {
+        AutoDruidDataSource datasource = new AutoDruidDataSource();
+        datasource.setConfig(jdbcUrl);
+        try {
+            datasource.init();
+            return datasource;
+        } catch (SQLException e) {
+            datasource.close();
+            throw new ServiceException(DbErrorCode.DB_DATA_SOURCE_INIT_ERROR, e);
+        }
+    }
+
+    /**
+     * 根据配置信息构造数据源
+     * 
+     * @param properties 配置信息
+     * @param urlKey URL在Properties中的key<br>
+     *            如 properties中配置了jdbc.sys=mysql:username:password@127.0.0.1:3306/dbname<br>
+     *            则 urlKey应为jdbc.sys
+     * @return 数据源
+     */
+    public static AutoDruidDataSource buildWith(Properties properties, String urlKey) {
+        AutoDruidDataSource datasource = new AutoDruidDataSource();
+        datasource.setProperties(properties);
+        datasource.setUrlKey(urlKey);
+        try {
+            datasource.init();
+            return datasource;
+        } catch (SQLException e) {
+            datasource.close();
+            throw new ServiceException(DbErrorCode.DB_DATA_SOURCE_INIT_ERROR, e);
+        }
+    }
 }
