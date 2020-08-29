@@ -44,11 +44,11 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
     <dependency>
         <groupId>com.gitee.qdbp</groupId>
         <artifactId>qdbp-jdbc-core</artifactId>
-        <version>3.0.0</version>
+        <version>3.1.1</version>
     </dependency>
     <dependency>
         <groupId>com.gitee.qdbp</groupId>
         <artifactId>qdbp-jdbc-spring</artifactId>
-        <version>3.0.0</version>
+        <version>3.1.1</version>
     </dependency>
 ```
