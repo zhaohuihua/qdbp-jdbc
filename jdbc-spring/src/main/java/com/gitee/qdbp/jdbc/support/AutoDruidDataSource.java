@@ -295,7 +295,8 @@ public class AutoDruidDataSource extends DruidDataSource {
         }
         if (dbconfig == null || dbconfig.trim().length() == 0) {
             if (urlKey != null) {
-                dbconfig = properties.getProperty(urlKey);
+                String value = properties.getProperty(urlKey);
+                this.setConfig(value);
             }
         }
         if (dbconfig == null || dbconfig.trim().length() == 0) {
