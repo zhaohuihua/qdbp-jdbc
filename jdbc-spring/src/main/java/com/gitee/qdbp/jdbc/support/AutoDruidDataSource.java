@@ -184,6 +184,7 @@ public class AutoDruidDataSource extends DruidDataSource {
      * @param urlKey URL在Properties中的key<br>
      *            如 properties中配置了jdbc.sys=mysql:username:password@127.0.0.1:3306/dbname<br>
      *            则 urlKey应为jdbc.sys
+     * @since V3.1.1
      */
     public void setUrlKey(String urlKey) {
         if (inited) {
@@ -419,6 +420,7 @@ public class AutoDruidDataSource extends DruidDataSource {
      *            如 oracle:username:password@127.0.0.1:1521/orcl<br>
      *            如 db2:username:password@127.0.0.1:50000/dbname:schema<br>
      * @return 数据源
+     * @since V3.1.1
      */
     public static AutoDruidDataSource buildWith(String jdbcUrl) {
         AutoDruidDataSource datasource = new AutoDruidDataSource();
@@ -440,6 +442,7 @@ public class AutoDruidDataSource extends DruidDataSource {
      *            如 properties中配置了jdbc.sys=mysql:username:password@127.0.0.1:3306/dbname<br>
      *            则 urlKey应为jdbc.sys
      * @return 数据源
+     * @since V3.1.1
      */
     public static AutoDruidDataSource buildWith(Properties properties, String urlKey) {
         AutoDruidDataSource datasource = new AutoDruidDataSource();
