@@ -33,13 +33,13 @@ import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.RawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.plugins.SqlFileScanner;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
-import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
 import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -157,11 +157,6 @@ public abstract class DbTools {
         return new SimpleSqlDialect(version);
     }
 
-    /** 根据SqlDialect生成SqlParser **/
-    public static SqlParser buildSqlParser(SqlDialect dialect) {
-        return new SqlParser(dialect);
-    }
-
     /** 获取自定义WhereSqlBuilder **/
     public static <T extends WhereCondition, B extends WhereSqlBuilder<T>> B getWhereSqlBuilder(Class<T> type) {
         return DbPluginContainer.defaults().getWhereSqlBuilder(type);
@@ -230,7 +225,12 @@ public abstract class DbTools {
         DbVersionFinder finder = DbPluginContainer.defaults().getDbVersionFinder();
         return finder.findDbVersion(datasource);
     }
-    
+
+    /** 获取SQL模板扫描处理类 **/
+    public static SqlFileScanner getSqlFileScanner() {
+        return DbPluginContainer.defaults().getSqlFileScanner();
+    }
+
     /** 获取数据库配置选项 **/
     public static Config getDbConfig() {
         return DbPluginContainer.defaults().getDbConfig(true);

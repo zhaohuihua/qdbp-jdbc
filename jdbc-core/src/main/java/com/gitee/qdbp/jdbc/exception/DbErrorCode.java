@@ -29,7 +29,13 @@ public enum DbErrorCode implements IResultMessage {
     /** 该数据不支持逻辑删除 **/
     DB_UNSUPPORTED_LOGICAL_DELETE("该数据不支持逻辑删除"),
     /** 数据源初始化失败 **/
-    DB_DATA_SOURCE_INIT_ERROR("数据源初始化失败");
+    DB_DATA_SOURCE_INIT_ERROR("数据源初始化失败"),
+    /** SQL片断不存在 **/
+    DB_SQL_FRAGMENT_NOT_FOUND("SQL片断不存在"),
+    /** SQL片断解析失败 **/
+    DB_SQL_FRAGMENT_PARSE_ERROR("SQL片断解析失败"),
+    /** SQL片断输出失败 **/
+    DB_SQL_FRAGMENT_RENDER_ERROR("SQL片断输出失败");
 
     /** 错误描述 **/
     private final String message;

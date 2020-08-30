@@ -15,8 +15,7 @@ import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
-import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -396,17 +395,6 @@ public class SimpleSqlDialect implements SqlDialect {
     protected SqlBuffer normalRecursiveFindChildren(String keyword, List<String> startCodes, String codeField,
             String parentField, Collection<String> selectFields, DbWhere where, Orderings orderings,
             QueryFragmentHelper sqlHelper) {
-
-        // @formatter:off
-        String sqlTemplate = "#{keyword} recursive_temp_table(temp_parent) AS (\n"
-                + "    SELECT #{codeField} temp_parent FROM #{tableName} WHERE ${startCodeCondition}\n"
-                + "    UNION ALL\n"
-                + "    SELECT #{codeField} FROM #{tableName} A, recursive_temp_table B ON A.#{parentField} = B.temp_parent\n"
-                + ")\n" + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
-                + "    SELECT temp_parent FROM recursive_temp_table\n" + ")\n" + "${whereCondition}\n"
-                + "#{orderByCondition} ";
-        // @formatter:on
-
         Map<String, Object> params = new HashMap<>();
         params.put("keyword", keyword);
         params.put("codeField", codeField);
@@ -420,8 +408,8 @@ public class SimpleSqlDialect implements SqlDialect {
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
-        SqlParser parser = DbTools.buildSqlParser(this);
-        return parser.parse(sqlTemplate, params);
+        String sqlId = "recursive.find.children";
+        return SqlFragmentContainer.defaults().render(sqlId, params, this);
     }
 
     /**

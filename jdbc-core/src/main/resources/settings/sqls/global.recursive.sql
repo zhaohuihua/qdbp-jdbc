@@ -1,4 +1,4 @@
--- <<normal.find.children>> 递归查询所有子节点
+-- <<recursive.find.children>> 递归查询所有子节点
 -- 实测发现DB2不支持_开头的字段名, 不支持field AS alias, WITH AS中不支持INNER JOIN
 #{keyword} recursive_temp_table(temp_parent) AS (
     SELECT #{codeField} temp_parent FROM #{tableName} WHERE #{codeField} IN ( ${startCodeCondition} ) 

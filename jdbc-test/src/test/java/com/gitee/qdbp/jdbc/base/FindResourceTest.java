@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import com.gitee.qdbp.able.matches.FileMatcher;
+import com.gitee.qdbp.able.matches.StringMatcher.LogicType;
 import com.gitee.qdbp.able.matches.WrapFileMatcher;
-import com.gitee.qdbp.able.matches.WrapFileMatcher.LogicType;
 import com.gitee.qdbp.tools.files.PathTools;
 
 public class FindResourceTest {

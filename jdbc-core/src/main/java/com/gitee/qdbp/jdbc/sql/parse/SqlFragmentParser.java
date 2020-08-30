@@ -28,9 +28,9 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 20200817
  */
-class SqlTemplateParser {
+class SqlFragmentParser {
 
-    private static Logger log = LoggerFactory.getLogger(SqlTemplateScanner.class);
+    private static Logger log = LoggerFactory.getLogger(SqlFragmentParser.class);
 
     private String commentTagName = "comment";
     private String importTagName = "import";
@@ -42,7 +42,7 @@ class SqlTemplateParser {
     /** 冲突列表, key=sqlKey, value=[location] **/
     private Map<String, List<String>> conflicts = new HashMap<>();
 
-    public SqlTemplateParser() {
+    public SqlFragmentParser() {
         for (MainDbType dbType : MainDbType.values()) {
             this.dbTypes.put(dbType.name().toLowerCase(), null);
         }
@@ -60,17 +60,17 @@ class SqlTemplateParser {
         }
     }
 
-    public Map<String, IMetaData> parseCachedSqlTemplates() {
+    public Map<String, IMetaData> parseCachedSqlFragments() {
         this.printConflictLogs();
-        List<String> paths = cacheBox.getSqlIds();
+        List<String> sqlIds = cacheBox.getSqlIds();
         Map<String, IMetaData> tagMaps = new HashMap<>();
-        for (String path : paths) {
+        for (String sqlId : sqlIds) {
             TagParser parser = new TagParser(cacheBox);
             try {
-                IMetaData metadata = parser.parse(path);
-                tagMaps.put(path, metadata);
+                IMetaData metadata = parser.parse(sqlId);
+                tagMaps.put(sqlId, metadata);
             } catch (Exception e) {
-                log.warn("Sql template parse error: {}", path, e);
+                log.warn("Sql template parse error: {}", sqlId, e);
             }
         }
         return tagMaps;
@@ -105,36 +105,37 @@ class SqlTemplateParser {
         // fragmentId和dbType都有可能为空
         String fileId = result.getFileId();
         String fragmentId = result.getFragmentId();
-        String dbType = VerifyTools.nvl(result.getDbType(), "*");
-        String dbKey = result.getDbType() == null ? "" : '(' + dbType + ')';
-        IReader reader = new SimpleReader(sqlFragment.getContent());
-        if (fragmentId == null) {
+        String dbType = '(' + VerifyTools.nvl(result.getDbType(), "*") + ')';
+        String dbKey = result.getDbType() == null ? "" : dbType;
+        if (fragmentId == null) { // 只有文件名, 没有SqlId
             String sqlLocation = sqlPath;
-            String sqlId = fileId + ':' + "{default}" + ':' + dbType;
+            String sqlId = fileId + dbType;
             String sqlKey = fileId + dbKey;
-            if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
+            IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
+            if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                 cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
             }
         } else {
             String sqlLocation = fragmentId + " @ " + sqlPath + " line " + sqlFragment.getLine();
-            { // 先注册fileId:fragmentId:dbType
-                String sqlId = fileId + ':' + fragmentId + ':' + dbType;
+            IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
+            { // 先注册fileId:fragmentId(dbType)
+                String sqlId = fileId + ':' + fragmentId + dbType;
                 String sqlKey = fileId + ':' + fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
+                if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
-            { // 再注册fragmentId:dbType
-                String sqlId = fragmentId + ':' + dbType;
+            { // 再注册fragmentId(dbType)
+                String sqlId = fragmentId + dbType;
                 String sqlKey = fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlId, sqlKey, sqlLocation)) {
+                if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                     cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
                 }
             }
         }
     }
 
-    private boolean checkCachedSqlFragment(String sqlId, String sqlKey, String sqlLocation) {
+    private boolean checkCachedSqlFragment(String sqlKey, String sqlLocation) {
         if (!cachedMaps.containsKey(sqlKey)) {
             cachedMaps.put(sqlKey, sqlLocation);
             return true;
@@ -559,15 +560,14 @@ class SqlTemplateParser {
         }
 
         @Override
-        public IReader create(String sqlId) throws IOException, ResourceNotFoundException {
+        public IReader create(String sqlId) {
             CacheItem item = cache.get(sqlId);
             return item == null ? null : item.getReader();
         }
 
         @Override
-        public String getRealPath(String sqlId) throws IOException, ResourceNotFoundException {
-            CacheItem item = cache.get(sqlId);
-            return item == null ? null : item.getLocation();
+        public String getRelativePath(String sqlId, String newId) {
+            return newId;
         }
 
         @Override

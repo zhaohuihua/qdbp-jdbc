@@ -27,6 +27,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFileScanner;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
@@ -132,6 +133,9 @@ public class DbPluginContainer {
         }
         if (plugins.getDbVersionFinder() == null) {
             plugins.setDbVersionFinder(new DataSourceDbVersionFinder());
+        }
+        if (plugins.getSqlFileScanner() == null) {
+            plugins.setSqlFileScanner(new SimpleSqlFileScanner("settings/sqls/", "*.sql"));
         }
         if (plugins.getDefaultBatchInsertExecutor() == null) {
             plugins.setDefaultBatchInsertExecutor(new BatchOperateByForEachExecutor());
@@ -376,6 +380,19 @@ public class DbPluginContainer {
     /** 数据库版本信息查询接口 **/
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
+    }
+
+    /** SQL模板扫描接口 **/
+    private SqlFileScanner sqlFileScanner;
+
+    /** SQL模板扫描接口 **/
+    public void setSqlFileScanner(SqlFileScanner sqlFileScanner) {
+        this.sqlFileScanner = sqlFileScanner;
+    }
+
+    /** SQL模板扫描接口 **/
+    public SqlFileScanner getSqlFileScanner() {
+        return sqlFileScanner;
     }
 
     /** 默认的批量新增处理类 **/
