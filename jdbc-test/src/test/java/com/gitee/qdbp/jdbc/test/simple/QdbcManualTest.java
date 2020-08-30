@@ -19,9 +19,12 @@ public class QdbcManualTest {
 
     public static void main(String[] args) {
         // 切换数据库配置即可连接不同的数据库
+        // testDbOperate("mysql:develop:dev888pwd@127.0.0.1:3306/qdbpdev");
+        // testDbOperate("oracle:qdbpdev:dev888pwd@127.0.0.1:1521/orcl");
+        // testDbOperate("db2:db2admin:dev888pwd@127.0.0.1:50000/platform:qdbpdev");
         testDbOperate("mysql:develop:dev2018lop@127.0.0.1:3306/qdbp-general");
-        testDbOperate("oracle:qdbpgeneral:ora2018cle@127.0.0.1:1521/orcl");
-        testDbOperate("db2:db2admin:db2020sql@127.0.0.1:50000/platform:qdbpgeneral");
+        testDbOperate("oracle:qdbctest:qdbctest@192.168.70.195:1521/plat");
+        testDbOperate("db2:db2inst1:123@192.168.90.7:60006/platform:PLATFORM");
     }
 
     private static void testDbOperate(String jdbcUrl) {

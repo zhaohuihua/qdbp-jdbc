@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>qdbp-jdbc-spring</artifactId>
-	<version>3.0.1-SNAPSHOT</version>
+	<version>3.2.0</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId}</name>
 	<url>https://gitee.com/qdbp/qdbp-jdbc/</url>
@@ -25,12 +25,12 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-able</artifactId>
-			<version>5.0.0</version>
+			<version>5.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-jdbc-core</artifactId>
-			<version>3.0.0</version>
+			<version>3.2.0</version>
 			<optional>true</optional>
 		</dependency>
 
