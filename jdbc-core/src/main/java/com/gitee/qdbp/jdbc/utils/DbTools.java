@@ -40,6 +40,7 @@ import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
+import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -112,6 +113,27 @@ public abstract class DbTools {
         } else {
             return dialect.variableToString(result.toString());
         }
+    }
+
+    /**
+     * 可用的数据库类型<br>
+     * 除MainDbType以外, 可通过DbPluginContainer.defaults().addDbType()注册其他数据库类型
+     * 
+     * @return 数据库类型列表
+     */
+    public static List<DbType> getAvailableDbTypes() {
+        return DbPluginContainer.defaults().getAvailableDbTypes();
+    }
+
+    /**
+     * SQL标签库<br>
+     * 默认的标签库为classpath:settings/dbtags/taglib.txt<br>
+     * 可通过DbPluginContainer.defaults().setSqlTaglibPath()修改
+     * 
+     * @return SQL标签库
+     */
+    public static Taglib getSqlTaglib() {
+        return DbPluginContainer.defaults().getSqlTaglib();
     }
 
     /**

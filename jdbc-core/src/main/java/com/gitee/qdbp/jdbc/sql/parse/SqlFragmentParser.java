@@ -1,22 +1,21 @@
 package com.gitee.qdbp.jdbc.sql.parse;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ResourceNotFoundException;
-import com.gitee.qdbp.jdbc.model.MainDbType;
+import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.common.IReader;
 import com.gitee.qdbp.staticize.io.IReaderCreator;
 import com.gitee.qdbp.staticize.io.SimpleReader;
 import com.gitee.qdbp.staticize.parse.TagParser;
+import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -34,16 +33,22 @@ class SqlFragmentParser {
 
     private String commentTagName = "comment";
     private String importTagName = "import";
+    private Taglib taglib;
     private Map<String, ?> dbTypes = new HashMap<>();
 
     private CacheBox cacheBox = new CacheBox();
     /** 已加入缓存中的内容, key=sqlKey, value=location **/
     private Map<String, String> cachedMaps = new HashMap<>();
+    /** 是否通过fragmentId获取SQL片断 **/
+    private boolean useFragmentIdQuery = true;
+    /** SqlKey的别名, key=sqlKey, value=fragmentKey **/
+    private Map<String, String> sqlKeyAlias = new HashMap<>();
     /** 冲突列表, key=sqlKey, value=[location] **/
     private Map<String, List<String>> conflicts = new HashMap<>();
 
-    public SqlFragmentParser() {
-        for (MainDbType dbType : MainDbType.values()) {
+    public SqlFragmentParser(Taglib taglib, List<DbType> dbTypes) {
+        this.taglib = taglib;
+        for (DbType dbType : dbTypes) {
             this.dbTypes.put(dbType.name().toLowerCase(), null);
         }
     }
@@ -62,15 +67,22 @@ class SqlFragmentParser {
 
     public Map<String, IMetaData> parseCachedSqlFragments() {
         this.printConflictLogs();
-        List<String> sqlIds = cacheBox.getSqlIds();
+        List<String> sqlKeys = cacheBox.getSqlKeys();
         Map<String, IMetaData> tagMaps = new HashMap<>();
-        for (String sqlId : sqlIds) {
-            TagParser parser = new TagParser(cacheBox);
+        for (String sqlKey : sqlKeys) {
+            TagParser parser = new TagParser(taglib, cacheBox);
+            IMetaData metadata;
             try {
-                IMetaData metadata = parser.parse(sqlId);
-                tagMaps.put(sqlId, metadata);
+                metadata = parser.parse(sqlKey);
             } catch (Exception e) {
-                log.warn("Sql template parse error: {}", sqlId, e);
+                log.warn("Sql template parse error: {}", sqlKey, e);
+                continue;
+            }
+            tagMaps.put(sqlKey, metadata);
+            if (useFragmentIdQuery && sqlKeyAlias.containsKey(sqlKey)) {
+                // 为实现根据fragmentId(dbType)也能获取到SQL片断, 根据fragmentKey再注册一次
+                String fragmentKey = sqlKeyAlias.get(sqlKey);
+                tagMaps.put(fragmentKey, metadata);
             }
         }
         return tagMaps;
@@ -103,33 +115,31 @@ class SqlFragmentParser {
         SqlId result = parseSqlId(sqlPath, sqlFragment.getId(), sqlFragment.getLine());
         // 如 fileId=user.manage, fragmentId=user.resource.query, dbType=mysql
         // fragmentId和dbType都有可能为空
+        // sqlId=fileId:fragmentId
+        // sqlKey=fileId:fragmentId(dbType)
         String fileId = result.getFileId();
         String fragmentId = result.getFragmentId();
-        String dbType = '(' + VerifyTools.nvl(result.getDbType(), "*") + ')';
-        String dbKey = result.getDbType() == null ? "" : dbType;
+        String dbType = VerifyTools.nvl(result.getDbType(), "*");
         if (fragmentId == null) { // 只有文件名, 没有SqlId
+            // 注册fileId:fragmentId(dbType)
+            String sqlId = fileId;
+            String sqlKey = sqlId + '(' + dbType + ')';
             String sqlLocation = sqlPath;
-            String sqlId = fileId + dbType;
-            String sqlKey = fileId + dbKey;
             IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
             if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
-                cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
+                cacheBox.register(sqlKey, reader);
             }
         } else {
+            // 注册fileId:fragmentId(dbType)
+            String sqlId = fileId + ':' + fragmentId;
+            String sqlKey = sqlId + '(' + dbType + ')';
+            String fragmentKey = fragmentId + '(' + dbType + ')';
             String sqlLocation = fragmentId + " @ " + sqlPath + " line " + sqlFragment.getLine();
             IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
-            { // 先注册fileId:fragmentId(dbType)
-                String sqlId = fileId + ':' + fragmentId + dbType;
-                String sqlKey = fileId + ':' + fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
-                    cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
-                }
-            }
-            { // 再注册fragmentId(dbType)
-                String sqlId = fragmentId + dbType;
-                String sqlKey = fragmentId + dbKey;
-                if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
-                    cacheBox.register(sqlId, new CacheItem(sqlLocation, reader));
+            if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
+                cacheBox.register(sqlKey, reader);
+                if (useFragmentIdQuery && checkCachedSqlFragment(fragmentKey, sqlLocation)) {
+                    sqlKeyAlias.put(sqlKey, fragmentKey);
                 }
             }
         }
@@ -528,41 +538,28 @@ class SqlFragmentParser {
 
     }
 
-    static class CacheItem {
+    private static class CacheBox implements IReaderCreator {
 
-        private final String location;
-        private final IReader reader;
+        // key=sqlKey
+        private Map<String, IReader> cache = new HashMap<>();
 
-        public CacheItem(String location, IReader reader) {
-            this.location = location;
-            this.reader = reader;
+        // sqlKey=fileId:fragmentId(dbType)
+        public void register(String sqlKey, IReader reader) {
+            cache.put(sqlKey, reader);
         }
 
-        public String getLocation() {
-            return location;
-        }
-
-        public IReader getReader() {
-            return reader;
-        }
-    }
-
-    static class CacheBox implements IReaderCreator {
-
-        private Map<String, CacheItem> cache = new ConcurrentHashMap<>();
-
-        public void register(String sqlId, CacheItem item) {
-            cache.put(sqlId, item);
-        }
-
-        public List<String> getSqlIds() {
+        public List<String> getSqlKeys() {
             return new ArrayList<>(cache.keySet());
         }
 
         @Override
-        public IReader create(String sqlId) {
-            CacheItem item = cache.get(sqlId);
-            return item == null ? null : item.getReader();
+        public IReader create(String sqlId) throws ResourceNotFoundException {
+            IReader reader = cache.get(sqlId);
+            if (reader != null) {
+                return reader;
+            } else {
+                throw new ResourceNotFoundException(sqlId + " not found");
+            }
         }
 
         @Override
@@ -571,7 +568,7 @@ class SqlFragmentParser {
         }
 
         @Override
-        public Date getUpdateTime(String path) throws IOException, ResourceNotFoundException {
+        public Date getUpdateTime(String path) {
             return null;
         }
     }

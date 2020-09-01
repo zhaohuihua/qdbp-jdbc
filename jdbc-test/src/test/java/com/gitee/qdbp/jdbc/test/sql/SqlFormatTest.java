@@ -8,7 +8,7 @@ import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
-import com.gitee.qdbp.jdbc.sql.parse.SqlParser;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 public class SqlFormatTest {
@@ -32,7 +32,7 @@ public class SqlFormatTest {
         // @formatter:on
         Map<String, Object> params = new HashMap<>();
         params.put("eftflag", new SqlBuilder().var('A').ad(',').var('E'));
-        SqlBuffer buffer = new SqlParser(dialect).parse(sqlTemplate, params);
+        SqlBuffer buffer = SqlFragmentContainer.defaults().parse(sqlTemplate, params, dialect);
         SqlBuffer paging1 = dialect.buildPagingSql(buffer, new Paging(1, 10));
         SqlBuffer paging2 = dialect.buildPagingSql(buffer, new Paging(2, 10));
         System.out.println(buffer.getPreparedSqlString(dialect));

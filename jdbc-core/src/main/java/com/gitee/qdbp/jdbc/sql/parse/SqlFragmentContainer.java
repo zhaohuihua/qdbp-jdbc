@@ -17,6 +17,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.exception.TagException;
+import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 
@@ -42,17 +43,17 @@ public class SqlFragmentContainer {
     private SqlFragmentContainer() {
     }
 
-    // sqlKey = sqlId:dbType
+    // sqlKey = sqlId(dbType)
     public void register(String sqlKey, IMetaData data) {
         this.cache.put(sqlKey, data);
     }
 
     public IMetaData find(String sqlId, DbType dbType) {
         this.scanSqlFiles();
-        String sqlKey = sqlId + ':' + dbType.name().toLowerCase();
+        String sqlKey = sqlId + '(' + dbType.name().toLowerCase() + ')';
         IMetaData sqlData = this.cache.get(sqlKey);
         if (sqlData == null) {
-            sqlData = this.cache.get(sqlId + ':' + '*');
+            sqlData = this.cache.get(sqlId + "(*)");
         }
         if (sqlData != null) {
             return sqlData;
@@ -64,6 +65,15 @@ public class SqlFragmentContainer {
 
     public SqlBuffer render(String sqlId, Map<String, Object> data, SqlDialect dialect) {
         IMetaData tags = find(sqlId, dialect.getDbVersion().getDbType());
+        return publish(tags, data, dialect);
+    }
+    
+    public SqlBuffer parse(String sqlString, Map<String, Object> data, SqlDialect dialect) {
+        IMetaData tags = SqlStringParser.parseSqlString(sqlString);
+        return publish(tags, data, dialect);
+    }
+    
+    protected SqlBuffer publish(IMetaData tags, Map<String, Object> data, SqlDialect dialect) {
         SqlBufferPublisher publisher = new SqlBufferPublisher(tags);
         try {
             return publisher.publish(data, dialect);
@@ -72,10 +82,6 @@ public class SqlFragmentContainer {
         } catch (IOException e) {
             throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_RENDER_ERROR, e);
         }
-    }
-    
-    public SqlBuffer parse(String sqlString, Map<String, Object> data, SqlDialect dialect) {
-        SqlStringParser.parseSqlString(sqlString, cacheBox);
     }
 
     public void scanSqlFiles() {
@@ -95,7 +101,9 @@ public class SqlFragmentContainer {
         List<URL> urls = scanner.scanSqlFiles();
 
         Date startTime = new Date();
-        SqlFragmentParser parser = new SqlFragmentParser();
+        List<DbType> dbTypes = DbTools.getAvailableDbTypes();
+        Taglib taglib = DbTools.getSqlTaglib();
+        SqlFragmentParser parser = new SqlFragmentParser(taglib, dbTypes);
         for (URL url : urls) {
             String absolutePath = PathTools.toUriPath(url);
             try {

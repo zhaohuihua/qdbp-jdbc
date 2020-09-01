@@ -3,8 +3,12 @@ package com.gitee.qdbp.jdbc.plugins;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
@@ -14,6 +18,8 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.base.WhereCondition;
+import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByMultiRowsExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchInsertByUnionAllFromDualExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor;
@@ -26,15 +32,17 @@ import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFileScanner;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter;
 import com.gitee.qdbp.jdbc.support.ConversionServiceAware;
 import com.gitee.qdbp.jdbc.support.convert.NumberToBooleanConverter;
 import com.gitee.qdbp.jdbc.support.convert.StringToDateConverter;
 import com.gitee.qdbp.jdbc.support.enums.AllEnumConverterRegister;
+import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.utils.Config;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 
 /**
  * 自定义插件容器
@@ -43,6 +51,8 @@ import com.gitee.qdbp.tools.utils.Config;
  * @version 190601
  */
 public class DbPluginContainer {
+
+    private static Logger log = LoggerFactory.getLogger(DbPluginContainer.class);
 
     /** 全局实例 **/
     private static DbPluginContainer DEFAULTS;
@@ -99,6 +109,12 @@ public class DbPluginContainer {
         // 初始化默认的类型转换处理器
         initDefaultConverter(plugins);
 
+        if (plugins.getAvailableDbTypes() == null) {
+            plugins.addAvailableDbType(MainDbType.class);
+        }
+        if (plugins.getSqlTaglib() == null) {
+            plugins.setSqlTaglib(new Taglib("classpath:settings/dbtags/taglib.txt"));
+        }
         if (plugins.getTableInfoScans() == null) {
             plugins.setTableInfoScans(new PersistenceAnnotationTableScans());
         }
@@ -238,6 +254,72 @@ public class DbPluginContainer {
             dbConfig = new Config();
         }
         return this.dbConfig;
+    }
+
+    /** 可用的数据库类型 **/
+    private List<DbType> availableDbTypes;
+
+    /** 可用的数据库类型 **/
+    public List<DbType> getAvailableDbTypes() {
+        return availableDbTypes;
+    }
+
+    /** 可用的数据库类型 **/
+    public void setAvailableDbTypes(List<DbType> dbTypes) {
+        this.availableDbTypes = dbTypes;
+    }
+
+    /** 可用的数据库类型 **/
+    public <E extends Enum<?>> void addAvailableDbType(Class<E> clazz) {
+        if (!DbType.class.isAssignableFrom(clazz)) {
+            String msg = clazz.getName() + " is not assignable for " + DbType.class.getName();
+            throw new IllegalArgumentException(msg);
+        }
+        E[] array = clazz.getEnumConstants();
+        if (array.length == 0) {
+            return;
+        }
+        // key=DbTypeLowerCase, value=DbTypeSourceDesc
+        Map<String, String> oldDbTypes = new HashMap<>();
+        if (this.availableDbTypes == null) {
+            this.availableDbTypes = new ArrayList<>();
+        } else {
+            for (DbType item : this.availableDbTypes) {
+                oldDbTypes.put(item.name().toLowerCase(), item.getClass().getName() + '.' + item.name());
+            }
+        }
+        List<String> conflicts = new ArrayList<>();
+        for (E item : array) {
+            String dbKey = item.name().toLowerCase();
+            if (oldDbTypes.containsKey(dbKey)) {
+                String fmt = "%s.%s conflict with %s";
+                conflicts.add(String.format(fmt, item.getClass().getName(), item.name(), oldDbTypes.get(dbKey)));
+                continue;
+            }
+            this.availableDbTypes.add((DbType) item);
+            oldDbTypes.put(dbKey, item.getClass().getName() + '.' + item.name());
+        }
+        if (!conflicts.isEmpty()) {
+            log.warn(ConvertTools.joinToString(conflicts, "\n\t"));
+        }
+    }
+
+    /** SQL标签库 **/
+    private Taglib sqlTaglib;
+
+    /** 获取SQL标签库 **/
+    public Taglib getSqlTaglib() {
+        return sqlTaglib;
+    }
+
+    /** 设置SQL标签库 **/
+    public void setSqlTaglib(Taglib taglib) {
+        this.sqlTaglib = taglib;
+    }
+
+    /** 设置SQL标签库路径 **/
+    public void setSqlTaglibPath(String taglibPath) {
+        this.sqlTaglib = new Taglib(taglibPath);
     }
 
     /** Spring的类型转换处理类 **/
@@ -386,13 +468,13 @@ public class DbPluginContainer {
     private SqlFileScanner sqlFileScanner;
 
     /** SQL模板扫描接口 **/
-    public void setSqlFileScanner(SqlFileScanner sqlFileScanner) {
-        this.sqlFileScanner = sqlFileScanner;
+    public SqlFileScanner getSqlFileScanner() {
+        return sqlFileScanner;
     }
 
     /** SQL模板扫描接口 **/
-    public SqlFileScanner getSqlFileScanner() {
-        return sqlFileScanner;
+    public void setSqlFileScanner(SqlFileScanner sqlFileScanner) {
+        this.sqlFileScanner = sqlFileScanner;
     }
 
     /** 默认的批量新增处理类 **/
