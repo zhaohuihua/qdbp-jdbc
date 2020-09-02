@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -25,13 +26,14 @@ public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
      * @return Map对象
      */
     @Override
-    public Map<String, Object> convertBeanToMap(Object bean) {
+    protected Map<String, Object> convertBeanToDbMap(Object bean) {
         if (bean == null) {
             return null;
         }
+        BeanToMapConverter beanToMapConverter = DbTools.getBeanToMapConverter();
         // deep=false: 不需要递归转换; 字段是实体类的不需要转换
         // clearBlankValue=false: 不需要清理空值; 因为在Update时, Null值和空字符串代表不同的含义
-        Map<String, Object> map = FastJsonTools.beanToMap(bean, false, false);
+        Map<String, Object> map = beanToMapConverter.convert(bean, false, false);
         if (VerifyTools.isBlank(map)) {
             return map;
         }

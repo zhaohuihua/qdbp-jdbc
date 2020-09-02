@@ -26,6 +26,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByJoinUsingExecutor;
 import com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder;
+import com.gitee.qdbp.jdbc.plugins.impl.FastJsonBeanToMapConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.impl.NoneEntityDataStateFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
@@ -137,6 +138,9 @@ public class DbPluginContainer {
             SpringMapToBeanConverter converter = new SpringMapToBeanConverter();
             converter.setConversionService(plugins.getConversionService());
             plugins.setMapToBeanConverter(converter);
+        }
+        if (plugins.getBeanToMapConverter() == null) {
+            plugins.setBeanToMapConverter(new FastJsonBeanToMapConverter());
         }
         if (plugins.getDbConditionConverter() == null) {
             plugins.setDbConditionConverter(new FastJsonDbConditionConverter());
@@ -410,6 +414,19 @@ public class DbPluginContainer {
     /** Map到JavaBean的转换处理类 **/
     public MapToBeanConverter getMapToBeanConverter() {
         return mapToBeanConverter;
+    }
+
+    /** JavaBean到Map的转换处理类 **/
+    private BeanToMapConverter beanToMapConverter;
+
+    /** JavaBean到Map的转换处理类 **/
+    public void setBeanToMapConverter(BeanToMapConverter beanToMapConverter) {
+        this.beanToMapConverter = beanToMapConverter;
+    }
+
+    /** JavaBean到Map的转换处理类 **/
+    public BeanToMapConverter getBeanToMapConverter() {
+        return beanToMapConverter;
     }
 
     /** JavaBean到数据库条件的转换处理类 **/

@@ -24,6 +24,7 @@ import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
+import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
@@ -152,6 +153,11 @@ public abstract class DbTools {
     /** 获取Map到JavaBean的转换处理类 **/
     public static MapToBeanConverter getMapToBeanConverter() {
         return DbPluginContainer.defaults().getMapToBeanConverter();
+    }
+
+    /** JavaBean到Map的转换处理类 **/
+    public static BeanToMapConverter getBeanToMapConverter() {
+        return DbPluginContainer.defaults().getBeanToMapConverter();
     }
 
     /** 获取JavaBean到数据库条件的转换处理类 **/
