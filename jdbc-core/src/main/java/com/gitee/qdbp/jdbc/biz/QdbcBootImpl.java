@@ -7,7 +7,9 @@ import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.JoinQueryer;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 
 /**
  * 基础增删改查对象的构造器
@@ -19,6 +21,8 @@ public class QdbcBootImpl implements QdbcBoot {
 
     /** SqlBuffer数据库操作类 **/
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
+    /** 执行SQL语句的处理接口 **/
+    private SqlDao sqlDao;
 
     private Map<Class<?>, CrudDao<?>> crudDaoCache = new HashMap<>();
     private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
@@ -31,7 +35,7 @@ public class QdbcBootImpl implements QdbcBoot {
     }
 
     public QdbcBootImpl(SqlBufferJdbcOperations operations) {
-        this.sqlBufferJdbcOperations = operations;
+        this.setSqlBufferJdbcOperations(operations);
     }
 
     /** 批量执行时的默认大小限制(0为无限制) **/
@@ -77,6 +81,12 @@ public class QdbcBootImpl implements QdbcBoot {
         }
     }
 
+    /** {@inheritDoc} **/
+    @Override
+    public SqlDao getSqlDao() {
+        return sqlDao;
+    }
+
     private String buildCacheKey(TableJoin tables, Class<?> resultType) {
         return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
     }
@@ -95,6 +105,8 @@ public class QdbcBootImpl implements QdbcBoot {
 
     public void setSqlBufferJdbcOperations(SqlBufferJdbcOperations sqlBufferJdbcOperations) {
         this.sqlBufferJdbcOperations = sqlBufferJdbcOperations;
+        SqlFragmentContainer container = SqlFragmentContainer.defaults();
+        this.sqlDao = new SqlDaoImpl(container, sqlBufferJdbcOperations);
     }
 
 }

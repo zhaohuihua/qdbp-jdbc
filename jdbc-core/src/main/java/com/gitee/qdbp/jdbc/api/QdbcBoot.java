@@ -66,6 +66,13 @@ public interface QdbcBoot {
     <T> JoinQueryer<T> buildJoinQuery(TableJoin tables, Class<T> resultType);
 
     /**
+     * 获取SQL执行接口
+     * 
+     * @return SqlDao
+     */
+    SqlDao getSqlDao();
+
+    /**
      * 获取SQL方言处理类
      * 
      * @return SQL方言处理类
