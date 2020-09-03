@@ -116,13 +116,6 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         return new TableRowToBeanMapper<>(clazz, converter);
     }
 
-    private String getFormattedSqlString(SqlBuffer sb, int indent) {
-        // 未开启到TRACE级别的日志就执行省略模式
-        boolean omitMode = !log.isTraceEnabled();
-        String sql = sb.getLoggingSqlString(sqlDialect, omitMode);
-        return DbTools.formatSql(sql, 1);
-    }
-
     @Override
     public <T> T execute(SqlBuffer sb, PreparedStatementCallback<T> action) throws ServiceException {
         VerifyTools.requireNotBlank(sb, "sqlBuffer");
@@ -503,7 +496,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL batch {}:\n{}", desc, logsql = getCompressedSqlString(sb, 1));
+            log.debug("Executing SQL batch {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -519,6 +512,13 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(errorCode, details, e);
         }
+    }
+
+    protected String getFormattedSqlString(SqlBuffer sb, int indent) {
+        // 未开启到TRACE级别的日志就执行省略模式
+        boolean omitMode = !log.isTraceEnabled();
+        String sql = sb.getLoggingSqlString(sqlDialect, omitMode);
+        return DbTools.formatSql(sql, 1);
     }
 
     @Override
@@ -543,10 +543,6 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             ScriptUtils.DEFAULT_STATEMENT_SEPARATOR, // SQL代码块分隔符: ;
             ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER, // 块注释开始符号: /*
             ScriptUtils.DEFAULT_BLOCK_COMMENT_END_DELIMITER); // 块注释结束符号: */
-    }
-
-    protected String getCompressedSqlString(SqlBuffer sb, int indent) {
-        return getFormattedSqlString(sb, indent);
     }
 
     @Override
