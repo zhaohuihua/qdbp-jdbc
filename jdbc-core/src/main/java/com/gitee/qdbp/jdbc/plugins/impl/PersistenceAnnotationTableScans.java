@@ -1,10 +1,10 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import com.gitee.qdbp.able.matches.StringMatcher;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
 import com.gitee.qdbp.jdbc.plugins.TableNameScans;
@@ -12,34 +12,25 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 扫描&#64;Table/&#64;Column/&#64;Id注解<br>
- * 如果useMissAnnotationField=true, 则只需要&#64;Table/&#64;Id注解
+ * 没有&#64;Column注解的字段, 不会出现在新增/修改的字段列表中, 但会作为查询结果集映射字段<br>
+ * 但如果所有字段都没有&#64;Column注解, 则将insertable/updatable全部设置为true<br>
+ * 也就是说, 要么完全没有@Column注解; 只要出现了一个没有注解的字段, 则所有数据库对应字段都需要有注解<br>
+ * 因为表关联查询所定义的结果类, 一般是不会有@Column字段的, 此时应认为是查询全部字段<br>
  *
  * @author zhaohuihua
  * @version 190601
  */
 public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
 
-    /** 是否使用无注解的字段 **/
-    private boolean useMissAnnotationField = false;
     /** 名称转换处理器 **/
     private NameConverter nameConverter;
-    /** 查找主键字段的处理器(仅在useMissAnnotationField=true时使用) **/
+    /** 查找主键字段的处理器 **/
     private StringMatcher primaryKeyMatcher;
 
     /** 默认构造函数 **/
     public PersistenceAnnotationTableScans() {
         this.setTableNameScans(new SimpleTableNameScans());
         this.setNameConverter(new SimpleNameConverter());
-    }
-
-    /** 是否使用无注解的字段 **/
-    public boolean isUseMissAnnotationField() {
-        return useMissAnnotationField;
-    }
-
-    /** 是否使用无注解的字段 **/
-    public void setUseMissAnnotationField(boolean useMissAnnotationField) {
-        this.useMissAnnotationField = useMissAnnotationField;
     }
 
     /** 名称转换处理器 **/
@@ -78,43 +69,87 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     }
 
     @Override
-    protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
-        Column annotation = field.getAnnotation(Column.class);
-        if (useMissAnnotationField || annotation != null) {
-            String fieldName = field.getName();
-            String columnName = annotation == null ? null : annotation.name();
-            if (VerifyTools.isBlank(columnName)) {
-                columnName = fieldName;
-                if (nameConverter != null) {
-                    columnName = nameConverter.fieldNameToColumnName(fieldName);
+    protected void onAfterScanColumns(List<SimpleFieldColumn> allColumns) {
+        super.onAfterScanColumns(allColumns);
+
+        boolean existColumnAnnotation = false;
+        for (SimpleFieldColumn item : allColumns) {
+            if (item instanceof FieldColumn) {
+                if (((FieldColumn) item).hasColumnAnnotation()) {
+                    existColumnAnnotation = true;
                 }
+            } else {
+                return;
             }
-            SimpleFieldColumn column = new SimpleFieldColumn(fieldName, columnName);
-            // 扫描@ColumnDefault注解声明的默认值
-            scanColumnDefault(field, column);
-            // 解析@Column注解中声明的信息
-            if (annotation != null) {
-                parseColumnAnnotation(column, annotation);
-            }
-            return column;
         }
 
-        return null;
+        // 如果所有字段都没有@Column注解, 则将insertable/updatable全部设置为true
+        // 也就是说, 要么完全没有@Column注解; 只要出现了一个没有注解的字段, 则所有数据库对应字段都需要有注解
+        // 因为表关联查询所定义的结果类, 一般是不会有@Column字段的, 此时应认为是查询全部字段
+        if (!existColumnAnnotation) {
+            for (SimpleFieldColumn item : allColumns) {
+                item.setColumnInsertable(true);
+                item.setColumnUpdatable(true);
+            }
+        }
     }
-    
+
+    protected static class FieldColumn extends SimpleFieldColumn {
+
+        /** serialVersionUID **/
+        private static final long serialVersionUID = 1L;
+        private final boolean hasColumnAnnotation;
+
+        public FieldColumn(String fieldName, String columnName, Column annotation) {
+            super(fieldName, columnName);
+            this.hasColumnAnnotation = annotation != null;
+            this.setColumnInsertable(annotation == null ? false : annotation.insertable());
+            this.setColumnUpdatable(annotation == null ? false : annotation.updatable());
+        }
+
+        public boolean hasColumnAnnotation() {
+            return hasColumnAnnotation;
+        }
+    }
+
+    @Override
+    protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
+        // 获取@Column注解
+        Column annotation = field.getAnnotation(Column.class);
+        String fieldName = field.getName();
+        // 获取列名
+        String columnName = annotation == null ? null : annotation.name();
+        if (VerifyTools.isBlank(columnName)) {
+            columnName = fieldName;
+            if (nameConverter != null) {
+                columnName = nameConverter.fieldNameToColumnName(fieldName);
+            }
+        }
+        // 生成列信息对象
+        FieldColumn column = new FieldColumn(fieldName, columnName, annotation);
+        // 判断是不是主键
+        scanPrimaryKey(column, field, clazz);
+        // 扫描@ColumnDefault注解声明的默认值
+        scanColumnDefault(field, column);
+        // 解析@Column注解中声明的信息
+        if (annotation != null) {
+            parseColumnAnnotation(column, annotation);
+        }
+        return column;
+    }
+
     /** 解析@Column注解中声明的信息 **/
     protected void parseColumnAnnotation(SimpleFieldColumn column, Column annotation) {
-        if (annotation != null) {
-            // column.setColumnNullable(annotation.nullable());
-            // column.setColumnInsertable(annotation.insertable());
-            // column.setColumnUpdatable(annotation.updatable());
-            // column.setColumnDefinition(annotation.columnDefinition());
-            // column.setColumnLength(annotation.length());
-            // column.setColumnPrecision(annotation.precision());
-            // column.setColumnScale(annotation.scale());
-            if (VerifyTools.isNotBlank(annotation.columnDefinition())) {
-                parseColumnDefinition(column, annotation.columnDefinition());
-            }
+        if (annotation == null) {
+            return;
+        }
+        // column.setColumnNullable(annotation.nullable());
+        // column.setColumnDefinition(annotation.columnDefinition());
+        // column.setColumnLength(annotation.length());
+        // column.setColumnPrecision(annotation.precision());
+        // column.setColumnScale(annotation.scale());
+        if (VerifyTools.isNotBlank(annotation.columnDefinition())) {
+            parseColumnDefinition(column, annotation.columnDefinition());
         }
     }
 
@@ -126,28 +161,18 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         // TODO 从列定义中解析列属性
     }
 
-    @Override
-    protected PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz) {
+    protected void scanPrimaryKey(FieldColumn column, Field field, Class<?> clazz) {
         String fieldName = field.getName();
         Id idAnnotation = field.getAnnotation(Id.class);
-        boolean isPrimaryKey = idAnnotation != null
-                || useMissAnnotationField && primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName);
-        if (isPrimaryKey) {
-            if (column != null) {
-                return column.to(PrimaryKeyFieldColumn.class);
-            } else {
-                column = scanColumn(field, clazz);
-                if (column != null) {
-                    return column.to(PrimaryKeyFieldColumn.class);
-                } else {
-                    String columnName = fieldName;
-                    if (nameConverter != null) {
-                        columnName = nameConverter.fieldNameToColumnName(fieldName);
-                    }
-                    return new PrimaryKeyFieldColumn(fieldName, columnName);
-                }
+        if (idAnnotation != null || primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName)) {
+            column.setPrimaryKey(true);
+
+            // 如果主键列没有@Column注解, 则设置insertable/updatable为true
+            // 如果主键列有@Column注解, 就按@Column注解所标注的insertable/updatable, 不作修改
+            if (column.hasColumnAnnotation()) {
+                column.setColumnInsertable(true);
+                column.setColumnUpdatable(true);
             }
         }
-        return null;
     }
 }

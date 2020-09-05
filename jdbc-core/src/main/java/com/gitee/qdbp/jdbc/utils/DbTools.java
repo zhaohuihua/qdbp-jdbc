@@ -17,7 +17,6 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
@@ -314,7 +313,7 @@ public abstract class DbTools {
     }
 
     /** Entity的主键缓存 **/
-    private static Map<Class<?>, PrimaryKeyFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, SimpleFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
 
     /**
      * 扫描获取主键(有缓存)
@@ -322,20 +321,20 @@ public abstract class DbTools {
      * @param clazz 类名
      * @return 主键
      */
-    public static PrimaryKeyFieldColumn parsePrimaryKey(Class<?> clazz) {
+    public static SimpleFieldColumn parsePrimaryKey(Class<?> clazz) {
         VerifyTools.requireNonNull(clazz, "class");
         if (entityPrimaryKeyCache.containsKey(clazz)) {
             return entityPrimaryKeyCache.get(clazz);
         }
 
-        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
-        PrimaryKeyFieldColumn pk = scans.scanPrimaryKey(clazz);
+        AllFieldColumn<SimpleFieldColumn> all = parseAllFieldColumns(clazz);
+        SimpleFieldColumn pk = all.findPrimaryKey();
         entityPrimaryKeyCache.put(clazz, pk);
         return pk;
     }
 
     /** TableJoin的列名缓存 **/
-    private static Map<String, List<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
+    private static Map<String, AllFieldColumn<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
 
     private static List<TablesFieldColumn> scanColumnList(TableItem table) {
         TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
@@ -356,9 +355,9 @@ public abstract class DbTools {
      * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param tables 表关联对象
-     * @return AllFields: fieldName - columnName
+     * @return AllFieldColumn: fieldName - columnName
      */
-    public static List<TablesFieldColumn> parseFieldColumns(TableJoin tables) {
+    public static AllFieldColumn<TablesFieldColumn> parseAllFieldColumns(TableJoin tables) {
         VerifyTools.requireNonNull(tables, "tables");
         String cacheKey = TableJoin.buildCacheKey(tables, false);
         if (joinColumnsCache.containsKey(cacheKey)) {
@@ -398,56 +397,35 @@ public abstract class DbTools {
                 field.setAmbiguous(true);
             }
         }
-        joinColumnsCache.put(cacheKey, all);
-        return all;
-    }
-
-    /**
-     * 扫描获取字段名和数据库列名的映射表(有缓存)
-     * 
-     * @param tables 表关联对象
-     * @return AllFieldColumn: fieldName - columnName
-     */
-    public static AllFieldColumn<TablesFieldColumn> parseToAllFieldColumn(TableJoin tables) {
-        List<TablesFieldColumn> fields = parseFieldColumns(tables);
-        return new AllFieldColumn<>(fields);
+        AllFieldColumn<TablesFieldColumn> fieldColumns = new AllFieldColumn<>(all);
+        joinColumnsCache.put(cacheKey, fieldColumns);
+        return fieldColumns;
     }
 
     /** Entity的列名缓存 **/
-    private static Map<Class<?>, List<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, AllFieldColumn<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
 
     /**
      * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param clazz 类型
-     * @return AllFields: fieldName - columnName
+     * @return AllFieldColumn: fieldName - columnName
      */
-    public static List<SimpleFieldColumn> parseFieldColumns(Class<?> clazz) {
+    public static AllFieldColumn<SimpleFieldColumn> parseAllFieldColumns(Class<?> clazz) {
         VerifyTools.requireNonNull(clazz, "class");
-        List<SimpleFieldColumn> all;
+        AllFieldColumn<SimpleFieldColumn> all;
         if (entityColumnsCache.containsKey(clazz)) {
             all = entityColumnsCache.get(clazz);
         } else {
             TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
-            all = scans.scanColumnList(clazz);
+            List<SimpleFieldColumn> fields = scans.scanColumnList(clazz);
+            all = new AllFieldColumn<>(fields); 
             entityColumnsCache.put(clazz, all);
         }
         if (all.isEmpty()) {
-            String m = "fields not found, please check config of TableInfoScans, class=" + clazz.getName();
+            String m = "Fields not found, please check config of TableInfoScans, class=" + clazz.getName();
             throw new IllegalArgumentException(m);
         }
         return all;
     }
-
-    /**
-     * 扫描获取字段名和数据库列名的映射表(有缓存)
-     * 
-     * @param clazz 表关联对象
-     * @return AllFieldColumn: fieldName - columnName
-     */
-    public static AllFieldColumn<SimpleFieldColumn> parseToAllFieldColumn(Class<?> clazz) {
-        List<SimpleFieldColumn> fields = parseFieldColumns(clazz);
-        return new AllFieldColumn<>(fields);
-    }
-
 }

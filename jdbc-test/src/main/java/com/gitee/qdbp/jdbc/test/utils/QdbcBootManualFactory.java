@@ -121,8 +121,6 @@ public class QdbcBootManualFactory extends QdbcBootBaseFactory {
     private void registerPersistenceAnnotationTableScans(DbPluginContainer plugins) {
         // PersistenceAnnotationTableScans: 扫描@Table/@Column/@Id注解
         PersistenceAnnotationTableScans scans = new PersistenceAnnotationTableScans();
-        // 是否使用无注解的字段
-        scans.setUseMissAnnotationField(false);
         // 主键查找方式: 查找字段名为id的字段
         // 仅在useMissAnnotationField=true时使用
         // scans.setPrimaryKeyMatcher(new EqualsStringMatcher("id"));

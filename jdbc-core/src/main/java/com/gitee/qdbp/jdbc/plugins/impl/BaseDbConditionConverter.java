@@ -12,6 +12,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere.EmptiableWhere;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -32,11 +33,11 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
     }
 
     /** 将Java对象转换为Map, 只保留有列信息的字段 **/
-    protected abstract Map<String, Object> convertBeanToDbMap(Object bean);
+    protected abstract Map<String, Object> convertBeanToMap(Object bean, FieldScene scene);
 
     @Override
     public Map<String, Object> convertBeanToInsertMap(Object bean) {
-        Map<String, Object> map = convertBeanToDbMap(bean);
+        Map<String, Object> map = convertBeanToMap(bean, FieldScene.INSERT);
         // clearEmptyString=true: 值为空字符串的字段, 表示用户未填写, 应予清除
         // 因为这里的bean对象极有可能来自于controller的参数
         // 如果不清除, 将会生成NULL的VALUES语句, 数据库设置的默认值就不会生效
@@ -46,7 +47,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     @Override
     public Map<String, Object> convertBeanToUpdateMap(Object bean) {
-        Map<String, Object> map = convertBeanToDbMap(bean);
+        Map<String, Object> map = convertBeanToMap(bean, FieldScene.UPDATE);
         // clearEmptyString=false: 值为空字符串的Update字段, 表示设置为NULL, 应予保留
         // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
         clearBlankValue(map, true, false);
@@ -55,7 +56,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     @Override
     public DbUpdate convertBeanToDbUpdate(Object bean) {
-        Map<String, Object> map = convertBeanToDbMap(bean);
+        Map<String, Object> map = convertBeanToMap(bean, FieldScene.UPDATE);
         // clearEmptyString=false: 值为空字符串的Update字段, 表示设置为NULL, 应予保留
         // 如果清除了, 用户想要将已经有值的字段清空将变得难以处理
         clearBlankValue(map, true, false);
@@ -64,7 +65,7 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
 
     @Override
     public DbWhere convertBeanToDbWhere(Object bean) {
-        Map<String, Object> map = convertBeanToDbMap(bean);
+        Map<String, Object> map = convertBeanToMap(bean, FieldScene.CONDITION);
         // clearEmptyString=true: 值为空字符串的Wherre字段, 表示用户未填写, 应予清除
         // 因为这里的bean对象极有可能来自于controller的参数
         // 如果不清除, 生成的SQL语句就会带有很多的FIELD1 IS NULL and FIELD2 IS NULL这样的条件
@@ -92,8 +93,8 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
      */
     @Override
     public DbWhere parseParamsToDbWhere(Map<String, String[]> params, Class<?> beanType) {
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
-        List<String> fieldNames = allFields.getFieldNames();
+        AllFieldColumn<?> allFields = DbTools.parseAllFieldColumns(beanType);
+        List<String> fieldNames = allFields.filter(FieldScene.CONDITION).getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, whereArrayFields);
         return parseMapToDbWhere(map, EmptiableWhere.class);
     }
@@ -232,8 +233,8 @@ public abstract class BaseDbConditionConverter implements DbConditionConverter {
     @Override
     public DbUpdate parseParamsToDbUpdate(Map<String, String[]> params, Class<?> beanType) {
         VerifyTools.requireNonNull(params, "params");
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(beanType);
-        List<String> fieldNames = allFields.getFieldNames();
+        AllFieldColumn<?> allFields = DbTools.parseAllFieldColumns(beanType);
+        List<String> fieldNames = allFields.filter(FieldScene.UPDATE).getFieldNames();
         Map<String, Object> map = parseMapWithWhitelist(params, fieldNames, null);
         return parseMapToDbUpdate(map, DbUpdate.class);
     }

@@ -10,6 +10,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -329,6 +330,7 @@ public class SimpleSqlDialect implements SqlDialect {
      */
     protected SqlBuffer oracleRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper sqlHelper) {
+        
         SqlBuilder sql = new SqlBuilder();
         // SELECT ... FROM
         sql.ad("SELECT");
@@ -338,7 +340,8 @@ public class SimpleSqlDialect implements SqlDialect {
         sql.ad("START WITH").ad(sqlHelper.buildInSql(codeField, startCodes, false));
         // CONNECT BY PRIOR {codeField} = {parentField}
         sql.ad("CONNECT BY PRIOR");
-        sql.ad(sqlHelper.getColumnName(codeField)).ad("=").ad(sqlHelper.getColumnName(parentField));
+        sql.ad(sqlHelper.getColumnName(FieldScene.CONDITION, codeField));
+        sql.ad("=").ad(sqlHelper.getColumnName(FieldScene.CONDITION, parentField));
         // WHERE ...
         if (where != null && !where.isEmpty()) {
             SqlBuffer whereSql = sqlHelper.buildWhereSql(where, false);
@@ -453,9 +456,9 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append(',');
         buffer.addVariable(ConvertTools.joinToString(startCodes));
         buffer.append(',');
-        buffer.addVariable(sqlHelper.getColumnName(codeField));
+        buffer.addVariable(sqlHelper.getColumnName(FieldScene.CONDITION, codeField));
         buffer.append(',');
-        buffer.addVariable(sqlHelper.getColumnName(parentField));
+        buffer.addVariable(sqlHelper.getColumnName(FieldScene.CONDITION, parentField));
         buffer.append(',');
         buffer.addVariable(selectFieldSql);
         buffer.append(',');

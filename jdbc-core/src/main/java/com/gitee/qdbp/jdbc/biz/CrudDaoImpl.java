@@ -17,7 +17,8 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
@@ -61,7 +62,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     private static EntityFieldFillExecutor newEntityFieldFillExecutor(Class<?> clazz) {
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(clazz);
+        AllFieldColumn<?> allFields = DbTools.parseAllFieldColumns(clazz);
         EntityFieldFillStrategy fieldFillStrategy = DbTools.getEntityFieldFillStrategy();
         EntityDataStateFillStrategy<?> dataStateFillStrategy = DbTools.getEntityDataStateFillStrategy();
         return new EntityFieldFillExecutor(allFields, fieldFillStrategy, dataStateFillStrategy);
@@ -80,7 +81,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     @Override
     public T findById(String id) {
         VerifyTools.requireNotBlank(id, "id");
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedFindById, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -99,7 +100,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
 
     @Override
     public List<T> listByIds(Fields fields, List<String> ids, Orderings orderings) throws ServiceException {
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedListByIds, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -132,7 +133,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     protected List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
             Orderings orderings) throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
-        List<String> selectFields = sqlHelper.getFieldNames();
+        List<String> selectFields = sqlHelper.getFieldNames(FieldScene.CONDITION);
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
         return jdbc.query(buffer, this.rowToBeanMapper);
@@ -167,7 +168,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         Set<String> selectFields = ConvertTools.toSet(codeField);
         SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
             orderings, sqlHelper);
-        String codeColumn = sqlHelper.getColumnName(codeField);
+        String codeColumn = sqlHelper.getColumnName(FieldScene.CONDITION, codeField);
         return jdbc.query(buffer, new SingleColumnMapper<>(codeColumn, String.class));
     }
 
@@ -279,7 +280,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public int update(T entity, boolean fillUpdateParams, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNonNull(entity, "entity");
         // 查找主键
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedUpdateById, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -317,7 +318,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
                 throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
             }
             // 查找主键
-            PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+            SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
             if (pk == null) { // 没有找到主键字段
                 String details = "UnsupportedUpdateById, class=" + beanClass.getName();
                 throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -443,7 +444,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     protected int updates(List<?> entities, boolean fillUpdateParams, int batchSize) throws ServiceException {
         VerifyTools.requireNotBlank(entities, "entities");
         // 查找主键(批量更新必须要有主键)
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedBatchUpdate, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -513,7 +514,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     public int logicalDeleteByIds(List<String> ids, boolean fillUpdateParams, boolean errorOnUnaffected)
             throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedDeleteById, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -568,7 +569,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     @Override
     public int physicalDeleteByIds(List<String> ids, boolean errorOnUnaffected) throws ServiceException {
         VerifyTools.requireNotBlank(ids, "ids");
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedDeleteById, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);
@@ -651,7 +652,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         if (object instanceof PkEntity) {
             PkEntity pe = (PkEntity) object;
             Map<String, Object> entity = pe.getEntity();
-            PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+            SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
             // 如果PkEntity里面的id不为空, 设置到entity中
             if (pk != null && VerifyTools.isNotBlank(pe.getPrimaryKey())) {
                 entity.put(pk.getFieldName(), pe.getPrimaryKey());
@@ -696,7 +697,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         String tableName = getSqlBuilder().helper().getTableName();
         // 查找主键
         String id;
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) {
             id = null;
         } else if (VerifyTools.isNotBlank(entity.get(pk.getFieldName()))) {
@@ -758,7 +759,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             throw new ServiceException(DbErrorCode.DB_ENTITY_MUST_NOT_BE_EMPTY, details);
         }
         // 查找主键
-        PrimaryKeyFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
+        SimpleFieldColumn pk = getSqlBuilder().helper().getPrimaryKey();
         if (pk == null) { // 没有找到主键字段
             String details = "UnsupportedBatchUpdate, class=" + beanClass.getName();
             throw new ServiceException(DbErrorCode.DB_PRIMARY_KEY_FIELD_IS_UNRESOLVED, details);

@@ -3,7 +3,6 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 import java.lang.reflect.Field;
 import com.gitee.qdbp.able.matches.EqualsStringMatcher;
 import com.gitee.qdbp.able.matches.StringMatcher;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.NameConverter;
 import com.gitee.qdbp.jdbc.plugins.TableNameScans;
@@ -64,23 +63,23 @@ public class SimpleTableInfoScans extends BaseTableInfoScans {
 
     @Override
     protected SimpleFieldColumn scanColumn(Field field, Class<?> clazz) {
+        // 获取字段名
         String fieldName = field.getName();
-        SimpleFieldColumn column = new SimpleFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
+        // 获取列名
+        String columnName = nameConverter.fieldNameToColumnName(fieldName);
+        // 生成列信息对象
+        SimpleFieldColumn column = new SimpleFieldColumn(fieldName, columnName);
+        // 判断是不是主键
+        scanPrimaryKey(column, field, clazz);
         // 扫描@ColumnDefault注解声明的默认值
         scanColumnDefault(field, column);
         return column;
     }
 
-    @Override
-    protected PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz) {
+    protected void scanPrimaryKey(SimpleFieldColumn column, Field field, Class<?> clazz) {
         String fieldName = field.getName();
         if (primaryKeyMatcher.matches(fieldName)) {
-            if (column != null) {
-                return column.to(PrimaryKeyFieldColumn.class);
-            } else {
-                return new PrimaryKeyFieldColumn(fieldName, nameConverter.fieldNameToColumnName(fieldName));
-            }
+            column.setPrimaryKey(true);
         }
-        return null;
     }
 }

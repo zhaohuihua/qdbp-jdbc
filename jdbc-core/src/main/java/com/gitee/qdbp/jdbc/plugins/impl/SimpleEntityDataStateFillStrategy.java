@@ -20,28 +20,28 @@ public class SimpleEntityDataStateFillStrategy<DS> extends BaseEntityDataStateFi
     public void fillQueryWhereDataState(DbWhere where, String tableAlias, AllFieldColumn<?> allFields) {
         String fullFieldName = FieldTools.toTableFieldName(getLogicalDeleteField(), tableAlias);
         // 将数据状态设置为有效
-        EntityFillTools.fillValueIfAbsent(where, fullFieldName, getDataEffectiveFlag(), allFields);
+        EntityFillTools.fillWhereValueIfAbsent(where, fullFieldName, getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
     public void fillUpdateWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
-        EntityFillTools.fillValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
+        EntityFillTools.fillWhereValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
     public void fillDeleteWhereDataState(DbWhere where, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
-        EntityFillTools.fillValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
+        EntityFillTools.fillWhereValueIfAbsent(where, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
     public void fillEntityCreateDataState(Map<String, Object> condition, AllFieldColumn<?> allFields) {
         // 将数据状态设置为有效
-        EntityFillTools.fillValueIfAbsent(condition, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
+        EntityFillTools.fillCreateEntityIfAbsent(condition, getLogicalDeleteField(), getDataEffectiveFlag(), allFields);
     }
 
     /** {@inheritDoc} **/
@@ -65,7 +65,7 @@ public class SimpleEntityDataStateFillStrategy<DS> extends BaseEntityDataStateFi
             return;
         }
         // 将数据状态设置为无效
-        EntityFillTools.fillValueIfAbsent(ud, fieldName, fieldValue, allFields);
+        EntityFillTools.fillUpdateValueIfAbsent(ud, fieldName, fieldValue, allFields);
         this.putLogicalDeleteDataState(ud, fieldName, fieldValue);
     }
 }

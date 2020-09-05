@@ -8,7 +8,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
@@ -45,7 +45,7 @@ public class BatchOperateByForEachExecutor implements BatchInsertExecutor, Batch
     public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc,
             CrudSqlBuilder sqlBuilder) {
         // 查找主键(批量更新必须要有主键)
-        PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
+        SimpleFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         int rows = 0;
         for (PkEntity item : entities) {

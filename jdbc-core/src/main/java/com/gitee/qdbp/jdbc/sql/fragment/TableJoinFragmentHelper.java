@@ -11,6 +11,8 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinItem;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.JoinType;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -30,37 +32,25 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** 构造函数 **/
     public TableJoinFragmentHelper(TableJoin tables, SqlDialect dialect) {
-        super(DbTools.parseToAllFieldColumn(tables), dialect);
+        super(DbTools.parseAllFieldColumns(tables), dialect);
         this.tables = tables;
     }
 
-    protected List<SimpleFieldColumn> getFields(String fieldName) {
-        List<SimpleFieldColumn> fields = new ArrayList<>();
-        if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
-            return fields;
-        }
-        for (SimpleFieldColumn item : this.columns.items()) {
-            if (item.matchesByFieldName(fieldName)) {
-                fields.add(item);
-            }
-        }
-        return fields;
-    }
 
     /** {@inheritDoc} **/
     @Override
-    public boolean containsField(String fieldName) {
-        if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
+    public boolean containsField(FieldScene scene, String fieldName) {
+        if (VerifyTools.isBlank(fieldName)) {
             return false;
         }
-        List<SimpleFieldColumn> fields = getFields(fieldName);
+        List<? extends SimpleFieldColumn> fields = this.columns.filter(scene).findAllByFieldName(fieldName);
         return !fields.isEmpty();
     }
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName) throws UnsupportedFieldException {
-        List<SimpleFieldColumn> fields = getFields(fieldName);
+    public String getColumnName(FieldScene scene, String fieldName) throws UnsupportedFieldException {
+        List<? extends SimpleFieldColumn> fields = this.columns.filter(scene).findAllByFieldName(fieldName);
         if (fields.isEmpty()) {
             throw ufe("unsupported field", fieldName);
         } else if (fields.size() > 1) {
@@ -72,8 +62,8 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
-        List<SimpleFieldColumn> fields = getFields(fieldName);
+    public String getColumnName(FieldScene scene, String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
+        List<? extends SimpleFieldColumn> fields = this.columns.filter(scene).findAllByFieldName(fieldName);
         if (fields.isEmpty()) {
             if (throwOnUnsupportedField) {
                 throw ufe("unsupported field", fieldName);
@@ -93,15 +83,16 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean isWhitelist, boolean columnAlias)
+    protected SqlBuffer doBuildSpecialFieldsSql(FieldScene scene, Collection<String> fields, boolean isWhitelist, boolean columnAlias)
             throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
         // 字段名映射
         Map<String, Void> fieldMap = new HashMap<String, Void>();
         List<String> unsupported = new ArrayList<String>();
         for (String fieldName : fields) {
-            List<SimpleFieldColumn> matchesFields = getFields(fieldName);
+            List<? extends SimpleFieldColumn> matchesFields = fieldColumns.findAllByFieldName(fieldName);
             if (matchesFields.isEmpty()) {
                 unsupported.add(fieldName);
             } else if (matchesFields.size() > 1) {
@@ -117,7 +108,7 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
         // 根据列顺序生成SQL
         SqlBuilder buffer = new SqlBuilder();
-        for (SimpleFieldColumn item : this.columns.items()) {
+        for (SimpleFieldColumn item : fieldColumns) {
             boolean exists = fieldMap.containsKey(item.toTableFieldName()) || fieldMap.containsKey(item.getFieldName());
             if (exists == isWhitelist) {
                 if (!buffer.isEmpty()) {

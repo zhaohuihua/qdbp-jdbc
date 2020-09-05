@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -44,7 +46,7 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
         Map<String, Object> map = mapper.mapRow(rs, rowNum);
 
         // 1. 获取列名与字段名的对应关系
-        AllFieldColumn<TablesFieldColumn> all = DbTools.parseToAllFieldColumn(tables);
+        AllFieldColumn<TablesFieldColumn> all = DbTools.parseAllFieldColumns(tables);
         if (all == null || all.isEmpty()) {
             return null;
         }
@@ -63,13 +65,14 @@ public class TablesRowToProperyMapper<T> implements RowToBeanMapper<T> {
             }
         }
 
+        FieldColumns<TablesFieldColumn> fieldColumns = all.filter(FieldScene.RESULT);
         // 3. 根据列别名查找字段信息, 再找到resultField, 根据字段名填充数据
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             // 根据列别名查找字段信息
             String columnAlias = entry.getKey();
-            TablesFieldColumn field = all.findByColumnAlias(columnAlias);
+            TablesFieldColumn field = fieldColumns.findByColumnAlias(columnAlias);
             if (field == null) {
-                continue; // 正常情况下能查到结果集不可能找不到字段信息
+                continue; // 结果集的列在结果容器类中找不到对应的字段
             }
             // 获取resultField
             String resultField = field.getResultField();

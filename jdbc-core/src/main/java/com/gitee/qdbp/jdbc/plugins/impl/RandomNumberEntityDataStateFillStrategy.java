@@ -8,6 +8,7 @@ import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.RandomTools;
@@ -53,7 +54,7 @@ public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataS
     /** 处理逻辑删除时的数据状态 **/
     protected void handleLogicalDeleteDataState(Map<String, Object> entity, String fieldName,
             AllFieldColumn<?> allFields) {
-        if (!allFields.containsByFieldName(fieldName)) {
+        if (!allFields.filter(FieldScene.UPDATE).containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
         }
         // 无条件替换为随机数
@@ -63,7 +64,7 @@ public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataS
 
     /** 处理逻辑删除时的数据状态 **/
     protected void handleLogicalDeleteDataState(DbUpdate ud, String fieldName, AllFieldColumn<?> allFields) {
-        if (!allFields.containsByFieldName(fieldName)) {
+        if (!allFields.filter(FieldScene.UPDATE).containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
         }
         // 查找所有fieldName=logicalDeleteField的条件
@@ -75,7 +76,7 @@ public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataS
     /** 处理实体创建时的数据状态 **/
     protected void handleEntityCreateDataState(Map<String, Object> entity, String fieldName,
             AllFieldColumn<?> allFields) {
-        if (!allFields.containsByFieldName(fieldName)) {
+        if (!allFields.filter(FieldScene.INSERT).containsByFieldName(fieldName)) {
             return; // 不支持逻辑删除
         }
         // where中没有逻辑删除标记时, 默认设置为有效值, 即只查有效项
@@ -95,7 +96,7 @@ public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataS
 
     /*** 处理Where条件中的数据状态 **/
     protected void handleWhereDataState(DbWhere where, String fullFieldName, AllFieldColumn<?> allFields) {
-        if (!allFields.containsByFieldName(fullFieldName)) {
+        if (!allFields.filter(FieldScene.CONDITION).containsByFieldName(fullFieldName)) {
             return; // 不支持逻辑删除
         }
         // where中没有逻辑删除标记时, 默认设置为有效值, 即只查有效项
@@ -200,6 +201,6 @@ public class RandomNumberEntityDataStateFillStrategy<DS> extends BaseEntityDataS
             ineffectiveFlag = RandomTools.generateNumber(logicalDeleteRandoms);
         }
         // 将数据状态设置为无效
-        EntityFillTools.fillValueIfAbsent(ud, getLogicalDeleteField(), ineffectiveFlag, allFields);
+        EntityFillTools.fillUpdateValueIfAbsent(ud, getLogicalDeleteField(), ineffectiveFlag, allFields);
     }
 }

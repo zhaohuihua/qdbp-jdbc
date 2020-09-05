@@ -48,12 +48,14 @@ public class TablesFieldColumn extends SimpleFieldColumn {
 
     /** 表别名 **/
     public void setTableAlias(String tableAlias) {
+        checkReadonly();
         this.tableAlias = tableAlias;
     }
 
     /** 字段名(如果带有表别名, 会拆分并记录到tableAlias字段) **/
     public void setFieldName(String fieldName) {
         VerifyTools.requireNotBlank(fieldName, "fieldName");
+        checkReadonly();
         int dotIndex = fieldName.indexOf('.');
         if (dotIndex < 0) {
             super.setFieldName(fieldName);
@@ -68,6 +70,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
     /** 数据表列名(如果带有表别名, 会拆分并记录到tableAlias字段) **/
     public void setColumnName(String columnName) {
         VerifyTools.requireNotBlank(columnName, "columnName");
+        checkReadonly();
         int dotIndex = columnName.indexOf('.');
         if (dotIndex < 0) {
             super.setColumnName(columnName);
@@ -86,6 +89,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
 
     /** 列别名 **/
     public void setColumnAlias(String columnAlias) {
+        checkReadonly();
         this.columnAlias = columnAlias;
     }
 
@@ -96,6 +100,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
 
     /** 数据保存至结果类的哪个字段(子对象) **/
     public void setResultField(String resultField) {
+        checkReadonly();
         this.resultField = resultField;
     }
 
@@ -106,6 +111,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
 
     /** 是不是存在重名字段 **/
     public void setAmbiguous(boolean isAmbiguous) {
+        checkReadonly();
         this.isAmbiguous = isAmbiguous;
     }
 

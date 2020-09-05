@@ -6,7 +6,7 @@ import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
@@ -37,7 +37,7 @@ public interface CrudFragmentHelper extends QueryFragmentHelper {
      * 
      * @return 主键, 有可能为空
      */
-    PrimaryKeyFieldColumn getPrimaryKey();
+    SimpleFieldColumn getPrimaryKey();
 
     /**
      * 生成Insert字段值列表SQL语句

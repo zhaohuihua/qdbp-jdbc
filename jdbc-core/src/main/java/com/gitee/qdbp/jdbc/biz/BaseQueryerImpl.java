@@ -15,6 +15,7 @@ import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.plugins.EntityFieldFillExecutor;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.result.KeyIntegerMapper;
@@ -181,7 +182,7 @@ public abstract class BaseQueryerImpl<T> {
         if (odpg.isPaging() && odpg.isNeedCount()) {
             csb = sqlBuilder.buildCountSql(wsb);
         }
-        String columnName = sqlBuilder.helper().getColumnName(fieldName);
+        String columnName = sqlBuilder.helper().getColumnName(FieldScene.CONDITION, fieldName);
         RowMapper<V> rowMapper = new SingleColumnMapper<>(columnName, valueClazz);
         PartList<V> list = PagingQuery.queryForList(jdbc, qsb, csb, odpg, rowMapper);
         return list == null ? null : new PageList<V>(list, list.getTotal());

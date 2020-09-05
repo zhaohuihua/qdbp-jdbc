@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.utils.FieldTools;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -23,10 +24,11 @@ public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
      * 先调用ParseTools.beanToMap()转换为map, 再解析列名, 只保留有列信息的字段
      * 
      * @param bean Java对象
+     * @param scene 字段使用场景
      * @return Map对象
      */
     @Override
-    protected Map<String, Object> convertBeanToDbMap(Object bean) {
+    protected Map<String, Object> convertBeanToMap(Object bean, FieldScene scene) {
         if (bean == null) {
             return null;
         }
@@ -39,11 +41,11 @@ public class FastJsonDbConditionConverter extends BaseDbConditionConverter {
         }
 
         // 从bean.getClass()扫描获取列名与字段名的对应关系
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(bean.getClass());
+        AllFieldColumn<?> allFields = DbTools.parseAllFieldColumns(bean.getClass());
         if (allFields == null || allFields.isEmpty()) {
             return null;
         }
-        List<String> fieldNames = allFields.getFieldNames();
+        List<String> fieldNames = allFields.filter(scene).getFieldNames();
 
         // 只保留有列信息的字段
         Map<String, Object> result = new HashMap<>();
