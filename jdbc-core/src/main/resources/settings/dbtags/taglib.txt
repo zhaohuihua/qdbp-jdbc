@@ -1,14 +1,15 @@
 
-include = com.gitee.qdbp.staticize.tags.base.IncludeTag
+import = com.gitee.qdbp.staticize.tags.base.ImportTag
 if = com.gitee.qdbp.staticize.tags.core.IfTag
 elseif = com.gitee.qdbp.staticize.tags.core.ElseIfTag
 else = com.gitee.qdbp.staticize.tags.core.ElseTag
-for = com.gitee.qdbp.staticize.tags.core.EachTag
+each = com.gitee.qdbp.staticize.tags.core.EachTag
 comment = com.gitee.qdbp.staticize.tags.core.CommentTag
 set = com.gitee.qdbp.staticize.tags.core.SetVariableTag
 
-append = 
-trim = 
-where = 
+include = com.gitee.qdbp.jdbc.tags.IncludeTag
+append = com.gitee.qdbp.jdbc.tags.AppendTag
+trim = com.gitee.qdbp.jdbc.tags.TrimTag
+where = com.gitee.qdbp.jdbc.tags.WhereTag
 
 fmt:date = com.gitee.qdbp.staticize.tags.core.DateFormatTag
