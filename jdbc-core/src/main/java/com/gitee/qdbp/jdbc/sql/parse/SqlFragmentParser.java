@@ -22,7 +22,9 @@ import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * SQL模板解析
+ * SQL模板解析<br>
+ * SQL模板不支持静态的include, 因为解析时无法确定dbType<br>
+ * include标签解析时只记录引用的路径, 发布时动态加载引用的内容<br>
  *
  * @author zhaohuihua
  * @version 20200817
@@ -121,7 +123,7 @@ class SqlFragmentParser {
         String fragmentId = result.getFragmentId();
         String dbType = VerifyTools.nvl(result.getDbType(), "*");
         if (fragmentId == null) { // 只有文件名, 没有SqlId
-            // 注册fileId:fragmentId(dbType)
+            // 注册fileId(dbType)
             String sqlId = fileId;
             String sqlKey = sqlId + '(' + dbType + ')';
             String sqlLocation = sqlPath;

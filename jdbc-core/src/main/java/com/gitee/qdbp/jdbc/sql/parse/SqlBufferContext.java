@@ -29,6 +29,8 @@ class SqlBufferContext implements IContext {
     private final Map<String, Object> preset;
     /** 值栈环境变量, 用于实现子标签的变量在子标签关闭后不覆盖父标签的变量 **/
     private final Map<String, Object> stack;
+    /** 类的导入信息, key=&#64;类名简称, value=类名全称 **/
+    private final Map<String, String> imports;
 
     /** 内部构造函数 **/
     protected SqlBufferContext(SqlDialect dialect) {
@@ -36,6 +38,7 @@ class SqlBufferContext implements IContext {
         this.builder = new SqlBuilder();
         this.preset = new HashMap<>();
         this.stack = new HashMap<>();
+        this.imports = new HashMap<>();
     }
 
     /** SQL语句 **/
@@ -61,6 +64,37 @@ class SqlBufferContext implements IContext {
     @Override
     public Map<String, Object> stack() {
         return stack;
+    }
+
+    /**
+     * 增加类的导入信息
+     * 
+     * @param classFullName 类名全称, 如: com.qdbp.xxx.EntityTools
+     */
+    public void addImportClass(String classFullName) throws TagException {
+        try {
+            Class.forName(classFullName);
+        } catch (ClassNotFoundException e) {
+            throw new TagException("Class not found: " + classFullName);
+        }
+        String shortName;
+        int dotIndex = classFullName.lastIndexOf('.');
+        if (dotIndex < 0) {
+            shortName = '@' + classFullName;
+        } else {
+            shortName = '@' + classFullName.substring(dotIndex + 1);
+        }
+        this.imports.put(shortName, classFullName);
+    }
+
+    /**
+     * 获取类的导入信息
+     * 
+     * @param shortName &#64;类名简称, 如: &#64;EntityTools
+     * @return fullName 类名全称, 如: com.qdbp.xxx.EntityTools
+     */
+    public String getImportClass(String shortName) {
+        return this.imports.get(shortName);
     }
 
     /**
@@ -90,7 +124,8 @@ class SqlBufferContext implements IContext {
         String key = matcher.group(2);
 
         if ("#".equals(prefix)) { // 预编译参数
-            return OgnlTools.getValue(stack, key);
+            Object value = OgnlTools.getValue(stack, key);
+            return new SqlBuffer().addVariable(value);
         } else if ("$".equals(prefix)) { // 拼写式参数
             Object value = OgnlTools.getValue(stack, key);
             if (value instanceof SqlBuffer) {
