@@ -322,6 +322,34 @@ public class SqlBuffer implements Serializable {
         return buffer.isEmpty();
     }
 
+    public boolean isBlank() {
+        if (buffer.isEmpty()) {
+            return true;
+        }
+        for (Item item : buffer) {
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                String stringValue = stringItem.getValue().toString();
+                if (stringValue.trim().length() > 0) {
+                    return false;
+                }
+            } else if (item instanceof VariableItem) {
+                return false;
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawValueItem = (RawValueItem) item;
+                String stringValue = rawValueItem.getValue();
+                if (stringValue.trim().length() > 0) {
+                    return false;
+                }
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return true;
+    }
+
     /**
      * 超级长的SQL在输出日志时可以省略掉一部分<br>
      * 省略哪一部分, 用startOmit()/endOmit()来标识起止位置
@@ -526,7 +554,7 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等)<br>
      * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param version 数据库版本
@@ -538,7 +566,7 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等)<br>
      * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param dialect 数据库方言
@@ -690,7 +718,7 @@ public class SqlBuffer implements Serializable {
         msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
         return msg;
     }
-    
+
     private int calcOmittedIndex(OmitItem start, OmitItem end) {
         if (start == null || end == null) {
             return -1;
