@@ -325,7 +325,7 @@ public class SqlBuffer implements Serializable {
      * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
      * 
      * @param prefix 待插入的前缀
-     * @param prefixOverrides 待替换的前缀
+     * @param prefixOverrides 待替换的前缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
      * @return 是否有变更
      */
     public boolean insertPrefix(String prefix, String prefixOverrides) {
@@ -367,7 +367,7 @@ public class SqlBuffer implements Serializable {
      * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
      * 
      * @param suffix 待插入的后缀
-     * @param suffixOverrides 待替换的后缀
+     * @param suffixOverrides 待替换的后缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
      * @return 是否有变更
      */
     public boolean insertSuffix(String suffix, String suffixOverrides) {
@@ -1060,11 +1060,56 @@ public class SqlBuffer implements Serializable {
          * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
          * 
          * @param prefix 待插入的前缀
-         * @param prefixOverrides 待替换的前缀
+         * @param prefixOverrides 待替换的前缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
          * @return 是否有变更
          */
         public boolean insertPrefix(String prefix, String prefixOverrides) {
+            if (value.length() == 0) {
+                return false;
+            }
 
+            int last = value.length() - 1;
+            int position = -1;
+            // 查找插入点: 第1个非空字符的位置
+            for (int i = 0; i <= last; i++) {
+                char c = value.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    continue;
+                } else {
+                    position = i;
+                    break; // 位置找到了
+                }
+            }
+            if (position < 0) {
+                return false;
+            }
+            boolean removed = false;
+            boolean changed = false;
+            if (VerifyTools.isNotBlank(prefixOverrides)) {
+                String[] array = StringTools.split(prefixOverrides, '|');
+                for (String prefixOverride : array) {
+                    if (startsWith(value, prefixOverride, position)) {
+                        value.delete(position, position + prefixOverride.length());
+                        removed = true;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            if (VerifyTools.isNotBlank(prefix)) {
+                changed = true;
+                if (removed) {
+                    value.insert(position, prefix);
+                } else {
+                    String suffix = value.substring(position, Math.min(position + 10, value.length()));
+                    if (SqlTextTools.endsWithSqlSymbol(prefix, ')') || SqlTextTools.startsWithSqlSymbol(suffix)) {
+                        value.insert(position, prefix);
+                    } else {
+                        value.insert(position, prefix + ' ');
+                    }
+                }
+            }
+            return changed;
         }
 
         /**
@@ -1074,11 +1119,82 @@ public class SqlBuffer implements Serializable {
          * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
          * 
          * @param suffix 待插入的后缀
-         * @param suffixOverrides 待替换的后缀
+         * @param suffixOverrides 待替换的后缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
          * @return 是否有变更
          */
         public boolean insertSuffix(String suffix, String suffixOverrides) {
+            if (value.length() == 0) {
+                return false;
+            }
 
+            int last = value.length() - 1;
+            int position = -1;
+            // 查找插入点: 第1个非空字符的位置
+            for (int i = last; i >= 0; i--) {
+                char c = value.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    continue;
+                } else {
+                    position = i;
+                    break; // 位置找到了
+                }
+            }
+            if (position < 0) {
+                return false;
+            }
+            boolean removed = false;
+            boolean changed = false;
+            if (VerifyTools.isNotBlank(suffixOverrides)) {
+                String[] array = StringTools.split(suffixOverrides, '|');
+                for (String suffixOverride : array) {
+                    if (endsWith(value, suffixOverride, position)) {
+                        value.delete(position - suffixOverride.length(), position);
+                        position -= suffixOverride.length();
+                        removed = true;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            if (VerifyTools.isNotBlank(suffix)) {
+                changed = true;
+                if (removed) {
+                    value.insert(position, suffix);
+                } else {
+                    String prefix = value.substring(Math.min(position - 10, 0), position + 1);
+                    if (SqlTextTools.endsWithSqlSymbol(value, ')') || SqlTextTools.startsWithSqlSymbol(prefix)) {
+                        value.insert(position, suffix);
+                    } else {
+                        value.insert(position, ' ' + suffix);
+                    }
+                }
+            }
+            return changed;
+        }
+
+        private static boolean startsWith(CharSequence string, String prefix, int index) {
+            if (string.length() < index + prefix.length()) {
+                return false;
+            }
+            for (int i = 0; i < prefix.length(); i++) {
+                if (Character.toUpperCase(prefix.charAt(i)) != Character.toUpperCase(string.charAt(i + index))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static boolean endsWith(CharSequence string, String suffix, int index) {
+            int si = index - suffix.length();
+            if (si < 0) {
+                return false;
+            }
+            for (int i = 0; i < suffix.length(); i++) {
+                if (Character.toUpperCase(suffix.charAt(i)) != Character.toUpperCase(string.charAt(si + index))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public StringBuilder getValue() {
