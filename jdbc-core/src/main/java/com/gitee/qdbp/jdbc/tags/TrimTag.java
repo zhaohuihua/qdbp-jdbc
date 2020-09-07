@@ -5,6 +5,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.staticize.common.IContext;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.NextStep;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 去掉第1个prefixOverrides, 去掉最后一个suffixOverrides<br>
@@ -15,24 +16,24 @@ import com.gitee.qdbp.staticize.tags.base.NextStep;
  */
 public class TrimTag extends SqlCachingTag {
 
-    private Object prefix;
-    private Object suffix;
+    private String prefix;
+    private String suffix;
     private String prefixOverrides;
     private String suffixOverrides;
 
-    public Object getPrefix() {
+    public String getPrefix() {
         return prefix;
     }
 
-    public void setPrefix(Object prefix) {
+    public void setPrefix(String prefix) {
         this.prefix = prefix;
     }
 
-    public Object getSuffix() {
+    public String getSuffix() {
         return suffix;
     }
 
-    public void setSuffix(Object suffix) {
+    public void setSuffix(String suffix) {
         this.suffix = suffix;
     }
 
@@ -62,8 +63,12 @@ public class TrimTag extends SqlCachingTag {
         if (content.isBlank()) {
             return;
         }
-        content.addPrefix(prefix, prefixOverrides);
+        if (VerifyTools.isNotBlank(prefix) || VerifyTools.isNotBlank(prefixOverrides)) {
+            content.insertPrefix(prefix, prefixOverrides);
+        }
         context.write(content);
-        content.addSuffix(suffix, suffixOverrides);
+        if (VerifyTools.isNotBlank(suffix) || VerifyTools.isNotBlank(suffixOverrides)) {
+            content.insertSuffix(suffix, suffixOverrides);
+        }
     }
 }

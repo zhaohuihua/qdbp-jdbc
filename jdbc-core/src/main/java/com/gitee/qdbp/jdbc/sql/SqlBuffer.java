@@ -318,6 +318,90 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    /**
+     * 在第1个非空字符前插入前缀<br>
+     * 删除prefixOverrides, 插入prefix<br>
+     * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+     * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
+     * 
+     * @param prefix 待插入的前缀
+     * @param prefixOverrides 待替换的前缀
+     * @return 是否有变更
+     */
+    public boolean insertPrefix(String prefix, String prefixOverrides) {
+        if (buffer.isEmpty() || VerifyTools.isAllBlank(prefix, prefixOverrides)) {
+            return false;
+        }
+        for (int i = 0, last = buffer.size() - 1; i <= last; i++) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                boolean changed = stringItem.insertPrefix(prefix, prefixOverrides);
+                if (changed) {
+                    return true;
+                }
+            } else if (item instanceof VariableItem || item instanceof RawValueItem) {
+                if (VerifyTools.isBlank(prefix)) {
+                    return false;
+                }
+                StringItem element = new StringItem();
+                element.append(prefix);
+                if (!SqlTextTools.endsWithSqlSymbol(prefix, ')')) {
+                    element.append(' ');
+                }
+                buffer.add(i, element);
+                return true;
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 在最后1个非空字符后插入后缀<br>
+     * 删除suffixOverrides, 插入suffix<br>
+     * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+     * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
+     * 
+     * @param suffix 待插入的后缀
+     * @param suffixOverrides 待替换的后缀
+     * @return 是否有变更
+     */
+    public boolean insertSuffix(String suffix, String suffixOverrides) {
+        if (buffer.isEmpty() || VerifyTools.isAllBlank(suffix, suffixOverrides)) {
+            return false;
+        }
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                boolean changed = stringItem.insertSuffix(suffix, suffixOverrides);
+                if (changed) {
+                    return true;
+                }
+            } else if (item instanceof VariableItem || item instanceof RawValueItem) {
+                if (VerifyTools.isBlank(suffix)) {
+                    return false;
+                }
+                StringItem element = new StringItem();
+                if (!SqlTextTools.startsWithSqlSymbol(suffix)) {
+                    element.append(' ');
+                }
+                element.append(suffix);
+                buffer.add(i + 1, element);
+                return true;
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
+
     public boolean isEmpty() {
         return buffer.isEmpty();
     }
@@ -967,6 +1051,34 @@ public class SqlBuffer implements Serializable {
                     value.insert(i + 1, tabs);
                 }
             }
+        }
+
+        /**
+         * 在第1个非空字符前插入前缀<br>
+         * 删除prefixOverrides, 插入prefix<br>
+         * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+         * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
+         * 
+         * @param prefix 待插入的前缀
+         * @param prefixOverrides 待替换的前缀
+         * @return 是否有变更
+         */
+        public boolean insertPrefix(String prefix, String prefixOverrides) {
+
+        }
+
+        /**
+         * 在最后1个非空字符后插入后缀<br>
+         * 删除suffixOverrides, 插入suffix<br>
+         * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+         * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
+         * 
+         * @param suffix 待插入的后缀
+         * @param suffixOverrides 待替换的后缀
+         * @return 是否有变更
+         */
+        public boolean insertSuffix(String suffix, String suffixOverrides) {
+
         }
 
         public StringBuilder getValue() {
