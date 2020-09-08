@@ -1176,8 +1176,16 @@ public class SqlBuffer implements Serializable {
             if (string.length() < index + prefix.length()) {
                 return false;
             }
-            for (int i = 0; i < prefix.length(); i++) {
+            int i = 0;
+            for (; i < prefix.length(); i++) {
                 if (Character.toUpperCase(prefix.charAt(i)) != Character.toUpperCase(string.charAt(i + index))) {
+                    return false;
+                }
+            }
+            // 如果prefix是单词结尾, 则下一个字符必须不是单词
+            // 例如替换OR, 遇到ORG_ID, 应判定为不匹配
+            if (i + index < string.length() && SqlTextTools.isSqlWordChar(prefix.charAt(prefix.length() - 1))) {
+                if (SqlTextTools.isSqlWordChar(string.charAt(i + index))) {
                     return false;
                 }
             }
@@ -1191,6 +1199,12 @@ public class SqlBuffer implements Serializable {
             }
             for (int i = 0; i < suffix.length(); i++) {
                 if (Character.toUpperCase(suffix.charAt(i)) != Character.toUpperCase(string.charAt(si + index))) {
+                    return false;
+                }
+            }
+            // 如果suffix是单词开头, 则前一个字符必须不是单词
+            if (si > 0 && SqlTextTools.isSqlWordChar(suffix.charAt(0))) {
+                if (SqlTextTools.isSqlWordChar(string.charAt(si - 1))) {
                     return false;
                 }
             }
