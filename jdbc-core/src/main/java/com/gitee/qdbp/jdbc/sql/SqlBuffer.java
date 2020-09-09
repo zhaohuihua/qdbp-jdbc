@@ -1129,17 +1129,18 @@ public class SqlBuffer implements Serializable {
 
             int last = value.length() - 1;
             int position = -1;
-            // 查找插入点: 第1个非空字符的位置
+            // 查找插入点: 第1个非空字符之后的那个位置
             for (int i = last; i >= 0; i--) {
                 char c = value.charAt(i);
                 if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
                     continue;
                 } else {
-                    position = i;
+                    position = i + 1;
                     break; // 位置找到了
                 }
             }
-            if (position < 0) {
+            // 停在第1个非空字符之后, 所以不能等于0
+            if (position <= 0) {
                 return false;
             }
             boolean removed = false;
@@ -1161,8 +1162,8 @@ public class SqlBuffer implements Serializable {
                 if (removed) {
                     value.insert(position, suffix);
                 } else {
-                    String prefix = value.substring(Math.min(position - 10, 0), position + 1);
-                    if (SqlTextTools.endsWithSqlSymbol(value, ')') || SqlTextTools.startsWithSqlSymbol(prefix)) {
+                    String prefix = value.substring(Math.max(position - 10, 0), position);
+                    if (SqlTextTools.endsWithSqlSymbol(prefix, ')') || SqlTextTools.startsWithSqlSymbol(suffix)) {
                         value.insert(position, suffix);
                     } else {
                         value.insert(position, ' ' + suffix);
@@ -1198,7 +1199,7 @@ public class SqlBuffer implements Serializable {
                 return false;
             }
             for (int i = 0; i < suffix.length(); i++) {
-                if (Character.toUpperCase(suffix.charAt(i)) != Character.toUpperCase(string.charAt(si + index))) {
+                if (Character.toUpperCase(suffix.charAt(i)) != Character.toUpperCase(string.charAt(si + i))) {
                     return false;
                 }
             }

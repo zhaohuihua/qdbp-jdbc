@@ -82,6 +82,25 @@ public class SqlBufferInsertPrefixTest {
     }
 
     @Test
+    public void testInsertPrefix15() {
+        testInsertPrefix15("", new SqlBuffer("AND"));
+        testInsertPrefix15("\n", new SqlBuffer("\nAND"));
+        testInsertPrefix15("\n\t", new SqlBuffer("\n\tAND"));
+        testInsertPrefix15("    \n    ", new SqlBuffer("    \n    AND"));
+    }
+
+    private void testInsertPrefix15(String space, SqlBuffer sql) {
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", "AND");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", "and");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", " AND ");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", " and ");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", "AND|OR");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", " AND|OR ");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", "and|or");
+        testInsertPrefix(sql.copy(), space + "WHERE", "WHERE", " and | or ");
+    }
+
+    @Test
     public void testInsertPrefix21() {
         testInsertPrefix21("", new SqlBuffer("").addVariable(1));
         testInsertPrefix21("", new SqlBuffer("AND ").addVariable(1));
@@ -140,6 +159,9 @@ public class SqlBufferInsertPrefixTest {
         testNotChanged1(new SqlBuffer("ORG_STATE=").addVariable(1));
         testNotChanged1(new SqlBuffer("AND ").addVariable(1));
         testNotChanged1(new SqlBuffer().addVariable(1));
+        testNotChanged1(new SqlBuffer("\n"));
+        testNotChanged1(new SqlBuffer("\n\t"));
+        testNotChanged1(new SqlBuffer("    \n   "));
         testNotChanged1(new SqlBuffer());
     }
 
