@@ -14,8 +14,8 @@ public class SqlBufferInsertSuffixTest {
 
     @Test
     public void testInsertSuffix11() {
-        // testInsertSuffix11("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR AND"));
-        // testInsertSuffix11("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR"));
+        testInsertSuffix11("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR AND"));
+        testInsertSuffix11("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR"));
         testInsertSuffix11("\n", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR AND\n"));
         testInsertSuffix11("\n", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR\n"));
         testInsertSuffix11("\n\t", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR AND\n\t"));
@@ -61,13 +61,13 @@ public class SqlBufferInsertSuffixTest {
     @Test
     public void testInsertSuffix13() {
         testInsertSuffix13("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR OR"));
-        testInsertSuffix13("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR"));
+        testInsertSuffix13("", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR "));
         testInsertSuffix13("\n", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR OR\n"));
-        testInsertSuffix13("\n", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR\n"));
+        testInsertSuffix13("\n", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR \n"));
         testInsertSuffix13("\n\t", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR OR\n\t"));
-        testInsertSuffix13("\n\t", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR\n\t"));
+        testInsertSuffix13("\n\t", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR \n\t"));
         testInsertSuffix13("    \n    ", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR OR    \n    "));
-        testInsertSuffix13("    \n    ", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR    \n    "));
+        testInsertSuffix13("    \n    ", new SqlBuffer("STATE=").addVariable(1).append(" CREATOR     \n    "));
     }
 
     private void testInsertSuffix13(String space, SqlBuffer sql) {
@@ -94,14 +94,14 @@ public class SqlBufferInsertSuffixTest {
     }
 
     private void testInsertSuffix14(String space, SqlBuffer sql) {
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", ",");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", ",");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", " , ");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", " , ");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", "!|,");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", " !|, ");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", "!|,");
-        testInsertSuffix(sql.copy(), "STATE=1; " + space, ";", " ! | , ");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", ",");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", ",");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", " , ");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", " , ");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", "!|,");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", " !|, ");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", "!|,");
+        testInsertSuffix(sql.copy(), "STATE=1;" + space, ";", " ! | , ");
     }
 
     @Test
@@ -149,24 +149,24 @@ public class SqlBufferInsertSuffixTest {
     @Test
     public void testInsertSuffix23() {
         testInsertSuffix23("", new SqlBuffer().addVariable(1));
-        testInsertSuffix23("", new SqlBuffer().addVariable(1).append(" AND"));
+        testInsertSuffix23("", new SqlBuffer().addVariable(1).append("AND"));
         testInsertSuffix23("\n", new SqlBuffer().addVariable(1).append("\n"));
-        testInsertSuffix23("\n", new SqlBuffer().addVariable(1).append(" AND\n"));
+        testInsertSuffix23("\n", new SqlBuffer().addVariable(1).append("AND\n"));
         testInsertSuffix23("\n\t", new SqlBuffer().addVariable(1).append("\n\t"));
-        testInsertSuffix23("\n\t", new SqlBuffer().addVariable(1).append(" AND\n\t"));
+        testInsertSuffix23("\n\t", new SqlBuffer().addVariable(1).append("AND\n\t"));
         testInsertSuffix23("    \n    ", new SqlBuffer().addVariable(1).append("    \n    "));
-        testInsertSuffix23("    \n    ", new SqlBuffer().addVariable(1).append(" AND    \n    "));
+        testInsertSuffix23("    \n    ", new SqlBuffer().addVariable(1).append("AND    \n    "));
     }
 
     private void testInsertSuffix23(String space, SqlBuffer sql) {
-        testInsertSuffix(sql.copy(), "1 " + space, null, "AND");
-        testInsertSuffix(sql.copy(), "1 " + space, null, "and");
-        testInsertSuffix(sql.copy(), "1 " + space, null, " AND ");
-        testInsertSuffix(sql.copy(), "1 " + space, null, " and ");
-        testInsertSuffix(sql.copy(), "1 " + space, null, "AND|OR");
-        testInsertSuffix(sql.copy(), "1 " + space, null, " AND|OR ");
-        testInsertSuffix(sql.copy(), "1 " + space, null, "and|or");
-        testInsertSuffix(sql.copy(), "1 " + space, null, " and | or ");
+        testInsertSuffix(sql.copy(), "1" + space, null, "AND");
+        testInsertSuffix(sql.copy(), "1" + space, null, "and");
+        testInsertSuffix(sql.copy(), "1" + space, null, " AND ");
+        testInsertSuffix(sql.copy(), "1" + space, null, " and ");
+        testInsertSuffix(sql.copy(), "1" + space, null, "AND|OR");
+        testInsertSuffix(sql.copy(), "1" + space, null, " AND|OR ");
+        testInsertSuffix(sql.copy(), "1" + space, null, "and|or");
+        testInsertSuffix(sql.copy(), "1" + space, null, " and | or ");
     }
 
     private void testInsertSuffix(SqlBuffer sql, String result, String prefix, String prefixOverrides) {
