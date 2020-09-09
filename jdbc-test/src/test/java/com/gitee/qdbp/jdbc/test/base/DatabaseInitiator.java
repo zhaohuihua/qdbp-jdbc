@@ -16,7 +16,7 @@ public class DatabaseInitiator extends AbstractTestNGSpringContextTests {
     @PostConstruct
     public void init() {
         DbType dbType = qdbcBoot.getSqlDialect().getDbVersion().getDbType();
-        String path = "settings/sqls/create.tables." + dbType.name().toLowerCase() + ".sql";
+        String path = "settings/dbinit/create.tables." + dbType.name().toLowerCase() + ".sql";
         qdbcBoot.getSqlBufferJdbcOperations().executeSqlScript(path);
     }
 }

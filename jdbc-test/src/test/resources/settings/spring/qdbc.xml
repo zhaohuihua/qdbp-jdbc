@@ -21,7 +21,6 @@
 		</property>
 		<property name="tableInfoScans">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans">
-				<property name="useMissAnnotationField" value="false" />
 				<property name="primaryKeyMatcher">
 					<bean class="com.gitee.qdbp.able.matches.EqualsStringMatcher">
 						<constructor-arg value="${qdbc.entityData.primaryKeyField:id}" />
