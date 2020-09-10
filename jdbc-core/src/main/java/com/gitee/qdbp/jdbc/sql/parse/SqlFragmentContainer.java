@@ -43,12 +43,26 @@ public class SqlFragmentContainer {
     private SqlFragmentContainer() {
     }
 
-    // sqlKey = sqlId(dbType)
-    public void register(String sqlKey, IMetaData data) {
+    /**
+     * 注册SQL模板标签元数据树
+     * 
+     * @param sqlId SQL编号
+     * @param dbType 数据库类型
+     * @param data 解析后的模板标签元数据树
+     */
+    protected void register(String sqlId, DbType dbType, IMetaData data) {
+        String sqlKey = sqlId + '(' + (dbType == null ? "*" : dbType.name().toLowerCase()) + ')';
         this.cache.put(sqlKey, data);
     }
 
-    public IMetaData find(String sqlId, DbType dbType) {
+    /**
+     * 查找SQL模板标签元数据树
+     * 
+     * @param sqlId SQL编号
+     * @param dbType 数据库类型
+     * @return 标签元数据树
+     */
+    protected IMetaData find(String sqlId, DbType dbType) {
         this.scanSqlFiles();
         String sqlKey = sqlId + '(' + dbType.name().toLowerCase() + ')';
         IMetaData sqlData = this.cache.get(sqlKey);
@@ -63,16 +77,18 @@ public class SqlFragmentContainer {
         }
     }
 
+    /** 根据SqlId从缓存中获取SQL模板, 渲染为SqlBuffer对象 **/
     public SqlBuffer render(String sqlId, Map<String, Object> data, SqlDialect dialect) {
         IMetaData tags = find(sqlId, dialect.getDbVersion().getDbType());
         return publish(tags, data, dialect);
     }
-    
+
+    /** 解析SQL模板内容, 渲染为SqlBuffer对象 **/
     public SqlBuffer parse(String sqlString, Map<String, Object> data, SqlDialect dialect) {
         IMetaData tags = SqlStringParser.parseSqlString(sqlString);
         return publish(tags, data, dialect);
     }
-    
+
     protected SqlBuffer publish(IMetaData tags, Map<String, Object> data, SqlDialect dialect) {
         SqlBufferPublisher publisher = new SqlBufferPublisher(tags);
         try {
@@ -84,6 +100,7 @@ public class SqlFragmentContainer {
         }
     }
 
+    /** 扫描SQL模板文件 **/
     public void scanSqlFiles() {
         if (this.scaned) {
             return;

@@ -12,7 +12,6 @@
 	<!-- <logger name="org.springframework.orm.jpa" level="DEBUG" additivity="true" /> -->
 	<!-- <logger name="org.springframework.transaction" level="DEBUG" additivity="true" /> -->
 	<!-- <logger name="org.springframework.transaction.interceptor" level="TRACE" additivity="true" /> -->
-	<!-- <logger name="com.gitee.qdbp" level="DEBUG" additivity="true" /> -->
 	<!-- <logger name="com.alibaba.druid.pool" level="DEBUG" additivity="true" /> -->
 
 	<root level="INFO">

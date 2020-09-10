@@ -41,7 +41,7 @@ class SqlFragmentParser {
     private CacheBox cacheBox = new CacheBox();
     /** 已加入缓存中的内容, key=sqlKey, value=location **/
     private Map<String, String> cachedMaps = new HashMap<>();
-    /** 是否通过fragmentId获取SQL片断 **/
+    /** 是否允许通过fragmentId获取SQL片断 **/
     private boolean useFragmentIdQuery = true;
     /** SqlKey的别名, key=sqlKey, value=fragmentKey **/
     private Map<String, String> sqlKeyAlias = new HashMap<>();
