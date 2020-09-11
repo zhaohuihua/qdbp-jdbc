@@ -135,7 +135,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         if (annotation != null) {
             parseColumnAnnotation(column, annotation);
         }
-        return column;
+        return column.to(SimpleFieldColumn.class);
     }
 
     /** 解析@Column注解中声明的信息 **/

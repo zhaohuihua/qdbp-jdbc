@@ -35,7 +35,7 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
      */
     protected boolean isIgnoreField(Field field, Class<?> clazz) {
         // 排除transient字段
-        return !Modifier.isTransient(field.getModifiers());
+        return Modifier.isTransient(field.getModifiers());
     }
 
     /** 扫描列信息之后的处理 **/

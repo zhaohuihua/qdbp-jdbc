@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import com.gitee.qdbp.able.jdbc.paging.PartList;
 import com.gitee.qdbp.jdbc.test.enums.DataState;
@@ -22,6 +23,7 @@ public class SysDeptEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 部门ID **/
+    @Id
     private String id;
     /** 租户编号 **/
     private String tenantCode;

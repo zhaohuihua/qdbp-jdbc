@@ -17,7 +17,7 @@ public class FieldColumns<T extends SimpleFieldColumn> implements Iterable<T> {
     private List<T> items;
 
     protected FieldColumns(List<T> items) {
-        VerifyTools.requireNotBlank(items, "items");
+        VerifyTools.requireNonNull(items, "items");
         this.items = Collections.unmodifiableList(items);
     }
 

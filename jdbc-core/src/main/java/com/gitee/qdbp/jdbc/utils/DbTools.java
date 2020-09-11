@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.SqlParameterValue;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
@@ -292,7 +291,7 @@ public abstract class DbTools {
     }
 
     /** Entity的表名缓存 **/
-    private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, String> entityTableNameCache = new HashMap<>();
 
     /**
      * 扫描表名信息(有缓存)
@@ -313,7 +312,7 @@ public abstract class DbTools {
     }
 
     /** Entity的主键缓存 **/
-    private static Map<Class<?>, SimpleFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, SimpleFieldColumn> entityPrimaryKeyCache = new HashMap<>();
 
     /**
      * 扫描获取主键(有缓存)
@@ -334,7 +333,7 @@ public abstract class DbTools {
     }
 
     /** TableJoin的列名缓存 **/
-    private static Map<String, AllFieldColumn<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
+    private static Map<String, AllFieldColumn<TablesFieldColumn>> joinColumnsCache = new HashMap<>();
 
     private static List<TablesFieldColumn> scanColumnList(TableItem table) {
         TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
@@ -403,7 +402,7 @@ public abstract class DbTools {
     }
 
     /** Entity的列名缓存 **/
-    private static Map<Class<?>, AllFieldColumn<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, AllFieldColumn<SimpleFieldColumn>> entityColumnsCache = new HashMap<>();
 
     /**
      * 扫描获取字段名和数据库列名的映射表(有缓存)
@@ -419,7 +418,7 @@ public abstract class DbTools {
         } else {
             TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
             List<SimpleFieldColumn> fields = scans.scanColumnList(clazz);
-            all = new AllFieldColumn<>(fields); 
+            all = new AllFieldColumn<>(fields);
             entityColumnsCache.put(clazz, all);
         }
         if (all.isEmpty()) {
