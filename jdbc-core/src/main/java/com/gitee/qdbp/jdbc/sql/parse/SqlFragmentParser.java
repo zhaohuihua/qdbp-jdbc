@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ResourceNotFoundException;
 import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer.TagData;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.common.IReader;
 import com.gitee.qdbp.staticize.io.IReaderCreator;
@@ -67,10 +68,10 @@ class SqlFragmentParser {
         }
     }
 
-    public Map<String, IMetaData> parseCachedSqlFragments() {
+    public List<TagData> parseCachedSqlFragments() {
         this.printConflictLogs();
         List<String> sqlKeys = cacheBox.getSqlKeys();
-        Map<String, IMetaData> tagMaps = new HashMap<>();
+        List<TagData> tagDatas = new ArrayList<>();
         for (String sqlKey : sqlKeys) {
             TagParser parser = new TagParser(taglib, cacheBox);
             IMetaData metadata;
@@ -80,14 +81,14 @@ class SqlFragmentParser {
                 log.warn("Sql template parse error: {}", sqlKey, e);
                 continue;
             }
-            tagMaps.put(sqlKey, metadata);
+            String fragmentKey = null;
             if (useFragmentIdQuery && sqlKeyAlias.containsKey(sqlKey)) {
                 // 为实现根据fragmentId(dbType)也能获取到SQL片断, 根据fragmentKey再注册一次
-                String fragmentKey = sqlKeyAlias.get(sqlKey);
-                tagMaps.put(fragmentKey, metadata);
+                fragmentKey = sqlKeyAlias.get(sqlKey);
             }
+            tagDatas.add(new TagData(sqlKey, fragmentKey, metadata));
         }
-        return tagMaps;
+        return tagDatas;
     }
 
     public CacheBox getCacheBox() {
@@ -122,11 +123,12 @@ class SqlFragmentParser {
         String fileId = result.getFileId();
         String fragmentId = result.getFragmentId();
         String dbType = VerifyTools.nvl(result.getDbType(), "*");
+        String sqlRelativePath = getSqlRelativePath(sqlPath);
         if (fragmentId == null) { // 只有文件名, 没有SqlId
             // 注册fileId(dbType)
             String sqlId = fileId;
             String sqlKey = sqlId + '(' + dbType + ')';
-            String sqlLocation = sqlPath;
+            String sqlLocation = sqlRelativePath;
             IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
             if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                 cacheBox.register(sqlKey, reader);
@@ -136,7 +138,7 @@ class SqlFragmentParser {
             String sqlId = fileId + ':' + fragmentId;
             String sqlKey = sqlId + '(' + dbType + ')';
             String fragmentKey = fragmentId + '(' + dbType + ')';
-            String sqlLocation = fragmentId + " @ " + sqlPath + " line " + sqlFragment.getLine();
+            String sqlLocation = fragmentId + " @ " + sqlRelativePath + " line " + sqlFragment.getLine();
             IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
             if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                 cacheBox.register(sqlKey, reader);
@@ -145,6 +147,24 @@ class SqlFragmentParser {
                 }
             }
         }
+    }
+
+    private String getSqlRelativePath(String sqlPath) {
+        // jar:file:/E:/repository/com/gitee/qdbp/xxx-1.0.0.jar!/settings/sqls/xxx.properties
+        // file:/D:/qdbp/qdbp-jdbc/jdbc-core/target/classes/settings/sqls/xxx.properties
+        String lowerCase = sqlPath.toLowerCase();
+        int jarIndex = lowerCase.indexOf(".jar!/");
+        if (jarIndex > 0) {
+            int startIndex = lowerCase.lastIndexOf('/', jarIndex);
+            if (startIndex > 0) {
+                return sqlPath.substring(startIndex + 1);
+            }
+        }
+        int classesIndex = lowerCase.indexOf("/classes/");
+        if (classesIndex > 0) {
+            return sqlPath.substring(classesIndex + "/classes/".length());
+        }
+        return sqlPath;
     }
 
     private boolean checkCachedSqlFragment(String sqlKey, String sqlLocation) {
@@ -156,7 +176,7 @@ class SqlFragmentParser {
             if (!conflicts.containsKey(sqlKey)) {
                 conflicts.put(sqlKey, ConvertTools.toList(oldLocation));
             }
-            conflicts.get(sqlKey).add("[ignored] " + sqlLocation);
+            conflicts.get(sqlKey).add(sqlLocation + " [ignored]");
             return false;
         }
     }
@@ -257,13 +277,14 @@ class SqlFragmentParser {
      * @return SQL片断列表
      */
     protected List<SqlFragment> splitSqlFile(String sqlPath, String content) {
-        String[] lines = StringTools.split(content, '\n');
+        String[] lines = StringTools.split(content, false, '\n');
         // 当前的SqlId
         String sqlId = null;
+        // sqlId所在的行号(从1开始)
         int sqlLine = 0;
         // SQL片断缓存
         List<String> buffer = new ArrayList<>();
-        // 出现在SqlId之前的公共import语句, key=行号, value=import语句
+        // 出现在SqlId之前的公共import语句, key=行号(从1开始), value=import语句
         Map<Integer, String> importMaps = new HashMap<>();
 
         List<SqlFragment> sqlFragments = new ArrayList<>();
@@ -272,7 +293,7 @@ class SqlFragmentParser {
             LineItem item = parseLineContent(line);
             if (item instanceof ImportStatement) {
                 if (sqlId == null) { // 出现在SqlId之前的import语句
-                    importMaps.put(i, item.getText());
+                    importMaps.put(i + 1, item.getText());
                 } else {
                     buffer.add(item.getText());
                 }
@@ -280,8 +301,8 @@ class SqlFragmentParser {
                 if (!buffer.isEmpty()) {
                     // 遇到新的SqlId, 处理这个SqlId上面已经缓存的SQL片断
                     handleSqlFragment(sqlPath, sqlId, sqlLine, buffer, importMaps, sqlFragments);
+                    buffer.clear();
                 }
-                buffer.clear();
                 sqlId = ((SqlIdDefinition) item).getSqlId();
                 sqlLine = i + 1;
             } else {
@@ -326,7 +347,7 @@ class SqlFragmentParser {
             trimed = StringTools.removePrefix(trimed, "/**");
             trimed = StringTools.removeSuffix(trimed, "**/");
         }
-        trimed = string.trim();
+        trimed = trimed.trim();
         if (trimed.startsWith("<<")) {
             // SqlId, 如: <<normal.find.children>>
             String sqlId = StringTools.getSubstringInPairedSymbol(trimed, "<<", ">>");
@@ -345,7 +366,7 @@ class SqlFragmentParser {
                 className = className.trim();
                 // 替换为<import>com.gitee.qdbp.jdbc.sql.SqlTools</import>
                 String importTag = generateSimpleTag(importTagName, className);
-                return new SqlIdDefinition(className, importTag);
+                return new ImportStatement(className, importTag);
             }
         } else {
             // 普通文本
@@ -355,9 +376,10 @@ class SqlFragmentParser {
 
     // 保留sql片断在原始文件中的行号
     // 保留公共的import语句
+    // importMaps: 公共import语句, key=行号(从1开始), value=import语句
     protected String generateSqlContent(int startLine, List<String> contents, Map<Integer, String> importMaps) {
         StringBuilder buffer = new StringBuilder();
-        for (int i = 0; i < startLine; i++) {
+        for (int i = 1; i <= startLine; i++) {
             if (importMaps.containsKey(i)) {
                 buffer.append(importMaps.get(i));
             }
@@ -451,6 +473,9 @@ class SqlFragmentParser {
 
     /** 判断除了import/注释/空格/换行之外有没有实质的SQL语句 **/
     protected boolean existSqlFragment(String string) {
+        if (string.trim().isEmpty()) {
+            return false;
+        }
         StringBuilder buffer = new StringBuilder(string);
         clearCommentContent(buffer, '<' + importTagName + '>', '<' + '/' + importTagName + '>', false);
         clearCommentContent(buffer, '<' + commentTagName + '>', '<' + '/' + commentTagName + '>', false);
@@ -464,7 +489,7 @@ class SqlFragmentParser {
         int count = 0;
         for (int i = 0; i < string.length(); i++) {
             char c = string.charAt(i);
-            if (c >= 'a' && c <= 'z' || c >= 'A' || c <= 'Z' || c >= '0' || c <= '9') {
+            if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9') {
                 count++;
             }
         }

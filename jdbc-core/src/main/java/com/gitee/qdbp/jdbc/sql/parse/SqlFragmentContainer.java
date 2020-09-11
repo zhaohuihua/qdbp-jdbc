@@ -133,11 +133,43 @@ public class SqlFragmentContainer {
             }
         }
 
-        Map<String, IMetaData> tagDataMaps = parser.parseCachedSqlFragments();
+        List<TagData> tagDatas = parser.parseCachedSqlFragments();
         if (log.isInfoEnabled()) {
             String msg = "Success to parse sql templates, elapsed time {}, total of {} files and {} fragments.";
-            log.info(msg, ConvertTools.toDuration(startTime), urls.size(), tagDataMaps.size());
+            log.info(msg, ConvertTools.toDuration(startTime), urls.size(), tagDatas.size());
         }
-        this.cache.putAll(tagDataMaps);
+        for (TagData item : tagDatas) {
+            this.cache.put(item.getSqlKey(), item.getMetaData());
+            if (item.getAlias() != null) {
+                this.cache.put(item.getAlias(), item.getMetaData());
+            }
+        }
+    }
+
+    protected static class TagData {
+
+        private final String sqlKey;
+        private final String alias;
+        private final IMetaData metadata;
+
+        public TagData(String sqlKey, String alias, IMetaData data) {
+            super();
+            this.sqlKey = sqlKey;
+            this.alias = alias;
+            this.metadata = data;
+        }
+
+        public String getSqlKey() {
+            return sqlKey;
+        }
+
+        public String getAlias() {
+            return alias;
+        }
+
+        public IMetaData getMetaData() {
+            return metadata;
+        }
+
     }
 }
