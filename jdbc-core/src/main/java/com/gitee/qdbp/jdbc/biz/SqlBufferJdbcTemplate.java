@@ -9,8 +9,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.EncodedResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -536,9 +534,8 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             throw new IllegalStateException("Datasource is null.");
         }
 
-        EncodedResource resource = new EncodedResource(new UrlResource(url));
         Connection connection = DataSourceUtils.getConnection(datasource);
-        ScriptUtils.executeSqlScript(connection, resource, true, true, // 遇到错误继续, 忽略失败的DROP语句
+        SqlScriptTools.executeSqlScript(connection, url, true, true, // 遇到错误继续, 忽略失败的DROP语句
             ScriptUtils.DEFAULT_COMMENT_PREFIX, // 行注释前缀: --
             ScriptUtils.DEFAULT_STATEMENT_SEPARATOR, // SQL代码块分隔符: ;
             ScriptUtils.DEFAULT_BLOCK_COMMENT_START_DELIMITER, // 块注释开始符号: /*
