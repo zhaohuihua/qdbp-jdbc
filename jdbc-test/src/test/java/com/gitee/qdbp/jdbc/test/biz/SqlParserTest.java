@@ -60,7 +60,7 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
         String sqlId = "recursive.find.children";
-        SqlBuffer sql = SqlFragmentContainer.defaults().parse(sqlId, params, dialect);
+        SqlBuffer sql = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
 
         System.out.println(sql.getLoggingSqlString(dialect));
     }
