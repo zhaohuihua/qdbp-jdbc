@@ -2,8 +2,7 @@ package com.gitee.qdbp.jdbc.tags;
 
 import java.io.IOException;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.jdbc.sql.SqlBuilder;
-import com.gitee.qdbp.staticize.common.IContext;
+import com.gitee.qdbp.jdbc.sql.parse.SqlCachingWriter;
 import com.gitee.qdbp.staticize.common.IWriter;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.BufferTag;
@@ -22,46 +21,18 @@ public abstract class SqlCachingTag extends BufferTag<SqlCachingWriter> {
     }
 
     @Override
-    protected final void doEnded(IContext context, SqlCachingWriter buffer) throws TagException, IOException {
-        doEnded(context, buffer.getBufferedContent());
+    protected final void doEnded(SqlCachingWriter buffer, IWriter origin) throws TagException, IOException {
+        doEnded(buffer.getBufferedContent(), origin);
     }
 
-    protected void doEnded(IContext context, SqlBuffer buffer) throws TagException, IOException {
-        context.write(buffer);
-    }
+    /**
+     * 标签结束的处理, 一般是将缓冲区内容写入原IWriter
+     * 
+     * @param buffer 缓冲区内容
+     * @param writer 原Writer
+     * @throws TagException 标签处理异常
+     * @throws IOException 输出处理异常
+     */
+    protected abstract void doEnded(SqlBuffer buffer, IWriter writer) throws TagException, IOException;
 }
 
-class SqlCachingWriter implements IWriter {
-
-    private SqlBuilder builder = new SqlBuilder();
-
-    @Override
-    public void write(Object value) throws IOException {
-        if (value == null) {
-            return;
-        }
-        if (value instanceof String) {
-            this.builder.ad((String) value);
-        } else if (value instanceof Character) {
-            this.builder.ad((Character) value);
-        } else if (value instanceof SqlBuffer) {
-            this.builder.ad((SqlBuffer) value);
-        } else if (value instanceof SqlBuilder) {
-            this.builder.ad((SqlBuilder) value);
-        } else {
-            throw new IllegalArgumentException("UnsupportedArgumentType: " + value.getClass());
-        }
-    }
-
-    public SqlBuffer getBufferedContent() {
-        return this.builder.out();
-    }
-
-    @Override
-    public void flush() {
-    }
-
-    @Override
-    public void close() {
-    }
-}

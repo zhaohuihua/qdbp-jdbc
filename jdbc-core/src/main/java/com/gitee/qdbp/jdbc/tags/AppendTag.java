@@ -2,7 +2,7 @@ package com.gitee.qdbp.jdbc.tags;
 
 import java.io.IOException;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.staticize.common.IContext;
+import com.gitee.qdbp.staticize.common.IWriter;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.NextStep;
 
@@ -15,22 +15,22 @@ import com.gitee.qdbp.staticize.tags.base.NextStep;
  */
 public class AppendTag extends SqlCachingTag {
 
-    private Object prefix;
-    private Object suffix;
+    private String prefix;
+    private String suffix;
 
-    public Object getPrefix() {
+    public String getPrefix() {
         return prefix;
     }
 
-    public void setPrefix(Object prefix) {
+    public void setPrefix(String prefix) {
         this.prefix = prefix;
     }
 
-    public Object getSuffix() {
+    public String getSuffix() {
         return suffix;
     }
 
-    public void setSuffix(Object suffix) {
+    public void setSuffix(String suffix) {
         this.suffix = suffix;
     }
 
@@ -40,12 +40,12 @@ public class AppendTag extends SqlCachingTag {
     }
 
     @Override
-    protected void doEnded(IContext context, SqlBuffer content) throws TagException, IOException {
-        if (content.isBlank()) {
+    protected void doEnded(SqlBuffer buffer, IWriter writer) throws TagException, IOException {
+        if (buffer.isBlank()) {
             return;
         }
-        context.write(prefix);
-        context.write(content);
-        context.write(suffix);
+        buffer.insertPrefix(prefix, null);
+        buffer.insertSuffix(suffix, null);
+        writer.write(buffer);
     }
 }

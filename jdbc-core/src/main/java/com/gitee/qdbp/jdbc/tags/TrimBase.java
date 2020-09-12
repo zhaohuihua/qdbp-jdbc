@@ -2,7 +2,7 @@ package com.gitee.qdbp.jdbc.tags;
 
 import java.io.IOException;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.staticize.common.IContext;
+import com.gitee.qdbp.staticize.common.IWriter;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.NextStep;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -59,16 +59,16 @@ public abstract class TrimBase extends SqlCachingTag {
     }
 
     @Override
-    protected void doEnded(IContext context, SqlBuffer content) throws TagException, IOException {
-        if (content.isBlank()) {
+    protected void doEnded(SqlBuffer buffer, IWriter writer) throws TagException, IOException {
+        if (buffer.isBlank()) {
             return;
         }
         if (VerifyTools.isNotBlank(prefix) || VerifyTools.isNotBlank(prefixOverrides)) {
-            content.insertPrefix(prefix, prefixOverrides);
+            buffer.insertPrefix(prefix, prefixOverrides);
         }
-        context.write(content);
+        writer.write(buffer);
         if (VerifyTools.isNotBlank(suffix) || VerifyTools.isNotBlank(suffixOverrides)) {
-            content.insertSuffix(suffix, suffixOverrides);
+            buffer.insertSuffix(suffix, suffixOverrides);
         }
     }
 }
