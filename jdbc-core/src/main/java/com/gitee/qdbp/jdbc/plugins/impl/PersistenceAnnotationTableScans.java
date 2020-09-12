@@ -74,12 +74,8 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
 
         boolean existColumnAnnotation = false;
         for (SimpleFieldColumn item : allColumns) {
-            if (item instanceof FieldColumn) {
-                if (((FieldColumn) item).hasColumnAnnotation()) {
-                    existColumnAnnotation = true;
-                }
-            } else {
-                return;
+            if (item instanceof FieldColumn && ((FieldColumn) item).hasColumnAnnotation()) {
+                existColumnAnnotation = true;
             }
         }
 
@@ -98,7 +94,10 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
 
         /** serialVersionUID **/
         private static final long serialVersionUID = 1L;
-        private final boolean hasColumnAnnotation;
+        private boolean hasColumnAnnotation;
+
+        protected FieldColumn() {
+        }
 
         public FieldColumn(String fieldName, String columnName, Column annotation) {
             super(fieldName, columnName);
@@ -109,6 +108,21 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
 
         public boolean hasColumnAnnotation() {
             return hasColumnAnnotation;
+        }
+
+        @Override
+        public FieldColumn copy() {
+            FieldColumn instance = new FieldColumn();
+            copyTo(instance);
+            return instance;
+        }
+
+        protected void copyTo(SimpleFieldColumn instance) {
+            super.copyTo(instance);
+            if (instance instanceof FieldColumn) {
+                FieldColumn real = (FieldColumn) instance;
+                real.hasColumnAnnotation = this.hasColumnAnnotation;
+            }
         }
     }
 
@@ -135,7 +149,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         if (annotation != null) {
             parseColumnAnnotation(column, annotation);
         }
-        return column.to(SimpleFieldColumn.class);
+        return column;
     }
 
     /** 解析@Column注解中声明的信息 **/

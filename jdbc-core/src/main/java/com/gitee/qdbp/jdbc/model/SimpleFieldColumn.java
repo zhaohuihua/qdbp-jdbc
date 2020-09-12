@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.model;
 
 import java.io.Serializable;
+import com.gitee.qdbp.able.beans.Copyable;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -9,7 +10,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 180601
  */
-public class SimpleFieldColumn implements Serializable {
+public class SimpleFieldColumn implements Copyable, Serializable {
 
     /** SerialVersionUID **/
     private static final long serialVersionUID = 1L;
@@ -212,6 +213,26 @@ public class SimpleFieldColumn implements Serializable {
         return this.columnName;
     }
 
+    protected void copyTo(SimpleFieldColumn instance) {
+        instance.setFieldName(this.getFieldName());
+        instance.setColumnName(this.getColumnName());
+        instance.setColumnText(this.getColumnText());
+        instance.setJavaType(this.getJavaType());
+        instance.setSqlType(this.getSqlType());
+        instance.setColumnInsertable(this.isColumnInsertable());
+        instance.setColumnUpdatable(this.isColumnUpdatable());
+        instance.setColumnDefault(this.getColumnDefault());
+        // 副本不设置只读
+        // instance.setReadonly(this.readonly);
+    }
+
+    @Override
+    public SimpleFieldColumn copy() {
+        SimpleFieldColumn instance = new SimpleFieldColumn();
+        copyTo(instance);
+        return instance;
+    }
+
     /**
      * 将当前对象转换为子类对象
      *
@@ -226,16 +247,7 @@ public class SimpleFieldColumn implements Serializable {
             throw new IllegalArgumentException("Failed to create " + clazz.getSimpleName() + " instance.", e);
         }
 
-        instance.setFieldName(this.getFieldName());
-        instance.setColumnName(this.getColumnName());
-        instance.setColumnText(this.getColumnText());
-        instance.setJavaType(this.getJavaType());
-        instance.setSqlType(this.getSqlType());
-        instance.setColumnInsertable(this.isColumnInsertable());
-        instance.setColumnUpdatable(this.isColumnUpdatable());
-        instance.setColumnDefault(this.getColumnDefault());
-        // 副本不设置只读
-        // instance.setReadonly(this.readonly);
+        this.copyTo(instance);
         return instance;
     }
 

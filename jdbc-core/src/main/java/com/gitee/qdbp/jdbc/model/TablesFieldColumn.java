@@ -190,6 +190,23 @@ public class TablesFieldColumn extends SimpleFieldColumn {
         return buffer.toString();
     }
 
+    @Override
+    public TablesFieldColumn copy() {
+        TablesFieldColumn instance = new TablesFieldColumn();
+        copyTo(instance);
+        return instance;
+    }
+
+    protected void copyTo(SimpleFieldColumn instance) {
+        super.copyTo(instance);
+        if (instance instanceof TablesFieldColumn) {
+            TablesFieldColumn real = (TablesFieldColumn) instance;
+            real.setTableAlias(this.getTableAlias());
+            real.setColumnAlias(this.getColumnAlias());
+            real.setAmbiguous(this.isAmbiguous());
+        }
+    }
+
     /**
      * 将当前对象转换为子类对象
      *
@@ -198,12 +215,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
      */
     public <T extends SimpleFieldColumn> T to(Class<T> clazz) {
         T instance = super.to(clazz);
-        if (instance instanceof TablesFieldColumn) {
-            TablesFieldColumn real = (TablesFieldColumn) instance;
-            real.setTableAlias(this.getTableAlias());
-            real.setColumnAlias(this.getColumnAlias());
-            real.setAmbiguous(this.isAmbiguous());
-        }
+        this.copyTo(instance);
         return instance;
     }
 

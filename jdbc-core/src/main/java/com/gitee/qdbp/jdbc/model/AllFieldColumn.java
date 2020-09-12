@@ -25,7 +25,7 @@ public class AllFieldColumn<T extends SimpleFieldColumn> {
             VerifyTools.requireNotBlank(item.getFieldName(), "fieldName");
             VerifyTools.requireNotBlank(item.getColumnName(), "columnName");
             @SuppressWarnings("unchecked")
-            T copied = (T) item.to(item.getClass());
+            T copied = (T) item.copy();
             copied.setReadonly(true);
             list.add(copied);
         }
