@@ -442,7 +442,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     protected SqlBuffer doChooseBuildFieldsSql(FieldScene scene, Fields fields, boolean columnAlias) {
         if (fields == null || fields instanceof AllFields) {
             // 全部字段
-            return doBuildAllFieldsSql(scene, columnAlias);
+            return doBuildDefFieldsSql(scene, columnAlias);
         } else if (fields instanceof ExcludeFields) {
             // 排除型字段列表
             List<String> items = fields.getItems();
@@ -475,6 +475,33 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
     }
 
+    /**
+     * 生成默认字段列表<br>
+     * 单表时与doBuildAllFieldsSql相同<br>
+     * 表关联时, 默认只生成指定了resultField的表字段<br>
+     * 例如此处查询角色下的用户, 只有SysUser指定了resultField<br>
+     * Fields.ALL只会查询SysUser的字段, 而不会查询SysUserRole的字段<br>
+     * <pre>
+     * TableJoin tables = new TableJoin(SysUserRole.class, "ur")
+     *     .innerJoin(SysUser.class, "u", "this")
+     *     .on("u.id", "=", "ur.userId")
+     *     .end();</pre>
+     * 
+     * @param scene 字段使用场景
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     */
+    protected SqlBuffer doBuildDefFieldsSql(FieldScene scene, boolean columnAlias) {
+        return doBuildAllFieldsSql(scene, columnAlias);
+    }
+
+    /**
+     * 生成全部字段列表
+     * 
+     * @param scene 字段使用场景
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     */
     protected SqlBuffer doBuildAllFieldsSql(FieldScene scene, boolean columnAlias) {
         SqlBuilder buffer = new SqlBuilder();
         FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
@@ -487,6 +514,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return buffer.out();
     }
 
+    /**
+     * 生成指定字段列表
+     * 
+     * @param scene 字段使用场景
+     * @param fields 指定的字段名
+     * @param isWhitelist 是白名单方式还是黑名单方式
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     * @throws UnsupportedFieldException 存在不支持的字段
+     */
     protected SqlBuffer doBuildSpecialFieldsSql(FieldScene scene, Collection<String> fields, boolean isWhitelist,
             boolean columnAlias) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");

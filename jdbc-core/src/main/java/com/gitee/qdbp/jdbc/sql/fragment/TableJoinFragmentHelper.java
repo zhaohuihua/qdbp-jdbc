@@ -14,6 +14,7 @@ import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.FieldColumns;
 import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
+import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -35,7 +36,6 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
         super(DbTools.parseAllFieldColumns(tables), dialect);
         this.tables = tables;
     }
-
 
     /** {@inheritDoc} **/
     @Override
@@ -62,7 +62,8 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(FieldScene scene, String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
+    public String getColumnName(FieldScene scene, String fieldName, boolean throwOnUnsupportedField)
+            throws UnsupportedFieldException {
         List<? extends SimpleFieldColumn> fields = this.columns.filter(scene).findAllByFieldName(fieldName);
         if (fields.isEmpty()) {
             if (throwOnUnsupportedField) {
@@ -83,8 +84,26 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    protected SqlBuffer doBuildSpecialFieldsSql(FieldScene scene, Collection<String> fields, boolean isWhitelist, boolean columnAlias)
-            throws UnsupportedFieldException {
+    protected SqlBuffer doBuildDefFieldsSql(FieldScene scene, boolean columnAlias) {
+        SqlBuilder buffer = new SqlBuilder();
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        for (SimpleFieldColumn item : fieldColumns) {
+            if (VerifyTools.isBlank(((TablesFieldColumn) item).getResultField())) {
+                // 默认只生成指定了ResultField的字段
+                continue;
+            }
+            if (!buffer.isEmpty()) {
+                buffer.ad(',');
+            }
+            buffer.ad(columnAlias ? item.toFullColumnName() : item.toTableColumnName());
+        }
+        return buffer.out();
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    protected SqlBuffer doBuildSpecialFieldsSql(FieldScene scene, Collection<String> fields, boolean isWhitelist,
+            boolean columnAlias) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
         FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
