@@ -112,6 +112,9 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
                 // 判断是不是主键
                 if (pkColumn == null && column.isPrimaryKey()) {
                     pkColumn = column;
+                    // 主键默认设置Insertable/Updatable为true
+                    pkColumn.setColumnInsertable(true);
+                    pkColumn.setColumnUpdatable(true);
                     continue; // 当前列是ID, 单独记录下来, 插入到最前面
                 }
                 if (column != null) {

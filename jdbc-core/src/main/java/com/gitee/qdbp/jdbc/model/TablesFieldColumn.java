@@ -203,6 +203,7 @@ public class TablesFieldColumn extends SimpleFieldColumn {
             TablesFieldColumn real = (TablesFieldColumn) instance;
             real.setTableAlias(this.getTableAlias());
             real.setColumnAlias(this.getColumnAlias());
+            real.setResultField(this.getResultField());
             real.setAmbiguous(this.isAmbiguous());
         }
     }
