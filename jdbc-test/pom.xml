@@ -55,12 +55,18 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-able</artifactId>
-			<version>5.1.1</version>
+			<version>5.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-tools</artifactId>
-			<version>5.1.1</version>
+			<version>5.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.1-api</artifactId>
+			<version>1.0.2.Final</version>
 		</dependency>
 
 		<dependency>
