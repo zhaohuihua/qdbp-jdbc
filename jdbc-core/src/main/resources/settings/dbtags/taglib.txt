@@ -1,15 +1,16 @@
 
-import = com.gitee.qdbp.staticize.tags.base.ImportTag
-if = com.gitee.qdbp.staticize.tags.core.IfTag
-elseif = com.gitee.qdbp.staticize.tags.core.ElseIfTag
-else = com.gitee.qdbp.staticize.tags.core.ElseTag
-each = com.gitee.qdbp.staticize.tags.core.EachTag
-comment = com.gitee.qdbp.staticize.tags.core.CommentTag
-set = com.gitee.qdbp.staticize.tags.core.SetVariableTag
+import   = com.gitee.qdbp.staticize.tags.base.ImportTag
+if       = com.gitee.qdbp.staticize.tags.core.IfTag
+elseif   = com.gitee.qdbp.staticize.tags.core.ElseIfTag
+else     = com.gitee.qdbp.staticize.tags.core.ElseTag
+each     = com.gitee.qdbp.staticize.tags.core.EachTag
+comment  = com.gitee.qdbp.staticize.tags.core.CommentTag
+var      = com.gitee.qdbp.staticize.tags.core.SetVariableTag
 
-include = com.gitee.qdbp.jdbc.tags.IncludeTag
-append = com.gitee.qdbp.jdbc.tags.AppendTag
-trim = com.gitee.qdbp.jdbc.tags.TrimTag
-where = com.gitee.qdbp.jdbc.tags.WhereTag
+include  = com.gitee.qdbp.jdbc.tags.IncludeTag
+append   = com.gitee.qdbp.jdbc.tags.AppendTag
+trim     = com.gitee.qdbp.jdbc.tags.TrimTag
+where    = com.gitee.qdbp.jdbc.tags.WhereTag
+set      = com.gitee.qdbp.jdbc.tags.UpdateSetTag
 
 fmt:date = com.gitee.qdbp.staticize.tags.core.DateFormatTag
