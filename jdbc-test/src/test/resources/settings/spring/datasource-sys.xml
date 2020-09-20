@@ -73,6 +73,7 @@
 		<property name="sqlBufferJdbcOperations" ref="sysSqlBufferJdbcOperations" />
 		<property name="conversionService" ref="conversionService" />
 		<property name="pluginContainer" ref="dbPluginContainer" />
+		<property name="scanSqlFilesOnStartup" value="${qdbc.scanSqlFilesOnStartup:true}" />
 	</bean>
 
 	<import resource="qdbc.xml"/>
