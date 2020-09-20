@@ -23,7 +23,7 @@ public class DbBinarySetOperator extends DbAbstractOperator implements DbBinaryO
         SqlBuilder sql = new SqlBuilder();
         sql.ad(columnName).ad('=');
         if (columnValue == null || "".equals(columnValue)) {
-            sql.ad("NULL");
+            sql.var(null);
         } else {
             sql.var(columnValue);
         }
