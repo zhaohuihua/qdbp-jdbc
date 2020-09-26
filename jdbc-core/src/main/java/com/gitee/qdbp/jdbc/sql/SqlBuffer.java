@@ -65,6 +65,11 @@ public class SqlBuffer implements Serializable {
         }
         return this.shortcut;
     }
+    
+    /** 清除内容 **/
+    public void clear() {
+        this.buffer.clear();
+    }
 
     /**
      * 将指定SQL片段追加到SQL后面
