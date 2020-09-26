@@ -37,6 +37,10 @@ public class SqlCachingWriter implements IWriter {
         return this.builder.out();
     }
 
+    public void clearBuffer() {
+        this.builder.out().clear();
+    }
+
     @Override
     public void flush() {
     }
