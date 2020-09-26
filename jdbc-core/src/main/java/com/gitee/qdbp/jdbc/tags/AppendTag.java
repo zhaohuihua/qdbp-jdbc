@@ -1,11 +1,5 @@
 package com.gitee.qdbp.jdbc.tags;
 
-import java.io.IOException;
-import com.gitee.qdbp.jdbc.sql.SqlBuffer;
-import com.gitee.qdbp.staticize.common.IWriter;
-import com.gitee.qdbp.staticize.exception.TagException;
-import com.gitee.qdbp.staticize.tags.base.NextStep;
-
 /**
  * 如果内容不为空, 则输出prefix+内容+suffix<br>
  * &lt;append prefix="AND"&gt;#{whereCondition}&lt;/append&gt;
@@ -13,39 +7,26 @@ import com.gitee.qdbp.staticize.tags.base.NextStep;
  * @author zhaohuihua
  * @version 20200906
  */
-public class AppendTag extends SqlCachingTag {
+public class AppendTag extends TrimBase {
 
-    private String prefix;
-    private String suffix;
-
+    @Override
     public String getPrefix() {
-        return prefix;
+        return super.getPrefix();
     }
 
+    @Override
     public void setPrefix(String prefix) {
-        this.prefix = prefix;
+        super.setPrefix(prefix);
     }
 
+    @Override
     public String getSuffix() {
-        return suffix;
+        return super.getSuffix();
     }
 
+    @Override
     public void setSuffix(String suffix) {
-        this.suffix = suffix;
+        super.setSuffix(suffix);
     }
 
-    @Override
-    public NextStep doHandle() throws TagException, IOException {
-        return NextStep.EVAL_BODY;
-    }
-
-    @Override
-    protected void doEnded(SqlBuffer buffer, IWriter writer) throws TagException, IOException {
-        if (buffer.isBlank()) {
-            return;
-        }
-        buffer.insertPrefix(prefix, null);
-        buffer.insertSuffix(suffix, null);
-        writer.write(buffer);
-    }
 }

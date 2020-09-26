@@ -21,7 +21,7 @@ public abstract class TrimBase extends SqlCachingTag {
     private String prefixOverrides;
     private String suffixOverrides;
 
-    public String getPrefix() {
+    protected String getPrefix() {
         return prefix;
     }
 
@@ -66,9 +66,13 @@ public abstract class TrimBase extends SqlCachingTag {
         if (VerifyTools.isNotBlank(prefix) || VerifyTools.isNotBlank(prefixOverrides)) {
             buffer.insertPrefix(prefix, prefixOverrides);
         }
-        writer.write(buffer);
+        String leadingBlank = clearLeadingBlank();
+        if (leadingBlank != null) {
+            buffer.prepend(leadingBlank);
+        }
         if (VerifyTools.isNotBlank(suffix) || VerifyTools.isNotBlank(suffixOverrides)) {
             buffer.insertSuffix(suffix, suffixOverrides);
         }
+        writer.write(buffer);
     }
 }

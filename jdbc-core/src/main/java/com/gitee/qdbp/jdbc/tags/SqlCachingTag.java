@@ -23,6 +23,7 @@ public abstract class SqlCachingTag extends BufferTag<SqlCachingWriter> {
     @Override
     protected final void doEnded(SqlCachingWriter buffer, IWriter origin) throws TagException, IOException {
         doEnded(buffer.getBufferedContent(), origin);
+        buffer.clearBuffer();
     }
 
     /**
@@ -35,4 +36,3 @@ public abstract class SqlCachingTag extends BufferTag<SqlCachingWriter> {
      */
     protected abstract void doEnded(SqlBuffer buffer, IWriter writer) throws TagException, IOException;
 }
-
