@@ -1,11 +1,12 @@
 
 import   = com.gitee.qdbp.staticize.tags.base.ImportTag
+block    = com.gitee.qdbp.staticize.tags.core.BlockTag
 if       = com.gitee.qdbp.staticize.tags.core.IfTag
 elseif   = com.gitee.qdbp.staticize.tags.core.ElseIfTag
 else     = com.gitee.qdbp.staticize.tags.core.ElseTag
 each     = com.gitee.qdbp.staticize.tags.core.EachTag
 comment  = com.gitee.qdbp.staticize.tags.core.CommentTag
-var      = com.gitee.qdbp.staticize.tags.core.SetVariableTag
+define   = com.gitee.qdbp.staticize.tags.core.SetVariableTag
 
 include  = com.gitee.qdbp.jdbc.tags.IncludeTag
 append   = com.gitee.qdbp.jdbc.tags.AppendTag
