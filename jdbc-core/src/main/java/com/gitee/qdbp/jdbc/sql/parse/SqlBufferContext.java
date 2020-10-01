@@ -27,7 +27,7 @@ class SqlBufferContext extends BaseContext {
     /** SQL语句 **/
     public SqlBuffer getSqlBuffer() {
         SqlCachingWriter writer = (SqlCachingWriter) this.getWriter();
-        return writer.getBufferedContent();
+        return writer.getContent();
     }
 
     /**

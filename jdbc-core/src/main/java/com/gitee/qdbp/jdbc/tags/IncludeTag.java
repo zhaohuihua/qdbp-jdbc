@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.tags;
 
 import java.io.IOException;
+import com.gitee.qdbp.staticize.annotation.DynamicAttrSupport;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.BaseTag;
 import com.gitee.qdbp.staticize.tags.base.NextStep;
@@ -11,12 +12,11 @@ import com.gitee.qdbp.staticize.tags.base.NextStep;
  * @author zhaohuihua
  * @version 140722
  */
+@DynamicAttrSupport("param")
 public class IncludeTag extends BaseTag {
 
     public IncludeTag() {
         super();
-        // 支持动态参数
-        this.paramName = "param";
     }
 
     /**
