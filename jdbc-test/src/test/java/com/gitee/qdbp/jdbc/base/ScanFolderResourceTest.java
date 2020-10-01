@@ -17,6 +17,8 @@ public class ScanFolderResourceTest {
         System.out.println();
         test("settings/", "*.txt");
         System.out.println();
+        test("settings/", "*.txt,*.xml");
+        System.out.println();
         test("settings/", new WrapFileMatcher(LogicType.OR, "name:ant:*.xml", "name:ant:*.properties"));
         System.out.println();
         test("support/http/resources/", "web*.html");
