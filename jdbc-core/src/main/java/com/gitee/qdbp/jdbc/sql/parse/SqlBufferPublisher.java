@@ -14,7 +14,7 @@ import com.gitee.qdbp.staticize.publish.BasePublisher;
  * 不支持多线程<br>
  *
  * @author zhaohuihua
- * @version 140522
+ * @version 20200912
  */
 public class SqlBufferPublisher extends BasePublisher {
 
