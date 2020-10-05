@@ -9,6 +9,11 @@ import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
+import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.TableJoinFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 
 /**
@@ -79,6 +84,22 @@ public class QdbcBootImpl implements QdbcBoot {
             joinQueryCache.put(cacheKey, instance);
             return instance;
         }
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public CrudSqlBuilder buildSqlBuilder(Class<?> clazz) {
+        SqlDialect dialect = sqlBufferJdbcOperations.findSqlDialect();
+        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, dialect);
+        return new CrudSqlBuilder(sqlHelper);
+    }
+
+    /** {@inheritDoc} **/
+    @Override
+    public QuerySqlBuilder buildSqlBuilder(TableJoin tables) {
+        SqlDialect dialect = sqlBufferJdbcOperations.findSqlDialect();
+        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables, dialect);
+        return new QuerySqlBuilder(sqlHelper);
     }
 
     /** {@inheritDoc} **/

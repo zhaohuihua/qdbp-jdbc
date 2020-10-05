@@ -2,6 +2,8 @@ package com.gitee.qdbp.jdbc.api;
 
 import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
+import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 
 /**
  * 数据库操作对象的构造器<br>
@@ -64,6 +66,20 @@ public interface QdbcBoot {
      * @return 表关联查询对象
      */
     <T> JoinQueryer<T> buildJoinQuery(TableJoin tables, Class<T> resultType);
+
+    /**
+     * 构造单表增删改查SQL生成工具
+     * @param clazz 单表对应的对象类型
+     * @return SQL生成工具
+     */
+    CrudSqlBuilder buildSqlBuilder(Class<?> clazz);
+
+    /**
+     * 构造表关联对象SQL生成工具
+     * @param clazz 表关联对象
+     * @return SQL生成工具
+     */
+    QuerySqlBuilder buildSqlBuilder(TableJoin tables);
 
     /**
      * 获取SQL执行接口
