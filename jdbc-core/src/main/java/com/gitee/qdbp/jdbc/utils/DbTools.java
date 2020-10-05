@@ -16,6 +16,7 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
@@ -260,6 +261,12 @@ public abstract class DbTools {
     /** 获取数据库配置选项 **/
     public static Config getDbConfig() {
         return DbPluginContainer.defaults().getDbConfig(true);
+    }
+
+    /** 获取省略策略配置 **/
+    public static OmitStrategy getOmitSizeConfig(String key, String defvalue) {
+        String string = getDbConfig().getStringUseDefValue(key, defvalue);
+        return OmitStrategy.of(string);
     }
 
     /** 根据数据库类型获取批量新增处理类 **/
