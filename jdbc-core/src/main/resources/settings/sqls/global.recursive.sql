@@ -8,10 +8,5 @@ ${keyword} recursive_temp_table(temp_parent) AS (
 SELECT ${selectFields} FROM ${tableName} WHERE ${codeField} IN (
     SELECT temp_parent FROM recursive_temp_table
 )
-<where>
-#{whereCondition}
-</where>
-<append prefix="ORDER BY">
-#{orderByCondition}
-</append>
-
+<where>#{whereCondition}</where>
+<append prefix="ORDER BY">#{orderByCondition}</append>

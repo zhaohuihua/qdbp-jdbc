@@ -33,8 +33,8 @@ UNION ALL
    WHERE (
        S.ASSIGNEE=#{userName}
        OR (
-           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,$.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
