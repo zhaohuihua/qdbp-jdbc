@@ -65,7 +65,7 @@ public class SqlBuffer implements Serializable {
         }
         return this.shortcut;
     }
-    
+
     /** 清除内容 **/
     public void clear() {
         this.buffer.clear();
@@ -321,6 +321,49 @@ public class SqlBuffer implements Serializable {
             this.buffer.add(new VariableItem(index++, value));
         }
         return this;
+    }
+
+    /** 删除左右两则的空白字符 **/
+    public SqlBuffer trim() {
+        trimLeft();
+        trimRight();
+        return this;
+    }
+
+    /** 删除左侧空白 **/
+    private void trimLeft() {
+        if (buffer.isEmpty()) {
+            return;
+        }
+        for (int i = 0, last = buffer.size() - 1; i <= last; i++) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                int size = stringItem.trimLeft();
+                if (size == 0) {
+                    continue;
+                }
+            }
+            return;
+        }
+    }
+
+    /** 删除右侧空白 **/
+    private void trimRight() {
+        if (buffer.isEmpty()) {
+            return;
+        }
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                int size = stringItem.trimRight();
+                if (size == 0) {
+                    continue;
+                }
+            }
+            return;
+        }
     }
 
     /**
@@ -1047,6 +1090,53 @@ public class SqlBuffer implements Serializable {
         public void prepend(char prefix, String value, char suffix) {
             VerifyTools.requireNonNull(value, "value");
             this.value.insert(0, suffix).insert(0, value).insert(0, prefix);
+        }
+
+        /**
+         * 删除左侧空白
+         * 
+         * @return 删除后剩下多少字符
+         */
+        public int trimLeft() {
+            return trimLeftRight(true, false);
+        }
+
+        /**
+         * 删除右侧空白
+         * 
+         * @return 删除后剩下多少字符
+         */
+        public int trimRight() {
+            return trimLeftRight(false, true);
+        }
+
+        private int trimLeftRight(boolean trimLeft, boolean trimRight) {
+            if (value == null || value.length() == 0) {
+                return 0;
+            }
+
+            int size = value.length();
+            char[] chars = value.toString().toCharArray();
+
+            if (trimLeft) {
+                int start = 0;
+                while ((start < size) && (chars[start] <= ' ')) {
+                    start++;
+                }
+                if (start > 0) {
+                    value.delete(0, start);
+                }
+            }
+            if (trimRight) {
+                int end = size;
+                while ((end > 0) && (chars[end - 1] <= ' ')) {
+                    end--;
+                }
+                if (end < size) {
+                    value.delete(end, size);
+                }
+            }
+            return value.length();
         }
 
         /** 缩进TAB(只在换行符后面增加TAB) **/
