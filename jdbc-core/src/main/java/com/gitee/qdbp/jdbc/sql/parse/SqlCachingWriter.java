@@ -13,7 +13,7 @@ import com.gitee.qdbp.staticize.common.IWriter;
  */
 public class SqlCachingWriter implements IWriter {
 
-    private SqlBuilder builder = new SqlBuilder();
+    private SqlBuffer caching = new SqlBuffer();
 
     @Override
     public void write(Object value) throws IOException {
@@ -21,24 +21,24 @@ public class SqlCachingWriter implements IWriter {
             return;
         }
         if (value instanceof String) {
-            this.builder.ad((String) value);
+            this.caching.append((String) value);
         } else if (value instanceof Character) {
-            this.builder.ad((Character) value);
+            this.caching.append((Character) value);
         } else if (value instanceof SqlBuffer) {
-            this.builder.ad((SqlBuffer) value);
+            this.caching.append((SqlBuffer) value);
         } else if (value instanceof SqlBuilder) {
-            this.builder.ad((SqlBuilder) value);
+            this.caching.append(((SqlBuilder) value).out());
         } else {
             throw new IllegalArgumentException("UnsupportedArgumentType: " + value.getClass());
         }
     }
 
     public SqlBuffer getContent() {
-        return this.builder.out();
+        return this.caching;
     }
 
     public void clear() {
-        this.builder.out().clear();
+        this.caching.clear();
     }
 
     @Override

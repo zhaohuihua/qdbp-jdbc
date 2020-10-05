@@ -29,7 +29,8 @@ public class SqlStringParser {
         TemporaryReaderCreator readerCreator = new TemporaryReaderCreator(sqlString);
         TagParser parser = new TagParser(readerCreator);
         try {
-            return parser.parse(temporarySqlId);
+            IMetaData metadata = parser.parse(temporarySqlId);
+            return metadata;
         } catch (Exception e) {
             throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_PARSE_ERROR, e);
         }

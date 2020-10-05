@@ -43,7 +43,7 @@ class SqlBufferContext extends BaseContext {
     public Object doGetValue(String prefix, String expression) throws TagException {
         if ("#".equals(prefix)) { // 预编译参数
             Object value = OgnlTools.getValue(stack(), expression);
-            return new SqlBuffer().addVariable(value);
+            return value == null ? null : new SqlBuffer().addVariable(value);
         } else if ("$".equals(prefix)) { // 拼写式参数
             Object value = OgnlTools.getValue(stack(), expression);
             if (value instanceof SqlBuffer) {

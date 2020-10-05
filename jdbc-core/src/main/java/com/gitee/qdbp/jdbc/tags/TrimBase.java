@@ -66,7 +66,7 @@ public abstract class TrimBase extends SqlCachingTag {
         if (VerifyTools.isNotBlank(prefix) || VerifyTools.isNotBlank(prefixOverrides)) {
             buffer.insertPrefix(prefix, prefixOverrides);
         }
-        String leadingBlank = clearLeadingBlank();
+        String leadingBlank = getLeadingBlank();
         if (leadingBlank != null) {
             buffer.prepend(leadingBlank);
         }

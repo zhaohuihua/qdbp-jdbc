@@ -92,7 +92,8 @@ public class SqlFragmentContainer {
     protected SqlBuffer publish(IMetaData tags, Map<String, Object> data, SqlDialect dialect) {
         SqlBufferPublisher publisher = new SqlBufferPublisher(tags);
         try {
-            return publisher.publish(data, dialect);
+            SqlBuffer buffer = publisher.publish(data, dialect);
+            return buffer.trim();
         } catch (TagException e) {
             throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_RENDER_ERROR, e);
         } catch (IOException e) {

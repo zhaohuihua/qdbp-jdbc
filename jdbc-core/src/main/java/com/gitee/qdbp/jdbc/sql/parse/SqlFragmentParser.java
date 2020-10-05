@@ -138,7 +138,7 @@ class SqlFragmentParser {
             String sqlId = fileId + ':' + fragmentId;
             String sqlKey = sqlId + '(' + dbType + ')';
             String fragmentKey = fragmentId + '(' + dbType + ')';
-            String sqlLocation = fragmentId + " @ " + sqlRelativePath + " line " + sqlFragment.getLine();
+            String sqlLocation = fragmentId + '@' + sqlRelativePath + ':' + sqlFragment.getLine();
             IReader reader = new SimpleReader(sqlLocation, sqlFragment.getContent());
             if (checkCachedSqlFragment(sqlKey, sqlLocation)) {
                 cacheBox.register(sqlKey, reader);
@@ -258,7 +258,7 @@ class SqlFragmentParser {
             if (dbType == null) {
                 dbType = fragmentDbType;
             } else if (!dbType.equals(fragmentDbType)) {
-                String msg = "DbType[{}] of the file conflicts with SqlFragment[{}], use [{}], {} line {}";
+                String msg = "DbType[{}] of the file conflicts with SqlFragment[{}], use [{}], {}(L{})";
                 log.warn(msg, dbType, originalId, fragmentDbType, sqlPath, lineIndex);
                 dbType = fragmentDbType;
             }
@@ -325,7 +325,7 @@ class SqlFragmentParser {
             // 这里的sqlId有可能为空
             sqlFragments.add(new SqlFragment(sqlId, sqlLine, sqlContent));
         } else if (sqlId != null) {
-            String msg = "Not found content under the SqlFragment[{}], {} line {}";
+            String msg = "Not found content under the SqlFragment[{}], {}(L{})";
             log.warn(msg, sqlId, sqlPath, sqlLine);
         }
     }
