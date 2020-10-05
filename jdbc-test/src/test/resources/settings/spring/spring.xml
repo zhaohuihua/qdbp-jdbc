@@ -34,7 +34,7 @@
 			<list>
 				<value>classpath:settings/spring/druid.properties</value>
 				<value>classpath:settings/spring/qdbc.properties</value>
-				<value>classpath:setting.properties</value>
+				<value>classpath:test.properties</value>
 				<value>classpath:jdbc.*.properties</value>
 			</list>
 		</property>
