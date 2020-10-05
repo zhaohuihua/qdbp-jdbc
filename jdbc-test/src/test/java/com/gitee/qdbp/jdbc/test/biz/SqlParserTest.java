@@ -1,5 +1,7 @@
 package com.gitee.qdbp.jdbc.test.biz;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,15 +11,20 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.condition.TableJoin;
 import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
-import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
+import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 import com.gitee.qdbp.jdbc.test.model.SysDeptEntity;
+import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
+import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
+import com.gitee.qdbp.tools.files.PathTools;
+import com.gitee.qdbp.tools.utils.AssertTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -34,11 +41,59 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
     private QdbcBoot qdbcBoot;
 
     @Test
-    public void testGetSqlBuffer() {
+    public void testGetUserRolesQuerySql1() throws IOException {
+        String sqlId = "user.roles.query";
+        String userIds = "1001";
+        testGetUserRolesQuerySql(sqlId, userIds, null, null, 1);
+    }
 
+    @Test
+    public void testGetUserRolesQuerySql2() throws IOException {
+        String sqlId = "user.roles.query";
+        String userIds = "1001";
+        Orderings orderings = Orderings.of("ur.userId, r.id");
+        testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 2);
+    }
+
+    @Test
+    public void testGetUserRolesQuerySql3() throws IOException {
+        String sqlId = "user.roles.query";
+        String userIds = "1001";
+        DbWhere where = new DbWhere();
+        where.on("r.defaults", "=", false);
+        Orderings orderings = Orderings.of("ur.userId, r.id");
+        testGetUserRolesQuerySql(sqlId, userIds, where, orderings, 3);
+    }
+
+    private void testGetUserRolesQuerySql(String sqlId, Object userIds, DbWhere where, Orderings orderings, int index)
+            throws IOException {
         SqlDialect dialect = qdbcBoot.getSqlDialect();
-        CrudDao<SysDeptEntity> dao = qdbcBoot.buildCrudDao(SysDeptEntity.class);
-        CrudFragmentHelper sqlHelper = dao.getSqlBuilder().helper();
+        TableJoin tables = TableJoin.of(SysUserRoleEntity.class, "ur", SysRoleEntity.class, "r");
+        QueryFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(tables).helper();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userIds", userIds);
+        if (VerifyTools.isNotBlank(where)) {
+            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
+        }
+        if (VerifyTools.isNotBlank(orderings)) {
+            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
+        }
+
+        SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
+        String sqlText = buffer.getLoggingSqlString(dialect);
+
+        String fileName = "SqlParserTest." + sqlId + "." + index + ".sql";
+        System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
+        URL resultFile = PathTools.findClassResource(SqlParserTest.class, fileName);
+        String resultText = PathTools.downloadString(resultFile);
+        AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
+    }
+
+    @Test
+    public void testGetRecursiveFindChildrenSql() throws IOException {
+        SqlDialect dialect = qdbcBoot.getSqlDialect();
+        CrudFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(SysDeptEntity.class).helper();
 
         String codeField = "deptCode";
         String parentCode = "parentCode";
@@ -60,8 +115,13 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
         String sqlId = "recursive.find.children";
-        SqlBuffer sql = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
+        SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
+        String sqlText = buffer.getLoggingSqlString(dialect);
 
-        System.out.println(sql.getLoggingSqlString(dialect));
+        String fileName = "SqlParserTest." + sqlId + ".sql";
+        System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
+        URL resultFile = PathTools.findClassResource(SqlParserTest.class, fileName);
+        String resultText = PathTools.downloadString(resultFile);
+        AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
     }
 }
