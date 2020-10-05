@@ -8,6 +8,7 @@ import java.util.Set;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -45,6 +46,9 @@ public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
         Set<String> fieldNames = mergeFields(entities);
         SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
 
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+
         SqlBuilder sql = new SqlBuilder();
         // INSERT INTO (...)
         sql.ad("INSERT INTO").ad(tableName);
@@ -63,7 +67,9 @@ public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
                 sql.ad(',');
             }
             sql.newline();
-            sql.omit(i, size); // 插入省略标记
+            if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+            }
             sql.ad('(').ad(valuesSqlBuffer).ad(')');
         }
 

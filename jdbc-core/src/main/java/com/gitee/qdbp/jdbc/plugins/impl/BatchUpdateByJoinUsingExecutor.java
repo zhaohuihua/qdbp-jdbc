@@ -10,6 +10,7 @@ import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.FieldColumns;
 import com.gitee.qdbp.jdbc.model.FieldScene;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -48,6 +49,8 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
         String tableName = sqlHelper.getTableName();
         SimpleFieldColumn pk = sqlHelper.getPrimaryKey();
         Set<String> fieldNames = mergeFields(entities);
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
 
         // 检查字段名
         sqlHelper.checkSupportedFields(FieldScene.UPDATE, fieldNames, "build batch update sql");
@@ -74,7 +77,9 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
             if (i > 0) {
                 sql.newline().ad("UNION").newline();
             }
-            sql.omit(i, size); // 插入省略标记
+            if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+            }
             // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
             sql.ad("SELECT").var(item.getPrimaryKey()).ad(pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
