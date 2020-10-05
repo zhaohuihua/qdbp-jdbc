@@ -15,3 +15,7 @@ where    = com.gitee.qdbp.jdbc.tags.WhereTag
 set      = com.gitee.qdbp.jdbc.tags.UpdateSetTag
 
 fmt:date = com.gitee.qdbp.staticize.tags.core.DateFormatTag
+
+@DateTools    = com.gitee.qdbp.tools.utils.DateTools
+@StringTools  = com.gitee.qdbp.tools.utils.StringTools
+@VerifyTools  = com.gitee.qdbp.tools.utils.VerifyTools
