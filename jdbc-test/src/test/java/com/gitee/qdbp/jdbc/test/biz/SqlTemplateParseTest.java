@@ -35,7 +35,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
-public class SqlParserTest extends AbstractTestNGSpringContextTests {
+public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     private QdbcBoot qdbcBoot;
@@ -110,7 +110,7 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
 
         String fileName = "SqlParserTest." + sqlId + "." + index + ".sql";
         System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
-        URL resultFile = PathTools.findClassResource(SqlParserTest.class, fileName);
+        URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
         String resultText = PathTools.downloadString(resultFile);
         AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
     }
@@ -145,7 +145,7 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
 
         String fileName = "SqlParserTest." + sqlId + ".sql";
         System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
-        URL resultFile = PathTools.findClassResource(SqlParserTest.class, fileName);
+        URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
         String resultText = PathTools.downloadString(resultFile);
         AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
     }
