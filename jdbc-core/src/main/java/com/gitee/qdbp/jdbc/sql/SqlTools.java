@@ -134,7 +134,7 @@ public abstract class SqlTools {
         return groups;
     }
 
-    private static List<?> duplicateRemoval(Collection<?> items) {
+    static List<?> duplicateRemoval(Collection<?> items) {
         Map<Object, ?> map = new HashMap<>();
         List<Object> list = new ArrayList<>();
         for (Object item : items) {

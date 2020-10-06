@@ -41,17 +41,20 @@ class SqlBufferContext extends BaseContext {
      */
     @Override
     public Object doGetValue(String prefix, String expression) throws TagException {
+        Object value = OgnlTools.getValue(stack(), expression);
+        if (value == null) {
+            return null;
+        }
+
         if ("#".equals(prefix)) { // 预编译参数
-            Object value = OgnlTools.getValue(stack(), expression);
-            return value == null ? null : new SqlBuffer().addVariable(value);
+            return new SqlBuffer().addVariable(value);
         } else if ("$".equals(prefix)) { // 拼写式参数
-            Object value = OgnlTools.getValue(stack(), expression);
             if (value instanceof SqlBuffer) {
                 return ((SqlBuffer) value).getExecutableSqlString(dialect);
             } else if (value instanceof SqlBuilder) {
                 return ((SqlBuilder) value).out().getExecutableSqlString(dialect);
             } else {
-                return value;
+                return new SqlBuffer().addVariable(value).getExecutableSqlString(dialect);
             }
         } else {
             throw new TagException("表达式前缀有误");

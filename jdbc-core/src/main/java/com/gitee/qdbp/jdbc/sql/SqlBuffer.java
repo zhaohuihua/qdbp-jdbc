@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.sql;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +11,10 @@ import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.IndentTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -306,21 +309,42 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer addVariable(Object value) {
-        if (value instanceof SqlBuffer) {
+        if (value == null) {
+            this.buffer.add(new VariableItem(index++, value));
+        } else if (value instanceof SqlBuffer) {
             append((SqlBuffer) value);
         } else if (value instanceof SqlBuilder) {
             append(((SqlBuilder) value).out());
         } else if (value instanceof DbRawValue) {
             DbRawValue raw = (DbRawValue) value;
             this.buffer.add(new RawValueItem(raw.toString()));
+        } else if (value instanceof Collection) {
+            this.addVariables(new ArrayList<>((Collection<?>) value));
+        } else if (value.getClass().isArray()) {
+            this.addVariables(ConvertTools.parseList(value));
         } else if (value instanceof DbFieldName) {
-            // append(value.toString());
+            // this.append(value.toString());
             // 缺少环境数据, 无法将字段名转换为列名
             throw new IllegalArgumentException("CanNotSupportedVariableType: DbFieldName");
         } else {
             this.buffer.add(new VariableItem(index++, value));
         }
         return this;
+    }
+
+    private void addVariables(List<?> values) {
+        List<?> items = SqlTools.duplicateRemoval(values);
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omit.strategy", "50:5");
+        for (int i = 0, count = items.size(); i < count; i++) {
+            Object value = items.get(i);
+            if (i > 0) {
+                this.append(',');
+            }
+            if (omits.getMinSize() > 0 && count > omits.getMinSize()) {
+                this.tryOmit(i, count, omits.getKeepSize());
+            }
+            this.buffer.add(new VariableItem(index++, value));
+        }
     }
 
     /** 删除左右两则的空白字符 **/
