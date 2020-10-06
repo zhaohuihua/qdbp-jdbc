@@ -41,28 +41,53 @@ public class SqlParserTest extends AbstractTestNGSpringContextTests {
     private QdbcBoot qdbcBoot;
 
     @Test
-    public void testGetUserRolesQuerySql1() throws IOException {
+    public void testGetUserRolesQuerySql11() throws IOException {
         String sqlId = "user.roles.query";
         String userIds = "1001";
-        testGetUserRolesQuerySql(sqlId, userIds, null, null, 1);
+        testGetUserRolesQuerySql(sqlId, userIds, null, null, 11);
     }
 
     @Test
-    public void testGetUserRolesQuerySql2() throws IOException {
+    public void testGetUserRolesQuerySql12() throws IOException {
         String sqlId = "user.roles.query";
-        String userIds = "1001";
+        List<String> userIds = Arrays.asList("1001", "1002", "1008");
+        testGetUserRolesQuerySql(sqlId, userIds, null, null, 12);
+    }
+
+    @Test
+    public void testGetUserRolesQuerySql21() throws IOException {
+        String sqlId = "user.roles.query";
+        int userIds = 1001;
         Orderings orderings = Orderings.of("ur.userId, r.id");
-        testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 2);
+        testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 21);
     }
 
     @Test
-    public void testGetUserRolesQuerySql3() throws IOException {
+    public void testGetUserRolesQuerySql22() throws IOException {
         String sqlId = "user.roles.query";
-        String userIds = "1001";
+        List<Integer> userIds = Arrays.asList(1001, 1002, 1008);
+        Orderings orderings = Orderings.of("ur.userId, r.id");
+        testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 22);
+    }
+
+    @Test
+    public void testGetUserRolesQuerySql31() throws IOException {
+        String sqlId = "user.roles.query";
+        int userIds = 1001;
         DbWhere where = new DbWhere();
         where.on("r.defaults", "=", false);
         Orderings orderings = Orderings.of("ur.userId, r.id");
-        testGetUserRolesQuerySql(sqlId, userIds, where, orderings, 3);
+        testGetUserRolesQuerySql(sqlId, userIds, where, orderings, 31);
+    }
+
+    @Test
+    public void testGetUserRolesQuerySql32() throws IOException {
+        String sqlId = "user.roles.query";
+        int[] userIds = new int[] { 1001, 1002, 1008 };
+        DbWhere where = new DbWhere();
+        where.on("r.defaults", "=", false);
+        Orderings orderings = Orderings.of("ur.userId, r.id");
+        testGetUserRolesQuerySql(sqlId, userIds, where, orderings, 32);
     }
 
     private void testGetUserRolesQuerySql(String sqlId, Object userIds, DbWhere where, Orderings orderings, int index)
