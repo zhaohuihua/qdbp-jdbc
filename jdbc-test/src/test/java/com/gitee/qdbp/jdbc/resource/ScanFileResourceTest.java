@@ -1,4 +1,4 @@
-package com.gitee.qdbp.jdbc.base;
+package com.gitee.qdbp.jdbc.resource;
 
 import java.io.IOException;
 import java.net.URL;
