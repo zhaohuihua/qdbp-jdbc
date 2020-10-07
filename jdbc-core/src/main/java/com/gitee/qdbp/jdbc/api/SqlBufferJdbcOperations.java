@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.api;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -240,9 +241,17 @@ public interface SqlBufferJdbcOperations {
      * 如: executeSqlScript("classpath:settings/sqls/create.tables.oracle.sql", Xxx.class);<br>
      * 
      * @param sqlFilePath SQL文件路径
+     * @params classes 备选查找位置
      * @see PathTools#findResource(String, Class...)
      */
     void executeSqlScript(String sqlFilePath, Class<?>... classes);
+
+    /**
+     * 执行SQL脚本
+     * 
+     * @param sqlFilePath SQL文件路径
+     */
+    void executeSqlScript(URL sqlFilePath);
 
     /**
      * Expose the classic Spring JdbcTemplate to allow invocation of

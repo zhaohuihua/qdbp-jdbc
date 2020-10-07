@@ -522,7 +522,14 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     @Override
     public void executeSqlScript(String sqlFilePath, Class<?>... classes) {
         VerifyTools.requireNotBlank(sqlFilePath, "sqlFilePath");
-        URL url = PathTools.findResource(sqlFilePath);
+        URL url = PathTools.findResource(sqlFilePath, classes);
+        executeSqlScript(url);
+    }
+
+
+    @Override
+    public void executeSqlScript(URL url) {
+        VerifyTools.requireNotBlank(url, "url");
 
         JdbcOperations jdbcOperations = namedParameterJdbcOperations.getJdbcOperations();
         if (!(jdbcOperations instanceof JdbcAccessor)) {
