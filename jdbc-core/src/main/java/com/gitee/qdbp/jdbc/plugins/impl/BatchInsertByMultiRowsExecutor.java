@@ -47,7 +47,7 @@ public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
         SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
 
         // 获取批量操作语句的省略策略配置项
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
 
         SqlBuilder sql = new SqlBuilder();
         // INSERT INTO (...)

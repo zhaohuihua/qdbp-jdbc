@@ -47,7 +47,7 @@ public class BatchInsertByUnionAllFromDualExecutor implements BatchInsertExecuto
         Set<String> fieldNames = mergeFields(entities);
         SqlBuffer fieldsSqlBuffer = sqlHelper.buildInsertFieldsSql(fieldNames);
         // 获取批量操作语句的省略策略配置项
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
 
         // INSERT INTO {tableName}(FIELD1, FIELD2, FIELD3) 
         //     SELECT field11, field12, ..., field1n FROM DUAL

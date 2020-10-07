@@ -31,7 +31,7 @@ public class QdbcBootBaseFactory {
      * 如果启动时不扫描, 则首次获取SQL模板时会扫描(很慢)<br>
      * 所以, 一般情况下都应该配置为true, 除非系统中未使用SQL模板
      */
-    private boolean scanSqlFilesOnStartup = true;
+    private boolean sqlTemplateScanOnStartup = true;
 
     public void afterPropertiesSet() {
         if (singletonInstance != null) {
@@ -46,7 +46,7 @@ public class QdbcBootBaseFactory {
         pluginContainer.setConversionService(conversionService);
         DbPluginContainer.init(pluginContainer);
 
-        if (scanSqlFilesOnStartup) {
+        if (sqlTemplateScanOnStartup) {
             SqlFragmentContainer.defaults().scanSqlFiles();
         }
     }
@@ -111,8 +111,8 @@ public class QdbcBootBaseFactory {
     }
 
     /** 是否在系统启动时扫描SQL文件 **/
-    public boolean isScanSqlFilesOnStartup() {
-        return scanSqlFilesOnStartup;
+    public boolean isSqlTemplateScanOnStartup() {
+        return sqlTemplateScanOnStartup;
     }
 
     /**
@@ -120,10 +120,10 @@ public class QdbcBootBaseFactory {
      * 如果启动时不扫描, 则首次获取SQL模板时会扫描(很慢)<br>
      * 所以, 一般情况下都应该配置为true, 除非系统中未使用SQL模板
      * 
-     * @param scanSqlFilesOnStartup 是否在系统启动时扫描SQL文件
+     * @param sqlTemplateScanOnStartup 是否在系统启动时扫描SQL文件
      */
-    public void setScanSqlFilesOnStartup(boolean scanSqlFilesOnStartup) {
-        this.scanSqlFilesOnStartup = scanSqlFilesOnStartup;
+    public void setSqlTemplateScanOnStartup(boolean sqlTemplateScanOnStartup) {
+        this.sqlTemplateScanOnStartup = sqlTemplateScanOnStartup;
     }
 
 }

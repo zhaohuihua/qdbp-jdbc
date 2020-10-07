@@ -108,7 +108,7 @@ public class DbPluginContainer {
         initDefaultConverter(plugins);
 
         if (plugins.getAvailableDbTypes() == null) {
-            plugins.addAvailableDbType(MainDbType.class);
+            plugins.addAvailableDbTypeClass(MainDbType.class);
         }
         if (plugins.getSqlTaglib() == null) {
             plugins.setSqlTaglib(new Taglib("classpath:settings/dbtags/taglib.txt"));
@@ -152,7 +152,7 @@ public class DbPluginContainer {
             plugins.setDbVersionFinder(new DataSourceDbVersionFinder());
         }
         if (plugins.getSqlFileScanner() == null) {
-            plugins.setSqlFileScanner(new SimpleSqlFileScanner("settings/sqls/", "*.sql"));
+            plugins.setSqlFileScanner(new SimpleSqlFileScanner());
         }
         if (plugins.getDefaultBatchInsertExecutor() == null) {
             plugins.setDefaultBatchInsertExecutor(new BatchOperateByForEachExecutor());
@@ -253,7 +253,15 @@ public class DbPluginContainer {
     }
 
     /** 可用的数据库类型 **/
-    public <E extends Enum<?>> void addAvailableDbType(Class<E> clazz) {
+    public <E extends Enum<?>> void setAvailableDbTypeClasses(List<Class<E>> classes) {
+        this.availableDbTypes = new ArrayList<>();
+        for (Class<E> item : classes) {
+            this.addAvailableDbTypeClass(item);
+        }
+    }
+
+    /** 可用的数据库类型 **/
+    public <E extends Enum<?>> void addAvailableDbTypeClass(Class<E> clazz) {
         if (!DbType.class.isAssignableFrom(clazz)) {
             String msg = clazz.getName() + " is not assignable for " + DbType.class.getName();
             throw new IllegalArgumentException(msg);

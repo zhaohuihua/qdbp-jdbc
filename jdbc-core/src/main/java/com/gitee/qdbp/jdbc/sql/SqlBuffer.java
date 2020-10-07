@@ -334,7 +334,7 @@ public class SqlBuffer implements Serializable {
 
     private void addVariables(List<?> values) {
         List<?> items = SqlTools.duplicateRemoval(values);
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omit.strategy", "50:5");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omitStrategy", "50:5");
         for (int i = 0, count = items.size(); i < count; i++) {
             Object value = items.get(i);
             if (i > 0) {

@@ -73,7 +73,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
         SqlBuilder sql = new SqlBuilder();
         List<String> ids = new ArrayList<>();
         // 获取批量操作语句的省略策略配置项
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             PkEntity item = entities.get(i);
@@ -110,7 +110,7 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
         SimpleFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         DbConditionConverter converter = DbTools.getDbConditionConverter();
         // 获取批量操作语句的省略策略配置项
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
         SqlBuilder sql = new SqlBuilder();
         int size = entities.size();
         for (int i = 0; i < size; i++) {

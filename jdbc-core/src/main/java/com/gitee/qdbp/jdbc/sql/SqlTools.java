@@ -71,7 +71,7 @@ public abstract class SqlTools {
             sql.ad(columnName).ad(operate).var(firstValue);
         } else {
             // 获取IN语句的省略策略配置项
-            OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omit.strategy", "50:5");
+            OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omitStrategy", "50:5");
 
             List<?> values = duplicateRemoval(fieldValues);
             String operate = matches ? "IN" : "NOT IN";

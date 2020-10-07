@@ -50,7 +50,7 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
         SimpleFieldColumn pk = sqlHelper.getPrimaryKey();
         Set<String> fieldNames = mergeFields(entities);
         // 获取批量操作语句的省略策略配置项
-        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omit.strategy", "8:3");
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
 
         // 检查字段名
         sqlHelper.checkSupportedFields(FieldScene.UPDATE, fieldNames, "build batch update sql");
