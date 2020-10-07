@@ -87,9 +87,17 @@ public class TableJoinFragmentHelper extends TableQueryFragmentHelper {
     protected SqlBuffer doBuildDefFieldsSql(FieldScene scene, boolean columnAlias) {
         SqlBuilder buffer = new SqlBuilder();
         FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        // 判断有没有包含指定了ResultField的字段
+        boolean existResultField = false;
         for (SimpleFieldColumn item : fieldColumns) {
-            if (VerifyTools.isBlank(((TablesFieldColumn) item).getResultField())) {
-                // 默认只生成指定了ResultField的字段
+            if (VerifyTools.isNotBlank(((TablesFieldColumn) item).getResultField())) {
+                existResultField = true;
+                break;
+            }
+        }
+        for (SimpleFieldColumn item : fieldColumns) {
+            if (existResultField && VerifyTools.isBlank(((TablesFieldColumn) item).getResultField())) {
+                // 默认只生成指定了ResultField的字段; 但如果全都未指定, 则全部生成
                 continue;
             }
             if (!buffer.isEmpty()) {

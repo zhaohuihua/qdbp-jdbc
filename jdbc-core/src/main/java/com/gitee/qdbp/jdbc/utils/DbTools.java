@@ -398,8 +398,9 @@ public abstract class DbTools {
         for (TablesFieldColumn field : all) {
             String fieldName = field.getFieldName();
             if (countMaps.get(fieldName) > 1) {
-                String columnAlias = StringTools.concat('_', field.getTableAlias(), field.getColumnName());
-                field.setColumnAlias(columnAlias);
+                String tableAlias = field.getTableAlias().toUpperCase();
+                String columnName = field.getColumnName();
+                field.setColumnAlias(StringTools.concat('_', tableAlias, columnName));
                 field.setAmbiguous(true);
             }
         }
