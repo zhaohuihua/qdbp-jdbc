@@ -20,6 +20,8 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
+import com.gitee.qdbp.jdbc.test.model.ActProcState;
+import com.gitee.qdbp.jdbc.test.model.ActTask;
 import com.gitee.qdbp.jdbc.test.model.SysDeptEntity;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
@@ -43,21 +45,21 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testGetUserRolesQuerySql11() throws IOException {
         String sqlId = "user.roles.query";
-        String userIds = "1001";
+        String userIds = "10000001";
         testGetUserRolesQuerySql(sqlId, userIds, null, null, 11);
     }
 
     @Test
     public void testGetUserRolesQuerySql12() throws IOException {
         String sqlId = "user.roles.query";
-        List<String> userIds = Arrays.asList("1001", "1002", "1008");
+        List<String> userIds = Arrays.asList("10000001", "10000002", "10000008");
         testGetUserRolesQuerySql(sqlId, userIds, null, null, 12);
     }
 
     @Test
     public void testGetUserRolesQuerySql21() throws IOException {
         String sqlId = "user.roles.query";
-        int userIds = 1001;
+        int userIds = 10000001;
         Orderings orderings = Orderings.of("ur.userId, r.id");
         testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 21);
     }
@@ -65,7 +67,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testGetUserRolesQuerySql22() throws IOException {
         String sqlId = "user.roles.query";
-        List<Integer> userIds = Arrays.asList(1001, 1002, 1008);
+        List<Integer> userIds = Arrays.asList(10000001, 10000002, 10000008);
         Orderings orderings = Orderings.of("ur.userId, r.id");
         testGetUserRolesQuerySql(sqlId, userIds, null, orderings, 22);
     }
@@ -73,7 +75,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testGetUserRolesQuerySql31() throws IOException {
         String sqlId = "user.roles.query";
-        int userIds = 1001;
+        int userIds = 10000001;
         DbWhere where = new DbWhere();
         where.on("r.defaults", "=", false);
         Orderings orderings = Orderings.of("ur.userId, r.id");
@@ -83,7 +85,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testGetUserRolesQuerySql32() throws IOException {
         String sqlId = "user.roles.query";
-        int[] userIds = new int[] { 1001, 1002, 1008 };
+        int[] userIds = new int[] { 10000001, 10000002, 10000008 };
         DbWhere where = new DbWhere();
         where.on("r.defaults", "=", false);
         Orderings orderings = Orderings.of("ur.userId, r.id");
@@ -108,7 +110,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
         SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
         String sqlText = buffer.getLoggingSqlString(dialect);
 
-        String fileName = "SqlParserTest." + sqlId + "." + index + ".sql";
+        String fileName = "SqlTemplateParse." + sqlId + "." + index + ".sql";
         System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
         URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
         String resultText = PathTools.downloadString(resultFile);
@@ -122,7 +124,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
 
         String codeField = "deptCode";
         String parentCode = "parentCode";
-        List<String> startCodes = Arrays.asList("1001", "1002");
+        List<String> startCodes = Arrays.asList("D0000001", "D0000002");
         DbWhere where = new DbWhere().on("dataState", "=", "1");
         Orderings orderings = Orderings.of("parentCode, sortIndex");
 
@@ -143,7 +145,35 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
         SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
         String sqlText = buffer.getLoggingSqlString(dialect);
 
-        String fileName = "SqlParserTest." + sqlId + ".sql";
+        String fileName = "SqlTemplateParse." + sqlId + ".sql";
+        System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
+        URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
+        String resultText = PathTools.downloadString(resultFile);
+        AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
+    }
+
+    @Test
+    public void testGetBacklogTodoSql() throws IOException {
+        SqlDialect dialect = qdbcBoot.getSqlDialect();
+        TableJoin tables = TableJoin.of(ActTask.class, "t", ActProcState.class, "s");
+        QueryFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(tables).helper();
+
+        String userName = "U0000001";
+        List<String> roleIds = Arrays.asList("R0000001", "R0000006");
+        DbWhere where = new DbWhere().on("s.projectCode", "=", "P0000001");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userName", userName);
+        params.put("roleIds", roleIds);
+        if (where != null && !where.isEmpty()) {
+            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
+        }
+
+        String sqlId = "backlog.todo.query";
+        SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
+        String sqlText = buffer.getLoggingSqlString(dialect);
+
+        String fileName = "SqlTemplateParse." + sqlId + ".sql";
         System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
         URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
         String resultText = PathTools.downloadString(resultFile);

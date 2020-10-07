@@ -3,4 +3,4 @@ SELECT * FROM TEST_USER_ROLE_REF ur
     ON ur.ROLE_ID=r.ID
     AND r.DATA_STATE=1
 WHERE ur.DATA_STATE=1
-    AND ur.USER_ID IN ( '1001'/*$1*/,'1002'/*$2*/,'1008'/*$3*/ )
+    AND ur.USER_ID IN ( '10000001'/*$1*/,'10000002'/*$2*/,'10000008'/*$3*/ )
