@@ -68,11 +68,11 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
             entity.setUserSource(UserSource.INPUT);
             entity.setCreateTime(DateTools.parse("2018-05-15 20:30:40"));
 
-            entity.setId("Y0000001");
+            entity.setId("Y1000001");
             entity.setUserType(UserType.ADMIN);
             dao.insert(entity);
 
-            entity.setId("U0000001");
+            entity.setId("U1000001");
             entity.setUserType(UserType.USER);
             dao.insert(entity);
         }

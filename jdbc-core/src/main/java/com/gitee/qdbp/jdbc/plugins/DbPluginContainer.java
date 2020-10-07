@@ -10,10 +10,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.converter.GenericConverter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import com.gitee.qdbp.able.jdbc.base.OrderByCondition;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
@@ -175,8 +172,6 @@ public class DbPluginContainer {
 
         // 设置插件的ConversionService
         fillConversionService(plugins);
-        // 如果插件是Converter, 将其注册到ConverterRegistry
-        registerConverter(plugins);
     }
 
     protected static void initDefaultConverter(DbPluginContainer plugins) {
@@ -206,22 +201,6 @@ public class DbPluginContainer {
             VariableToDbValueConverter toDbValueConverter = plugins.getToDbValueConverter();
             if (toDbValueConverter instanceof ConversionServiceAware) {
                 ((ConversionServiceAware) toDbValueConverter).setConversionService(conversionService);
-            }
-        }
-    }
-
-    /** 如果插件是Converter, 将其注册到ConverterRegistry **/
-    protected static void registerConverter(DbPluginContainer plugins) {
-        ConversionService conversionService = plugins.getConversionService();
-        if (conversionService instanceof ConverterRegistry) {
-            MapToBeanConverter mapToBeanConverter = plugins.getMapToBeanConverter();
-            ConverterRegistry registry = (ConverterRegistry) conversionService;
-            if (mapToBeanConverter instanceof GenericConverter) {
-                registry.addConverter((GenericConverter) mapToBeanConverter);
-            } else if (mapToBeanConverter instanceof Converter<?, ?>) {
-                registry.addConverter((Converter<?, ?>) mapToBeanConverter);
-            } else if (mapToBeanConverter instanceof ConverterFactory<?, ?>) {
-                registry.addConverterFactory((ConverterFactory<?, ?>) mapToBeanConverter);
             }
         }
     }

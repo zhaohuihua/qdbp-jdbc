@@ -173,6 +173,17 @@
 					<include>jdbc.${jdbc.active}.properties</include>
 				</includes>
 			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<includes>
+					<include>**/*.properties</include>
+					<include>**/*.json</include>
+					<include>**/*.tpl</include>
+					<include>**/*.txt</include>
+					<include>**/*.xml</include>
+					<include>**/*.sql</include>
+				</includes>
+			</testResource>
 		</testResources>
 		<plugins>
 			<plugin>

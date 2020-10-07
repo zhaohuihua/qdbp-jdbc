@@ -174,7 +174,8 @@ class SqlFragmentParser {
         } else {
             String oldLocation = cachedMaps.get(sqlKey);
             if (!conflicts.containsKey(sqlKey)) {
-                conflicts.put(sqlKey, ConvertTools.toList(oldLocation));
+                List<String> oldLocations = ConvertTools.toList(oldLocation);
+                conflicts.put(sqlKey, oldLocations);
             }
             conflicts.get(sqlKey).add(sqlLocation + " [ignored]");
             return false;
