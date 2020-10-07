@@ -1,7 +1,7 @@
 -- import com.gitee.qdbp.jdbc.sql.SqlTools
--- import com.gitee.qdbp.general.common.EntityTools
+-- import com.gitee.qdbp.jdbc.test.service.EntityTools
 
--- << backlog.todo.query >>
+-- << backlog.todo.query >> 待办数据查询
 SELECT * FROM (
    SELECT '1' AS TYPE,S.IS_START_NODE,C.TASK_NAME,S.BUSINESS_ID,S.BUS_CODE AS BUSCODE,
        S.PROJECT_CODE,S.PROJECT_NAME,S.PROD_TYPE_CODE,S.PROD_TYPE_NAME,S.PROC_STATE_CODE,
@@ -16,8 +16,8 @@ SELECT * FROM (
    WHERE (
        T.ASSIGNEE_=#{userName}
        OR (
-           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,$.dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$.dialect)}</append>
+           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,$$.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$$.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -33,10 +33,10 @@ UNION ALL
    WHERE (
        S.ASSIGNEE=#{userName}
        OR (
-           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,$.dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$.dialect)}</append>
+           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,$$.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$$.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
 ) R
-ORDER BY R.RECEIVE_TIME DESC,R.CREATE_TIME DESC,R.BUSINESS_ID;
+ORDER BY R.RECEIVE_TIME DESC,R.CREATE_TIME DESC,R.BUSINESS_ID
