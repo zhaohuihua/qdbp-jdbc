@@ -219,6 +219,7 @@ public class SimpleFieldColumn implements Copyable, Serializable {
         instance.setColumnText(this.getColumnText());
         instance.setJavaType(this.getJavaType());
         instance.setSqlType(this.getSqlType());
+        instance.setPrimaryKey(this.isPrimaryKey());
         instance.setColumnInsertable(this.isColumnInsertable());
         instance.setColumnUpdatable(this.isColumnUpdatable());
         instance.setColumnDefault(this.getColumnDefault());
