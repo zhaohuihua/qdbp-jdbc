@@ -8,6 +8,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.publish.BasePublisher;
+import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
  * 根据标签数据发布一个SQL片段, 输出到SqlBuffer<br>
@@ -37,12 +38,14 @@ public class SqlBufferPublisher extends BasePublisher {
      */
     public SqlBuffer publish(Map<String, Object> preset, SqlDialect dialect) throws TagException, IOException {
         SqlBufferContext context = new SqlBufferContext(dialect);
-        context.preset().putAll(preset);
+        if (VerifyTools.isNotBlank(preset)) {
+            context.preset().putAll(preset);
+        }
         Map<String, Object> global = new HashMap<>();
         global.put("dialect", dialect);
         global.put("dbVersion", dialect.getDbVersion());
         global.put("dbType", dialect.getDbVersion().getDbType());
-        context.preset().put("$", global);
+        context.preset().put("$$", global);
 
         publish(context);
         return context.getSqlBuffer();

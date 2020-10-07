@@ -54,7 +54,7 @@ class SqlBufferContext extends BaseContext {
             } else if (value instanceof SqlBuilder) {
                 return ((SqlBuilder) value).out().getExecutableSqlString(dialect);
             } else {
-                return new SqlBuffer().addVariable(value).getExecutableSqlString(dialect);
+                return value;
             }
         } else {
             throw new TagException("表达式前缀有误");
