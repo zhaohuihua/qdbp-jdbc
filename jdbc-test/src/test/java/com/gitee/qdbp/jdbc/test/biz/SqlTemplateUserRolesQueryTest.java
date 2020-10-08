@@ -21,7 +21,7 @@ import com.gitee.qdbp.jdbc.test.enums.UserType;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
-import com.gitee.qdbp.jdbc.test.model.UserRolesResult;
+import com.gitee.qdbp.jdbc.test.model.UserIdRoleResult;
 import com.gitee.qdbp.jdbc.test.service.SysUserService;
 import com.gitee.qdbp.tools.utils.StringTools;
 
@@ -120,7 +120,7 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
     @Test
     public void testGetUserRolesQuerySql12() throws IOException {
         List<String> userIds = Arrays.asList("U0000001", "U0000002", "U0000008");
-        List<UserRolesResult> list = userService.getUserRoles(userIds, DbWhere.NONE, Orderings.NONE);
+        List<UserIdRoleResult> list = userService.getUserRoles(userIds, DbWhere.NONE, Orderings.NONE);
         Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
     }
 
@@ -136,7 +136,7 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
     public void testGetUserRolesQuerySql22() throws IOException {
         List<String> userIds = Arrays.asList("U0000001", "U0000002", "U0000008");
         Orderings orderings = Orderings.of("ur.userId, r.id");
-        List<UserRolesResult> list = userService.getUserRoles(userIds, DbWhere.NONE, orderings);
+        List<UserIdRoleResult> list = userService.getUserRoles(userIds, DbWhere.NONE, orderings);
         Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
     }
 
@@ -156,7 +156,7 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         DbWhere where = new DbWhere();
         where.on("r.defaults", "=", false);
         Orderings orderings = Orderings.of("ur.userId, r.id");
-        List<UserRolesResult> list = userService.getUserRoles(userIds, where, orderings);
+        List<UserIdRoleResult> list = userService.getUserRoles(userIds, where, orderings);
         Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
     }
 

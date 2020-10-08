@@ -6,7 +6,7 @@ package com.gitee.qdbp.jdbc.test.model;
  * @author zhaohuihua
  * @version 20201006
  */
-public class UserRolesResult extends SysRoleEntity {
+public class UserIdRoleResult extends SysRoleEntity {
 
     /** serialVersionUID **/
     private static final long serialVersionUID = 1L;
