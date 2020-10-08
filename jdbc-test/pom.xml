@@ -55,12 +55,12 @@
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-able</artifactId>
-			<version>5.2.1</version>
+			<version>5.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gitee.qdbp</groupId>
 			<artifactId>qdbp-tools</artifactId>
-			<version>5.2.0</version>
+			<version>5.2.2</version>
 		</dependency>
 
 		<dependency>
