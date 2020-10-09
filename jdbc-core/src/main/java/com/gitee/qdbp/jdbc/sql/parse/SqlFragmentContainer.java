@@ -77,6 +77,23 @@ public class SqlFragmentContainer {
         }
     }
 
+    /**
+     * 判断SQL模板是否存在
+     * 
+     * @param sqlId SQL编号
+     * @param dbType 数据库类型
+     * @return 是否存在
+     */
+    public boolean exist(String sqlId, DbType dbType) {
+        this.scanSqlFiles();
+        String sqlKey = sqlId + '(' + dbType.name().toLowerCase() + ')';
+        IMetaData sqlData = this.cache.get(sqlKey);
+        if (sqlData == null) {
+            sqlData = this.cache.get(sqlId + "(*)");
+        }
+        return sqlData != null;
+    }
+
     /** 根据SqlId从缓存中获取SQL模板, 渲染为SqlBuffer对象 **/
     public SqlBuffer render(String sqlId, Map<String, Object> data, SqlDialect dialect) {
         IMetaData tags = find(sqlId, dialect.getDbVersion().getDbType());

@@ -1,17 +1,26 @@
 package com.gitee.qdbp.jdbc.biz;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
+import org.springframework.jdbc.core.namedparam.ParsedSql;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
+import com.gitee.qdbp.jdbc.utils.CountSqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 
 /**
@@ -26,6 +35,7 @@ public class SqlDaoImpl implements SqlDao {
     protected SqlFragmentContainer container;
     protected SqlBufferJdbcOperations jdbc;
     protected SqlDialect dialect;
+    protected CountSqlParser countSqlParser = new CountSqlParser();
 
     public SqlDaoImpl(SqlFragmentContainer container, SqlBufferJdbcOperations jdbcOperations) {
         this.container = container;
@@ -107,7 +117,7 @@ public class SqlDaoImpl implements SqlDao {
 
     @Override
     public List<Map<String, Object>> listForMaps(String sqlId) {
-        return listForMaps(sqlId, null);
+        return listForMaps(sqlId, (Object) null);
     }
 
     @Override
@@ -115,6 +125,109 @@ public class SqlDaoImpl implements SqlDao {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer buffer = container.render(sqlId, map, dialect);
         return jdbc.queryForList(buffer);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String sqlId, Paging paging, Class<T> resultType) {
+        return pageForObjects(sqlId, null, paging, resultType);
+    }
+
+    /** 根据查询语句查询记录总数 **/
+    protected int countByQuerySql(SqlBuffer querySql) {
+        String namedQuerySql = querySql.getPreparedSqlString(dialect);
+        Map<String, Object> varMaps = querySql.getPreparedVariables(dialect);
+        SqlParameterSource paramSource = new MapSqlParameterSource(varMaps);
+        ParsedSql parsedQuerySql = NamedParameterUtils.parseSqlStatement(namedQuerySql);
+        String actualQuerySql = NamedParameterUtils.substituteNamedParameters(parsedQuerySql, paramSource);
+        Object[] varArray = NamedParameterUtils.buildValueArray(parsedQuerySql, paramSource, null);
+        String countSql = countSqlParser.getSimpleCountSql(actualQuerySql);
+        RowMapper<Integer> rowMapper = new FirstColumnMapper<>(Integer.class);
+        return jdbc.getJdbcOperations().queryForObject(countSql, varArray, rowMapper);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, Class<T> resultType) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer buffer = container.render(sqlId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            total = countByQuerySql(buffer);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<T> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(buffer, paging);
+            // 查询数据列表
+            list = jdbc.queryForList(buffer, resultType);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String sqlId, Paging paging, RowMapper<T> rowMapper) {
+        return pageForObjects(sqlId, null, paging, rowMapper);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, RowMapper<T> rowMapper) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer buffer = container.render(sqlId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            total = countByQuerySql(buffer);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<T> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(buffer, paging);
+            // 查询数据列表
+            list = jdbc.query(buffer, rowMapper);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
+    }
+
+    @Override
+    public PageList<Map<String, Object>> pageForMaps(String sqlId, Paging paging) {
+        return pageForMaps(sqlId, null, paging);
+    }
+
+    @Override
+    public PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer buffer = container.render(sqlId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            total = countByQuerySql(buffer);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<Map<String, Object>> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<Map<String, Object>>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(buffer, paging);
+            // 查询数据列表
+            list = jdbc.queryForList(buffer);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
     }
 
     @Override

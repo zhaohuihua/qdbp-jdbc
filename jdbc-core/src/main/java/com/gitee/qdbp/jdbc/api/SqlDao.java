@@ -3,6 +3,8 @@ package com.gitee.qdbp.jdbc.api;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 
 /**
@@ -116,7 +118,7 @@ public interface SqlDao {
     <T> List<T> listForObjects(String sqlId, Object params, RowMapper<T> rowMapper);
 
     /**
-     * 查询数据, 结果为Map列表
+     * 查询数据列表, 结果为Map列表
      * 
      * @param sqlId SqlId
      * @return Map列表
@@ -124,13 +126,78 @@ public interface SqlDao {
     List<Map<String, Object>> listForMaps(String sqlId);
 
     /**
-     * 查询数据, 结果为Map列表
+     * 查询数据列表, 结果为Map列表
      * 
      * @param sqlId SqlId
      * @param params 查询参数
      * @return Map列表
      */
     List<Map<String, Object>> listForMaps(String sqlId, Object params);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param sqlId SqlId
+     * @param paging 分页对象
+     * @param resultType 结果类型
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String sqlId, Paging paging, Class<T> resultType);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param sqlId SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @param resultType 结果类型
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, Class<T> resultType);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param sqlId SqlId
+     * @param paging 分页对象
+     * @param rowMapper 结果转换类
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String sqlId, Paging paging, RowMapper<T> rowMapper);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param sqlId SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @param rowMapper 结果转换类
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, RowMapper<T> rowMapper);
+
+    /**
+     * 分页查询数据列表, 结果为Map列表
+     * 
+     * @param sqlId SqlId
+     * @param paging 分页对象
+     * @return Map列表
+     */
+    PageList<Map<String, Object>> pageForMaps(String sqlId, Paging paging);
+
+    /**
+     * 分页查询数据列表, 结果为Map列表
+     * 
+     * @param sqlId SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @return Map列表
+     */
+    PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging);
 
     /**
      * 执行插入语句
