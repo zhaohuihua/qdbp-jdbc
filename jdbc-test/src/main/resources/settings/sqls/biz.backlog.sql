@@ -40,3 +40,34 @@ UNION ALL
    <append prefix="AND">#{whereCondition}</append>
 ) R
 ORDER BY R.RECEIVE_TIME DESC,R.CREATE_TIME DESC,R.BUSINESS_ID
+
+
+-- << backlog.todo.count >> 待办数据统计
+SELECT SUM(CNT) FROM (
+   SELECT COUNT(*) AS CNT 
+   FROM ACT_RU_TASK T
+   INNER JOIN ACT_PROC_STATE S ON T.PROC_INST_ID_=S.PROC_INST_ID
+   INNER JOIN ACT_HI_PROCINST P ON T.PROC_INST_ID_=P.PROC_INST_ID_
+   LEFT JOIN ACT_BACKLOG_CONFIG C ON S.BUS_CODE=C.BUS_CODE
+   WHERE (
+       T.ASSIGNEE_=#{userName}
+       OR (
+           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+       )
+   )
+   <append prefix="AND">#{whereCondition}</append>
+UNION ALL
+   SELECT COUNT(*) AS CNT
+   FROM COMM_OPERATE_TASK S
+   LEFT JOIN ACT_BACKLOG_CONFIG C ON S.BUS_CODE=C.BUS_CODE
+   WHERE (
+       S.ASSIGNEE=#{userName}
+       OR (
+           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+       )
+   )
+   <append prefix="AND">#{whereCondition}</append>
+) R
+
