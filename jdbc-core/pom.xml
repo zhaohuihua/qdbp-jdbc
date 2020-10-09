@@ -32,6 +32,11 @@
 			<artifactId>qdbp-staticize</artifactId>
 			<version>3.1.4</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.jsqlparser</groupId>
+			<artifactId>jsqlparser</artifactId>
+			<version>3.2</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.hibernate.javax.persistence</groupId>
