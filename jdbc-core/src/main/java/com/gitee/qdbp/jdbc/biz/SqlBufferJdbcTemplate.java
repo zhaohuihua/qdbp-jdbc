@@ -4,6 +4,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
@@ -18,6 +19,8 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
+import org.springframework.jdbc.core.namedparam.ParsedSql;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -31,11 +34,14 @@ import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.utils.CountSqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.files.PathTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.ReflectTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -54,6 +60,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     private SqlDialect sqlDialect;
     private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
+    protected CountSqlParser countSqlParser = new CountSqlParser();
 
     public SqlBufferJdbcTemplate() {
     }
@@ -468,7 +475,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+                log.debug("SQL {} affected {} rows, elapsed time {}ms", desc, rows, time);
             }
             return rows;
         } catch (DataAccessException e) {
@@ -519,13 +526,96 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         return DbTools.formatSql(sql, 1);
     }
 
+    // key=querySql, value=countSql
+    private static Map<String, SqlAndParams> COUNT_SQL_MAPS = new ConcurrentHashMap<>();
+
+    @Override
+    public int countByQuerySql(SqlBuffer querySql) {
+        long startTime = System.currentTimeMillis();
+        String namedQuerySql = querySql.getPreparedSqlString(sqlDialect);
+        String countSql;
+        Object[] paramArray;
+        if (COUNT_SQL_MAPS.containsKey(namedQuerySql)) {
+            SqlAndParams item = COUNT_SQL_MAPS.get(namedQuerySql);
+            countSql = item.sql;
+            paramArray = item.params;
+        } else {
+            // 解析查询语句生成统计语句
+            Map<String, Object> paramMaps = querySql.getPreparedVariables(sqlDialect);
+            SqlParameterSource paramSource = new MapSqlParameterSource(paramMaps);
+            ParsedSql parsedQuerySql = NamedParameterUtils.parseSqlStatement(namedQuerySql);
+            String actualQuerySql = NamedParameterUtils.substituteNamedParameters(parsedQuerySql, paramSource);
+
+            countSql = countSqlParser.getSmartCountSql(actualQuerySql);
+            paramArray = NamedParameterUtils.buildValueArray(parsedQuerySql, paramSource, null);
+
+            COUNT_SQL_MAPS.put(namedQuerySql, new SqlAndParams(countSql, paramArray));
+        }
+
+        // 输出日志
+        String logsql = null;
+        if (log.isDebugEnabled()) {
+            log.debug("Executing SQL count:\n{}", logsql = getLoggingSqlForHashParamsSql(countSql, paramArray));
+        }
+
+        long countTime = System.currentTimeMillis();
+        RowMapper<Integer> rowMapper = new FirstColumnMapper<>(Integer.class);
+        try {
+            // 执行统计语句
+            JdbcOperations jdbc = namedParameterJdbcOperations.getJdbcOperations();
+            int total = jdbc.queryForObject(countSql, paramArray, rowMapper);
+            if (log.isDebugEnabled()) {
+                long parseMills = countTime - startTime;
+                long countMills = System.currentTimeMillis() - countTime;
+                log.debug("SQL count returns {}, parse time {}ms, count time {}ms.", total, parseMills, countMills);
+            }
+            return total;
+        } catch (DataAccessException e) {
+            String details = "SQL:\n" + (logsql != null ? logsql : getLoggingSqlForHashParamsSql(countSql, paramArray));
+            details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
+            throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
+        }
+    }
+
+    private static class SqlAndParams {
+
+        private String sql;
+        private Object[] params;
+
+        public SqlAndParams(String sql, Object[] params) {
+            this.sql = sql;
+            this.params = params;
+        }
+    }
+
+    private String getLoggingSqlForHashParamsSql(String sql, Object[] params) {
+        if (params.length == 0) {
+            // 没有占位符
+            return sql;
+        } else if (StringTools.countCharacter(sql, '?') != params.length) {
+            // 占位符的数量与参数个数不一致, 说明字符串中有问号, 处理起来非常麻烦, 直接输出带问题的SQL和参数
+            return sql + '\n' + ConvertTools.joinToString(params, true);
+        } else {
+            // 根据sql和params生成SqlBuffer对象
+            SqlBuffer buffer = new SqlBuffer();
+            for (int i = 0, z = sql.length(); i < z; i++) {
+                char c = sql.charAt(i);
+                if (c == '?') {
+                    buffer.addVariable(params[i++]);
+                } else {
+                    buffer.append(c);
+                }
+            }
+            return getFormattedSqlString(buffer, 1);
+        }
+    }
+
     @Override
     public void executeSqlScript(String sqlFilePath, Class<?>... classes) {
         VerifyTools.requireNotBlank(sqlFilePath, "sqlFilePath");
         URL url = PathTools.findResource(sqlFilePath, classes);
         executeSqlScript(url);
     }
-
 
     @Override
     public void executeSqlScript(URL url) {

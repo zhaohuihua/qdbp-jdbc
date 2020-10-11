@@ -57,7 +57,7 @@ public class SimpleSqlFileScanner implements SqlFileScanner {
         Collections.sort(urls, ToStringComparator.INSTANCE);
         if (log.isInfoEnabled()) {
             String msg = "Success to scan sql templates, elapsed time {}, total of {} files were found.";
-            log.info(msg, ConvertTools.toDuration(startTime), urls.size());
+            log.info(msg, ConvertTools.toDuration(startTime, true), urls.size());
         }
         return urls;
     }

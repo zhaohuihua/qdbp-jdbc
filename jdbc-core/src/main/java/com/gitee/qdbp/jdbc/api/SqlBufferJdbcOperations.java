@@ -233,6 +233,9 @@ public interface SqlBufferJdbcOperations {
      * @throws ServiceException if there is any problem issuing the update
      */
     int batchUpdate(SqlBuffer sb) throws ServiceException;
+    
+    /** 根据查询语句统计记录总数 (解析查询语句生成统计语句) **/
+    int countByQuerySql(SqlBuffer querySql) throws ServiceException;
 
     /**
      * 执行SQL脚本<br>

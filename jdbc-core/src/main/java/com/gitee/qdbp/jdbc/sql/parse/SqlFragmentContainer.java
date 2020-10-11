@@ -154,7 +154,7 @@ public class SqlFragmentContainer {
         List<TagData> tagDatas = parser.parseCachedSqlFragments();
         if (log.isInfoEnabled()) {
             String msg = "Success to parse sql templates, elapsed time {}, total of {} files and {} fragments.";
-            log.info(msg, ConvertTools.toDuration(startTime), urls.size(), tagDatas.size());
+            log.info(msg, ConvertTools.toDuration(startTime, true), urls.size(), tagDatas.size());
         }
         for (TagData item : tagDatas) {
             this.cache.put(item.getSqlKey(), item.getMetaData());
