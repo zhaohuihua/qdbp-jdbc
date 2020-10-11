@@ -545,9 +545,9 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             SqlParameterSource paramSource = new MapSqlParameterSource(paramMaps);
             ParsedSql parsedQuerySql = NamedParameterUtils.parseSqlStatement(namedQuerySql);
             String actualQuerySql = NamedParameterUtils.substituteNamedParameters(parsedQuerySql, paramSource);
+            paramArray = NamedParameterUtils.buildValueArray(parsedQuerySql, paramSource, null);
 
             countSql = countSqlParser.getSmartCountSql(actualQuerySql);
-            paramArray = NamedParameterUtils.buildValueArray(parsedQuerySql, paramSource, null);
 
             COUNT_SQL_MAPS.put(namedQuerySql, new SqlAndParams(countSql, paramArray));
         }
@@ -567,7 +567,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             if (log.isDebugEnabled()) {
                 long parseMills = countTime - startTime;
                 long countMills = System.currentTimeMillis() - countTime;
-                log.debug("SQL count returns {}, parse time {}ms, count time {}ms.", total, parseMills, countMills);
+                log.debug("SQL count returns {}, parse time {}ms, execute time {}ms.", total, parseMills, countMills);
             }
             return total;
         } catch (DataAccessException e) {
@@ -589,7 +589,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     }
 
     private String getLoggingSqlForHashParamsSql(String sql, Object[] params) {
-        if (params.length == 0) {
+        if (params == null || params.length == 0) {
             // 没有占位符
             return sql;
         } else if (StringTools.countCharacter(sql, '?') != params.length) {
@@ -598,10 +598,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         } else {
             // 根据sql和params生成SqlBuffer对象
             SqlBuffer buffer = new SqlBuffer();
+            int v = 0;
             for (int i = 0, z = sql.length(); i < z; i++) {
                 char c = sql.charAt(i);
                 if (c == '?') {
-                    buffer.addVariable(params[i++]);
+                    buffer.addVariable(params[v++]);
                 } else {
                     buffer.append(c);
                 }
