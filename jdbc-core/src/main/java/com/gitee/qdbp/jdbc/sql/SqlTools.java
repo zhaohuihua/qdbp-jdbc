@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -68,6 +70,9 @@ public abstract class SqlTools {
             }
             sql.ad(columnName).ad(operate).var(firstValue);
         } else {
+            // 获取IN语句的省略策略配置项
+            OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omitStrategy", "50:5");
+
             List<?> values = duplicateRemoval(fieldValues);
             String operate = matches ? "IN" : "NOT IN";
             int inItemLimit = dialect.getInItemLimit();
@@ -78,8 +83,8 @@ public abstract class SqlTools {
                     if (i > 0) {
                         sql.ad(',');
                     }
-                    if (count > 20) {
-                        sql.omit(i, count, 5);
+                    if (omits.getMinSize() > 0 && count > omits.getMinSize()) {
+                        sql.omit(i, count, omits.getKeepSize());
                     }
                     sql.var(value);
                 }
@@ -102,8 +107,8 @@ public abstract class SqlTools {
                         if (i > 0) {
                             sql.ad(',');
                         }
-                        if (count > 10) {
-                            sql.omit(i, count, 3);
+                        if (omits.getMinSize() > 0 && count > omits.getMinSize()) {
+                            sql.omit(i, count, omits.getKeepSize());
                         }
                         sql.var(value);
                     }
@@ -129,7 +134,7 @@ public abstract class SqlTools {
         return groups;
     }
 
-    private static List<?> duplicateRemoval(Collection<?> items) {
+    static List<?> duplicateRemoval(Collection<?> items) {
         Map<Object, ?> map = new HashMap<>();
         List<Object> list = new ArrayList<>();
         for (Object item : items) {

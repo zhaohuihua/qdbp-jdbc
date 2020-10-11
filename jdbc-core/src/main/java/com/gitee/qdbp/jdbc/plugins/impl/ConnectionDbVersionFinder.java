@@ -3,10 +3,13 @@ package com.gitee.qdbp.jdbc.plugins.impl;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.List;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.DbVersionFinder;
+import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.utils.DbTypes;
 
 /**
  * 根据数据库连接查找数据库类型和版本信息
@@ -38,8 +41,9 @@ public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
         if (productName == null) {
             return MainDbType.Unknown;
         }
-        for (DbType dbType : MainDbType.values()) {
-            if (dbType == MainDbType.Unknown) {
+        List<DbType> dbTypes = DbTools.getAvailableDbTypes();
+        for (DbType dbType : dbTypes) {
+            if (DbTypes.equals(dbType, MainDbType.Unknown)) {
                 continue;
             }
             if (productName.toUpperCase().contains(dbType.name().toUpperCase())) {

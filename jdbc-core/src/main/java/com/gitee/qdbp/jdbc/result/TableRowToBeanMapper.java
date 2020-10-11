@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.utils.DbTools;
@@ -33,16 +35,17 @@ public class TableRowToBeanMapper<T> implements RowToBeanMapper<T> {
         Map<String, Object> map = mapper.mapRow(rs, rowNum);
 
         // 1. 获取列名与字段名的对应关系
-        AllFieldColumn<SimpleFieldColumn> all = DbTools.parseToAllFieldColumn(resultType);
+        AllFieldColumn<SimpleFieldColumn> all = DbTools.parseAllFieldColumns(resultType);
         if (all == null || all.isEmpty()) {
             return null;
         }
 
         // 2. ResultSet是列名与字段值的对应关系, 转换为字段名与字段值的对应关系
+        FieldColumns<SimpleFieldColumn> fieldColumns = all.filter(FieldScene.RESULT);
         Map<String, Object> result = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             String columnName = entry.getKey();
-            SimpleFieldColumn field = all.findByColumnAlias(columnName);
+            SimpleFieldColumn field = fieldColumns.findByColumnAlias(columnName);
             if (field != null) {
                 result.put(field.getFieldName(), entry.getValue());
             }

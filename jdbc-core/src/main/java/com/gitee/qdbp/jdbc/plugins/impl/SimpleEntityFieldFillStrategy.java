@@ -121,32 +121,32 @@ public class SimpleEntityFieldFillStrategy implements EntityFieldFillStrategy {
     @Override
     public void fillEntityCreateParams(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         Date now = new Date();
-        EntityFillTools.fillValueIfAbsent(entity, createTimeField, now, allFields);
-        EntityFillTools.fillValueIfAbsent(entity, updateTimeField, now, allFields);
+        EntityFillTools.fillCreateEntityIfAbsent(entity, createTimeField, now, allFields);
+        EntityFillTools.fillCreateEntityIfAbsent(entity, updateTimeField, now, allFields);
 
         String account = getLoginAccount();
-        EntityFillTools.fillValueIfAbsent(entity, createUserField, account, allFields);
-        EntityFillTools.fillValueIfAbsent(entity, updateUserField, account, allFields);
+        EntityFillTools.fillCreateEntityIfAbsent(entity, createUserField, account, allFields);
+        EntityFillTools.fillCreateEntityIfAbsent(entity, updateUserField, account, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
     public void fillEntityUpdateParams(Map<String, Object> entity, AllFieldColumn<?> allFields) {
         Date now = new Date();
-        EntityFillTools.fillValueIfAbsent(entity, updateTimeField, now, allFields);
+        EntityFillTools.fillUpdateEntityIfAbsent(entity, updateTimeField, now, allFields);
 
         String account = getLoginAccount();
-        EntityFillTools.fillValueIfAbsent(entity, updateUserField, account, allFields);
+        EntityFillTools.fillUpdateEntityIfAbsent(entity, updateUserField, account, allFields);
     }
 
     /** {@inheritDoc} **/
     @Override
     public void fillEntityUpdateParams(DbUpdate ud, AllFieldColumn<?> allFields) {
         Date now = new Date();
-        EntityFillTools.fillValueIfAbsent(ud, updateTimeField, now, allFields);
+        EntityFillTools.fillUpdateValueIfAbsent(ud, updateTimeField, now, allFields);
 
         Object account = getLoginAccount();
-        EntityFillTools.fillValueIfAbsent(ud, updateUserField, account, allFields);
+        EntityFillTools.fillUpdateValueIfAbsent(ud, updateUserField, account, allFields);
     }
 
     /** {@inheritDoc} **/

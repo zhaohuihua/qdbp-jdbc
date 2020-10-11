@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.SqlParameterValue;
 import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
@@ -17,13 +16,14 @@ import com.gitee.qdbp.able.jdbc.condition.TableJoin.TableItem;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.model.TablesFieldColumn;
 import com.gitee.qdbp.jdbc.model.TypedDbVariable;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
+import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
 import com.gitee.qdbp.jdbc.plugins.DbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.DbPluginContainer;
@@ -33,13 +33,14 @@ import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.RawValueConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
+import com.gitee.qdbp.jdbc.plugins.SqlFileScanner;
 import com.gitee.qdbp.jdbc.plugins.SqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
-import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
+import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -115,6 +116,27 @@ public abstract class DbTools {
     }
 
     /**
+     * 可用的数据库类型<br>
+     * 除MainDbType以外, 可通过DbPluginContainer.defaults().addDbType()注册其他数据库类型
+     * 
+     * @return 数据库类型列表
+     */
+    public static List<DbType> getAvailableDbTypes() {
+        return DbPluginContainer.defaults().getAvailableDbTypes();
+    }
+
+    /**
+     * SQL标签库<br>
+     * 默认的标签库为classpath:settings/dbtags/taglib.txt<br>
+     * 可通过DbPluginContainer.defaults().setSqlTaglibPath()修改
+     * 
+     * @return SQL标签库
+     */
+    public static Taglib getSqlTaglib() {
+        return DbPluginContainer.defaults().getSqlTaglib();
+    }
+
+    /**
      * 转换原始关键字, 如sysdate/CURRENT_TIMESTAMP之前的互转
      * 
      * @param value 原生值, 如sysdate
@@ -130,6 +152,11 @@ public abstract class DbTools {
     /** 获取Map到JavaBean的转换处理类 **/
     public static MapToBeanConverter getMapToBeanConverter() {
         return DbPluginContainer.defaults().getMapToBeanConverter();
+    }
+
+    /** JavaBean到Map的转换处理类 **/
+    public static BeanToMapConverter getBeanToMapConverter() {
+        return DbPluginContainer.defaults().getBeanToMapConverter();
     }
 
     /** 获取JavaBean到数据库条件的转换处理类 **/
@@ -155,11 +182,6 @@ public abstract class DbTools {
     /** 根据DbVersion生成SqlDialect **/
     public static SqlDialect buildSqlDialect(DbVersion version) {
         return new SimpleSqlDialect(version);
-    }
-
-    /** 根据SqlDialect生成SqlParser **/
-    public static SqlParser buildSqlParser(SqlDialect dialect) {
-        return new SqlParser(dialect);
     }
 
     /** 获取自定义WhereSqlBuilder **/
@@ -230,10 +252,21 @@ public abstract class DbTools {
         DbVersionFinder finder = DbPluginContainer.defaults().getDbVersionFinder();
         return finder.findDbVersion(datasource);
     }
-    
+
+    /** 获取SQL模板扫描处理类 **/
+    public static SqlFileScanner getSqlFileScanner() {
+        return DbPluginContainer.defaults().getSqlFileScanner();
+    }
+
     /** 获取数据库配置选项 **/
     public static Config getDbConfig() {
         return DbPluginContainer.defaults().getDbConfig(true);
+    }
+
+    /** 获取省略策略配置 **/
+    public static OmitStrategy getOmitSizeConfig(String key, String defvalue) {
+        String string = getDbConfig().getStringUseDefValue(key, defvalue);
+        return OmitStrategy.of(string);
     }
 
     /** 根据数据库类型获取批量新增处理类 **/
@@ -265,7 +298,7 @@ public abstract class DbTools {
     }
 
     /** Entity的表名缓存 **/
-    private static Map<Class<?>, String> entityTableNameCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, String> entityTableNameCache = new HashMap<>();
 
     /**
      * 扫描表名信息(有缓存)
@@ -286,7 +319,7 @@ public abstract class DbTools {
     }
 
     /** Entity的主键缓存 **/
-    private static Map<Class<?>, PrimaryKeyFieldColumn> entityPrimaryKeyCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, SimpleFieldColumn> entityPrimaryKeyCache = new HashMap<>();
 
     /**
      * 扫描获取主键(有缓存)
@@ -294,20 +327,20 @@ public abstract class DbTools {
      * @param clazz 类名
      * @return 主键
      */
-    public static PrimaryKeyFieldColumn parsePrimaryKey(Class<?> clazz) {
+    public static SimpleFieldColumn parsePrimaryKey(Class<?> clazz) {
         VerifyTools.requireNonNull(clazz, "class");
         if (entityPrimaryKeyCache.containsKey(clazz)) {
             return entityPrimaryKeyCache.get(clazz);
         }
 
-        TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
-        PrimaryKeyFieldColumn pk = scans.scanPrimaryKey(clazz);
+        AllFieldColumn<SimpleFieldColumn> all = parseAllFieldColumns(clazz);
+        SimpleFieldColumn pk = all.findPrimaryKey();
         entityPrimaryKeyCache.put(clazz, pk);
         return pk;
     }
 
     /** TableJoin的列名缓存 **/
-    private static Map<String, List<TablesFieldColumn>> joinColumnsCache = new ConcurrentHashMap<>();
+    private static Map<String, AllFieldColumn<TablesFieldColumn>> joinColumnsCache = new HashMap<>();
 
     private static List<TablesFieldColumn> scanColumnList(TableItem table) {
         TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
@@ -328,9 +361,9 @@ public abstract class DbTools {
      * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param tables 表关联对象
-     * @return AllFields: fieldName - columnName
+     * @return AllFieldColumn: fieldName - columnName
      */
-    public static List<TablesFieldColumn> parseFieldColumns(TableJoin tables) {
+    public static AllFieldColumn<TablesFieldColumn> parseAllFieldColumns(TableJoin tables) {
         VerifyTools.requireNonNull(tables, "tables");
         String cacheKey = TableJoin.buildCacheKey(tables, false);
         if (joinColumnsCache.containsKey(cacheKey)) {
@@ -365,61 +398,41 @@ public abstract class DbTools {
         for (TablesFieldColumn field : all) {
             String fieldName = field.getFieldName();
             if (countMaps.get(fieldName) > 1) {
-                String columnAlias = StringTools.concat('_', field.getTableAlias(), field.getColumnName());
-                field.setColumnAlias(columnAlias);
+                String tableAlias = field.getTableAlias().toUpperCase();
+                String columnName = field.getColumnName();
+                field.setColumnAlias(StringTools.concat('_', tableAlias, columnName));
                 field.setAmbiguous(true);
             }
         }
-        joinColumnsCache.put(cacheKey, all);
-        return all;
-    }
-
-    /**
-     * 扫描获取字段名和数据库列名的映射表(有缓存)
-     * 
-     * @param tables 表关联对象
-     * @return AllFieldColumn: fieldName - columnName
-     */
-    public static AllFieldColumn<TablesFieldColumn> parseToAllFieldColumn(TableJoin tables) {
-        List<TablesFieldColumn> fields = parseFieldColumns(tables);
-        return new AllFieldColumn<>(fields);
+        AllFieldColumn<TablesFieldColumn> fieldColumns = new AllFieldColumn<>(all);
+        joinColumnsCache.put(cacheKey, fieldColumns);
+        return fieldColumns;
     }
 
     /** Entity的列名缓存 **/
-    private static Map<Class<?>, List<SimpleFieldColumn>> entityColumnsCache = new ConcurrentHashMap<>();
+    private static Map<Class<?>, AllFieldColumn<SimpleFieldColumn>> entityColumnsCache = new HashMap<>();
 
     /**
      * 扫描获取字段名和数据库列名的映射表(有缓存)
      * 
      * @param clazz 类型
-     * @return AllFields: fieldName - columnName
-     */
-    public static List<SimpleFieldColumn> parseFieldColumns(Class<?> clazz) {
-        VerifyTools.requireNonNull(clazz, "class");
-        List<SimpleFieldColumn> all;
-        if (entityColumnsCache.containsKey(clazz)) {
-            all = entityColumnsCache.get(clazz);
-        } else {
-            TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
-            all = scans.scanColumnList(clazz);
-            entityColumnsCache.put(clazz, all);
-        }
-        if (all.isEmpty()) {
-            String m = "fields not found, please check config of TableInfoScans, class=" + clazz.getName();
-            throw new IllegalArgumentException(m);
-        }
-        return all;
-    }
-
-    /**
-     * 扫描获取字段名和数据库列名的映射表(有缓存)
-     * 
-     * @param clazz 表关联对象
      * @return AllFieldColumn: fieldName - columnName
      */
-    public static AllFieldColumn<SimpleFieldColumn> parseToAllFieldColumn(Class<?> clazz) {
-        List<SimpleFieldColumn> fields = parseFieldColumns(clazz);
-        return new AllFieldColumn<>(fields);
-    }
+    public static AllFieldColumn<SimpleFieldColumn> parseAllFieldColumns(Class<?> clazz) {
+        VerifyTools.requireNonNull(clazz, "class");
+        if (entityColumnsCache.containsKey(clazz)) {
+            return entityColumnsCache.get(clazz);
+        } else {
+            TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
+            List<SimpleFieldColumn> fields = scans.scanColumnList(clazz);
+            if (fields.isEmpty()) {
+                String m = "Fields not found, please check config of TableInfoScans, class=" + clazz.getName();
+                throw new IllegalArgumentException(m);
+            }
 
+            AllFieldColumn<SimpleFieldColumn> all = new AllFieldColumn<>(fields);
+            entityColumnsCache.put(clazz, all);
+            return all;
+        }
+    }
 }

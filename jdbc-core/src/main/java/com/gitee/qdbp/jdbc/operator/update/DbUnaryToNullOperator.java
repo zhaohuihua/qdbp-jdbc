@@ -20,7 +20,7 @@ public class DbUnaryToNullOperator extends DbAbstractOperator implements DbUnary
 
     @Override
     public SqlBuffer buildSql(String columnName, SqlDialect dialect) {
-        return new SqlBuilder().ad(columnName).ad('=').ad("NULL").out();
+        return new SqlBuilder().ad(columnName).ad('=').var(null).out();
     }
 
 }

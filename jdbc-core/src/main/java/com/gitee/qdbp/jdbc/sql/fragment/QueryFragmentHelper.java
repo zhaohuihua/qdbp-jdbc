@@ -9,6 +9,7 @@ import com.gitee.qdbp.able.jdbc.fields.Fields;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -171,52 +172,58 @@ public interface QueryFragmentHelper {
     /**
      * 是否存在指定字段
      * 
+     * @param scene 字段使用场景
      * @param fieldName 字段名
      * @return 是否存在
      */
-    boolean containsField(String fieldName);
+    boolean containsField(FieldScene scene, String fieldName);
 
     /**
      * 获取列名
      * 
+     * @param scene 字段使用场景
      * @param fieldName 字段名
      * @return 列名, 如果不支持该字段将抛出异常
      * @throws UnsupportedFieldException 不支持的字段名
      */
-    String getColumnName(String fieldName) throws UnsupportedFieldException;
+    String getColumnName(FieldScene scene, String fieldName) throws UnsupportedFieldException;
 
     /**
      * 获取列名
      * 
+     * @param scene 字段使用场景
      * @param fieldName 字段名
      * @param throwOnUnsupportedField 如果不支持该字段是否抛出异常
      * @return 列名
      * @throws UnsupportedFieldException 不支持的字段名
      */
-    String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException;
+    String getColumnName(FieldScene scene, String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException;
 
     /**
      * 获取字段名列表
      * 
+     * @param scene 字段使用场景
      * @return 字段名列表
      */
-    List<String> getFieldNames();
+    List<String> getFieldNames(FieldScene scene);
 
     /**
      * 获取数据库列名列表
      * 
+     * @param scene 字段使用场景
      * @return 列名列表
      */
-    List<String> getColumnNames();
+    List<String> getColumnNames(FieldScene scene);
 
     /**
      * 检查字段名是否在允许范围内
      * 
+     * @param scene 字段使用场景
      * @param fields 字段名
      * @param desc 发生错误时的描述内容
      * @throws UnsupportedFieldException 存在不支持的字段名
      */
-    void checkSupportedFields(Collection<String> fields, String desc) throws UnsupportedFieldException;
+    void checkSupportedFields(FieldScene scene, Collection<String> fields, String desc) throws UnsupportedFieldException;
 
     /**
      * 转换特殊的字段值, 如DbFieldName转换为DbRawValue(columnName)

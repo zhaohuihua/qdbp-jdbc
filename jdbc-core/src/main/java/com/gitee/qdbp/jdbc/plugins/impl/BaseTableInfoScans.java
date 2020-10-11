@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import com.gitee.qdbp.able.jdbc.annotations.ColumnDefault;
 import com.gitee.qdbp.able.jdbc.model.DbRawValue;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.CommonFieldResolver;
 import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
@@ -24,18 +23,24 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  */
 public abstract class BaseTableInfoScans implements TableInfoScans {
 
-    /** 扫描普通列信息 **/
+    /** 扫描列信息 **/
     protected abstract SimpleFieldColumn scanColumn(Field field, Class<?> clazz);
 
     /**
-     * 扫描主键列信息
+     * 检查是不是需要排除的字段
      * 
-     * @param field 字段名称
-     * @param column 列信息(一般情况下该参数为空, 只有在调用前已经扫描了column则可能column不为空)
+     * @param field 字段信息
      * @param clazz 待扫描的类
-     * @return 主键列信息
+     * @return 是否排除
      */
-    protected abstract PrimaryKeyFieldColumn scanPrimaryKey(Field field, SimpleFieldColumn column, Class<?> clazz);
+    protected boolean isIgnoreField(Field field, Class<?> clazz) {
+        // 排除transient字段
+        return Modifier.isTransient(field.getModifiers());
+    }
+
+    /** 扫描列信息之后的处理 **/
+    protected void onAfterScanColumns(List<SimpleFieldColumn> allColumns) {
+    }
 
     /** 表名扫描类 **/
     private TableNameScans tableNameScans;
@@ -68,34 +73,14 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
     }
 
     @Override
-    public PrimaryKeyFieldColumn scanPrimaryKey(Class<?> clazz) {
-        if (clazz == null) {
-            throw new IllegalArgumentException("clazz is null");
-        }
-
-        Class<?> temp = clazz;
-        while (temp != null && temp != Object.class) {
-            Field[] fields = temp.getDeclaredFields();
-            for (Field field : fields) {
-                PrimaryKeyFieldColumn pk = scanPrimaryKey(field, null, temp);
-                if (pk != null) {
-                    return pk;
-                }
-            }
-            temp = temp.getSuperclass();
-        }
-        return null;
-    }
-
-    @Override
     public List<SimpleFieldColumn> scanColumnList(Class<?> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("clazz is null");
         }
 
-        // 字段顺序: ID放在最前面, 然后是当前类自身的字段, 然后按继承顺序依次向上取父类的字段
+        // 字段顺序: 主键放在最前面, 然后是当前类自身的字段, 然后按继承顺序依次向上取父类的字段
         // 然后是公共包下的父类字段, 以及通过字段名指定的公共字段(创建人/创建时间/更新人/更新时间/逻辑删除标记)
-        SimpleFieldColumn idColumn = null;
+        SimpleFieldColumn pkColumn = null;
         List<SimpleFieldColumn> commonColumns = new ArrayList<>();
         List<SimpleFieldColumn> allColumns = new ArrayList<>();
         Map<String, String> map = new HashMap<>();
@@ -117,13 +102,20 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
+                // 其他排除条件
+                if (isIgnoreField(field, temp)) {
+                    continue;
+                }
+                
+                // 扫描列信息
                 SimpleFieldColumn column = scanColumn(field, temp);
-                if (idColumn == null) {
-                    SimpleFieldColumn tempColumn = scanPrimaryKey(field, column, temp);
-                    if (tempColumn != null) {
-                        idColumn = tempColumn;
-                        continue; // 当前列是ID, 单独记录下来, 插入到最前面
-                    }
+                // 判断是不是主键
+                if (pkColumn == null && column.isPrimaryKey()) {
+                    pkColumn = column;
+                    // 主键默认设置Insertable/Updatable为true
+                    pkColumn.setColumnInsertable(true);
+                    pkColumn.setColumnUpdatable(true);
+                    continue; // 当前列是ID, 单独记录下来, 插入到最前面
                 }
                 if (column != null) {
                     if (isCommonPackage || isCommonFieldName(fieldName)) {
@@ -141,12 +133,14 @@ public abstract class BaseTableInfoScans implements TableInfoScans {
             }
             temp = temp.getSuperclass();
         }
-        if (idColumn != null) {
-            allColumns.add(0, idColumn); // ID插入到最前面
+        if (pkColumn != null) {
+            allColumns.add(0, pkColumn); // ID插入到最前面
         }
         if (!commonColumns.isEmpty()) { // 公共字段插入到最后面
             allColumns.addAll(sortCommonColumns(commonColumns));
         }
+        // 调用扫描后处理函数
+        onAfterScanColumns(allColumns);
         return allColumns;
     }
 

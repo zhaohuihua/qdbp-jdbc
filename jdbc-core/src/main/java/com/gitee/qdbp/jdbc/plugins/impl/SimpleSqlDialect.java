@@ -10,13 +10,14 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.QueryFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.mapper.SqlParser;
-import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
+import com.gitee.qdbp.jdbc.utils.DbTypes;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.DateTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -44,18 +45,16 @@ public class SimpleSqlDialect implements SqlDialect {
 
     @Override
     public int getInItemLimit() {
-        DbType dbType = dbVersion.getDbType();
-        return dbType == MainDbType.Oracle ? 1000 : 0;
+        return DbTypes.equals(dbVersion.getDbType(), MainDbType.Oracle) ? 1000 : 0;
     }
 
     @Override
     public String rawCurrentTimestamp() {
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
-                || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
+        if (DbTypes.exists(dbType, "Oracle,MySQL,MariaDB,DB2,PostgreSQL")) {
             // 这些数据库都是支持CURRENT_TIMESTAMP的
             return "CURRENT_TIMESTAMP";
-        } else if (dbType == MainDbType.SqlServer) {
+        } else if (DbTypes.equals(dbType, MainDbType.SqlServer)) {
             return "GETDATE()";
         } else { // 其他的不知道, 暂时返回CURRENT_TIMESTAMP
             return "CURRENT_TIMESTAMP";
@@ -76,17 +75,17 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public void processPagingSql(SqlBuffer buffer, Paging paging) {
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle) {
+        if (DbTypes.equals(dbType, MainDbType.Oracle)) {
             processPagingForOracle(buffer, paging);
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
+        } else if (DbTypes.exists(dbType, MainDbType.MySQL, MainDbType.MariaDB)) {
             processPagingForMySql(buffer, paging);
-        } else if (dbType == MainDbType.DB2) {
+        } else if (DbTypes.equals(dbType, MainDbType.DB2)) {
             processPagingForDb2(buffer, paging);
-        } else if (dbType == MainDbType.H2) {
+        } else if (DbTypes.equals(dbType, MainDbType.H2)) {
             processPagingForH2(buffer, paging);
-        } else if (dbType == MainDbType.PostgreSQL) {
+        } else if (DbTypes.equals(dbType, MainDbType.PostgreSQL)) {
             processPagingForPostgreSql(buffer, paging);
-        } else if (dbType == MainDbType.SQLite) {
+        } else if (DbTypes.equals(dbType, MainDbType.SQLite)) {
             processPagingForSqlite(buffer, paging);
         } else {
             // throw new UnsupportedOperationException("Unsupported db type: " + dbType);
@@ -182,9 +181,9 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public String toPinyinOrderByExpression(String columnName) {
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle) {
+        if (DbTypes.equals(dbType, MainDbType.Oracle)) {
             return columnName; // 系统默认排序方式就是拼音: "NLSSORT(" + columnName + ",'NLS_SORT=SCHINESE_PINYIN_M')";
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB) {
+        } else if (DbTypes.exists(dbType, MainDbType.MySQL, MainDbType.MariaDB)) {
             return "CONVERT(" + columnName + " USING GBK)";
         } else {
             return columnName;
@@ -208,14 +207,14 @@ public class SimpleSqlDialect implements SqlDialect {
     public String variableToString(Date date) {
         StringBuilder sb = new StringBuilder();
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2) {
+        if (DbTypes.exists(dbType, MainDbType.Oracle, MainDbType.DB2)) {
             sb.append("TO_TIMESTAMP").append('(');
             sb.append("'").append(DateTools.toNormativeString(date)).append("'");
             sb.append(',');
             sb.append("'YYYY-MM-DD HH24:MI:SS.FF'");
             sb.append(')');
             return sb.toString();
-        } else if (dbType == MainDbType.H2) {
+        } else if (DbTypes.equals(dbType, MainDbType.H2)) {
             sb.append("PARSEDATETIME").append('(');
             sb.append("'").append(DateTools.toNormativeString(date)).append("'");
             sb.append(',');
@@ -233,11 +232,11 @@ public class SimpleSqlDialect implements SqlDialect {
     public SqlBuffer buildLikeSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
         // TODO chooseEscapeChar
-        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
+        if (DbTypes.exists(dbType, MainDbType.Oracle, MainDbType.DB2, MainDbType.PostgreSQL)) {
             return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad("||'%')").out();
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
+        } else if (DbTypes.exists(dbType, MainDbType.MySQL, MainDbType.MariaDB, MainDbType.H2)) {
             return new SqlBuilder("LIKE").ad("CONCAT('%',").var(fieldValue).ad(",'%')").out();
-        } else if (dbType == MainDbType.SqlServer) {
+        } else if (DbTypes.equals(dbType, MainDbType.SqlServer)) {
             return new SqlBuilder("LIKE").ad("('%'+").var(fieldValue).ad("+'%')").out();
         } else {
             return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad("||'%')").out();
@@ -248,11 +247,11 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public SqlBuffer buildStartsWithSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
+        if (DbTypes.exists(dbType, MainDbType.Oracle, MainDbType.DB2, MainDbType.PostgreSQL)) {
             return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("||'%')").out();
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
+        } else if (DbTypes.exists(dbType, MainDbType.MySQL, MainDbType.MariaDB, MainDbType.H2)) {
             return new SqlBuilder("LIKE").ad("CONCAT(").var(fieldValue).ad(",'%')").out();
-        } else if (dbType == MainDbType.SqlServer) {
+        } else if (DbTypes.equals(dbType, MainDbType.SqlServer)) {
             return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("+'%')").out();
         } else {
             return new SqlBuilder("LIKE").ad('(').var(fieldValue).ad("||'%')").out();
@@ -263,11 +262,11 @@ public class SimpleSqlDialect implements SqlDialect {
     @Override
     public SqlBuffer buildEndsWithSql(Object fieldValue) {
         DbType dbType = dbVersion.getDbType();
-        if (dbType == MainDbType.Oracle || dbType == MainDbType.DB2 || dbType == MainDbType.PostgreSQL) {
+        if (DbTypes.exists(dbType, MainDbType.Oracle, MainDbType.DB2, MainDbType.PostgreSQL)) {
             return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad(")").out();
-        } else if (dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB || dbType == MainDbType.H2) {
+        } else if (DbTypes.exists(dbType, MainDbType.MySQL, MainDbType.MariaDB, MainDbType.H2)) {
             return new SqlBuilder("LIKE").ad("CONCAT('%',").var(fieldValue).ad(")").out();
-        } else if (dbType == MainDbType.SqlServer) {
+        } else if (DbTypes.equals(dbType, MainDbType.SqlServer)) {
             return new SqlBuilder("LIKE").ad("('%'+").var(fieldValue).ad(")").out();
         } else {
             return new SqlBuilder("LIKE").ad("('%'||").var(fieldValue).ad(")").out();
@@ -281,13 +280,13 @@ public class SimpleSqlDialect implements SqlDialect {
         DbType dbType = dbVersion.getDbType();
         VerifyTools.requireNotBlank(startCodes, "startCodes");
 
-        if (dbType == MainDbType.Oracle) {
+        if (DbTypes.equals(dbType, MainDbType.Oracle)) {
             return oracleRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
                 builder);
-        } else if (dbType == MainDbType.MySQL && dbVersion.getMajorVersion() < 8) {
+        } else if (DbTypes.equals(dbType, MainDbType.MySQL) && dbVersion.getMajorVersion() < 8) {
             return productionRecursiveFindChildren(startCodes, codeField, parentField, selectFields, where, orderings,
                 builder);
-        } else if (dbType == MainDbType.MariaDB && dbVersion.versionCompareTo("10.2.2") < 0) {
+        } else if (DbTypes.equals(dbType, MainDbType.MariaDB) && dbVersion.versionCompareTo("10.2.2") < 0) {
             // 听说MariaDB 10.2.2才开始提供递归语法
             // https://mariadb.com/kb/en/mariadb-1022-release-notes/
             // Recursive Common Table Expressions
@@ -296,10 +295,10 @@ public class SimpleSqlDialect implements SqlDialect {
         } else { // 标准递归语法
             // MySQL8, PostgreSQL的是WITH RECURSIVE; DB2, SqlServer的是WITH, 去掉RECURSIVE即可
             String key;
-            if (dbType == MainDbType.PostgreSQL || dbType == MainDbType.MySQL || dbType == MainDbType.MariaDB
-                    || dbType == MainDbType.SQLite) {
+            if (DbTypes.exists(dbType, MainDbType.PostgreSQL, MainDbType.MySQL, MainDbType.MariaDB,
+                MainDbType.SQLite)) {
                 key = "WITH RECURSIVE";
-            } else if (dbType == MainDbType.DB2 || dbType == MainDbType.SqlServer) {
+            } else if (DbTypes.exists(dbType, MainDbType.DB2, MainDbType.SqlServer)) {
                 key = "WITH";
             } else {
                 // throw new UnsupportedOperationException("Unsupported db type: " + dbType);
@@ -331,6 +330,7 @@ public class SimpleSqlDialect implements SqlDialect {
      */
     protected SqlBuffer oracleRecursiveFindChildren(List<String> startCodes, String codeField, String parentField,
             Collection<String> selectFields, DbWhere where, Orderings orderings, QueryFragmentHelper sqlHelper) {
+        
         SqlBuilder sql = new SqlBuilder();
         // SELECT ... FROM
         sql.ad("SELECT");
@@ -340,7 +340,8 @@ public class SimpleSqlDialect implements SqlDialect {
         sql.ad("START WITH").ad(sqlHelper.buildInSql(codeField, startCodes, false));
         // CONNECT BY PRIOR {codeField} = {parentField}
         sql.ad("CONNECT BY PRIOR");
-        sql.ad(sqlHelper.getColumnName(codeField)).ad("=").ad(sqlHelper.getColumnName(parentField));
+        sql.ad(sqlHelper.getColumnName(FieldScene.CONDITION, codeField));
+        sql.ad("=").ad(sqlHelper.getColumnName(FieldScene.CONDITION, parentField));
         // WHERE ...
         if (where != null && !where.isEmpty()) {
             SqlBuffer whereSql = sqlHelper.buildWhereSql(where, false);
@@ -396,17 +397,6 @@ public class SimpleSqlDialect implements SqlDialect {
     protected SqlBuffer normalRecursiveFindChildren(String keyword, List<String> startCodes, String codeField,
             String parentField, Collection<String> selectFields, DbWhere where, Orderings orderings,
             QueryFragmentHelper sqlHelper) {
-
-        // @formatter:off
-        String sqlTemplate = "#{keyword} recursive_temp_table(temp_parent) AS (\n"
-                + "    SELECT #{codeField} temp_parent FROM #{tableName} WHERE ${startCodeCondition}\n"
-                + "    UNION ALL\n"
-                + "    SELECT #{codeField} FROM #{tableName} A, recursive_temp_table B ON A.#{parentField} = B.temp_parent\n"
-                + ")\n" + "SELECT #{selectFields} FROM #{tableName} WHERE #{codeField} IN (\n"
-                + "    SELECT temp_parent FROM recursive_temp_table\n" + ")\n" + "${whereCondition}\n"
-                + "#{orderByCondition} ";
-        // @formatter:on
-
         Map<String, Object> params = new HashMap<>();
         params.put("keyword", keyword);
         params.put("codeField", codeField);
@@ -420,8 +410,8 @@ public class SimpleSqlDialect implements SqlDialect {
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
-        SqlParser parser = DbTools.buildSqlParser(this);
-        return parser.parse(sqlTemplate, params);
+        String sqlId = "recursive.find.children";
+        return SqlFragmentContainer.defaults().render(sqlId, params, this);
     }
 
     /**
@@ -466,9 +456,9 @@ public class SimpleSqlDialect implements SqlDialect {
         buffer.append(',');
         buffer.addVariable(ConvertTools.joinToString(startCodes));
         buffer.append(',');
-        buffer.addVariable(sqlHelper.getColumnName(codeField));
+        buffer.addVariable(sqlHelper.getColumnName(FieldScene.CONDITION, codeField));
         buffer.append(',');
-        buffer.addVariable(sqlHelper.getColumnName(parentField));
+        buffer.addVariable(sqlHelper.getColumnName(FieldScene.CONDITION, parentField));
         buffer.append(',');
         buffer.addVariable(selectFieldSql);
         buffer.append(',');

@@ -16,6 +16,16 @@ import com.gitee.qdbp.tools.utils.IndentTools;
 class SqlTextTools {
 
     /**
+     * 是不是SQL中的单词字符
+     * 
+     * @param c 字符
+     * @return 是不是单词字符
+     */
+    public static boolean isSqlWordChar(char c) {
+        return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_' || c == '$';
+    }
+
+    /**
      * 查找最后的缩进量<pre>
      * 例如: \r\n=换行符, \t=TAB符, \s=空格
      * \n\tABC\n\t\tDEF\t\t\t --> 这里要找的是DEF之前的那个换行符之后的空白字符, 即缩进量为2

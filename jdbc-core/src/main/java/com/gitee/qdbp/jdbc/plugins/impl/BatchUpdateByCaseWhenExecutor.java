@@ -8,7 +8,9 @@ import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -50,15 +52,18 @@ public class BatchUpdateByCaseWhenExecutor implements BatchUpdateExecutor {
     public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         CrudFragmentHelper sqlHelper = sqlBuilder.helper();
         String tableName = sqlHelper.getTableName();
-        PrimaryKeyFieldColumn pk = sqlHelper.getPrimaryKey();
+        SimpleFieldColumn pk = sqlHelper.getPrimaryKey();
         Set<String> fieldNames = mergeFields(entities);
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
 
         // 检查字段名
-        sqlHelper.checkSupportedFields(fieldNames, "build batch update sql");
+        sqlHelper.checkSupportedFields(FieldScene.UPDATE, fieldNames, "build batch update sql");
         // 字段名映射表
         Map<String, ?> fieldMap = ConvertTools.toMap(fieldNames);
 
-        AllFieldColumn<? extends SimpleFieldColumn> columns = sqlHelper.getAllFieldColumns();
+        AllFieldColumn<? extends SimpleFieldColumn> all = sqlHelper.getAllFieldColumns();
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = all.filter(FieldScene.UPDATE);
         // UPDATE {tableName} SET
         //     FIELD1=(CASE ID
         //       WHEN {id1} THEN {field11}
@@ -78,8 +83,8 @@ public class BatchUpdateByCaseWhenExecutor implements BatchUpdateExecutor {
         // 根据列顺序生成SQL
         int size = entities.size();
         boolean first = true;
-        for (SimpleFieldColumn column : columns.items()) {
-            String fieldName = column.getFieldName();
+        for (SimpleFieldColumn item : fieldColumns) {
+            String fieldName = item.getFieldName();
             if (!fieldMap.containsKey(fieldName) || fieldName.equals(pk.getFieldName())) {
                 continue;
             }
@@ -89,23 +94,25 @@ public class BatchUpdateByCaseWhenExecutor implements BatchUpdateExecutor {
                 sql.ad(',').newline();
             }
             // FIELD1=(CASE ID
-            sql.ad(column.getColumnName()).ad('=', '(').ad("CASE").ad(pk.getColumnName()).newline().tab();
+            sql.ad(item.getColumnName()).ad('=', '(').ad("CASE").ad(pk.getColumnName()).newline().tab();
             for (int i = 0; i < size; i++) {
                 if (i > 0) {
                     sql.newline();
                 }
-                PkEntity item = entities.get(i);
-                sql.omit(i, size); // 插入省略标记
-                Map<String, Object> entity = item.getEntity();
+                PkEntity pkEntity = entities.get(i);
+                if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                    sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+                }
+                Map<String, Object> entity = pkEntity.getEntity();
                 Object fieldValue = entity.get(fieldName);
                 // 不用调sqlHelper.convertFieldValue
                 // 因为不支持DbFieldName/DbFieldValue/DbRawValue, 只支持fieldName=fieldValue
                 // fieldValue = sqlHelper.convertFieldValue(fieldValue);
                 // WHEN {id1} THEN {field11}
-                sql.ad("WHEN").var(item.getPrimaryKey()).ad("THEN").var(fieldValue);
+                sql.ad("WHEN").var(pkEntity.getPrimaryKey()).ad("THEN").var(fieldValue);
             }
             // ELSE FIELD1 END)
-            sql.newline().tab(-1).ad("ELSE").ad(column.getColumnName()).ad("END").ad(')');
+            sql.newline().tab(-1).ad("ELSE").ad(item.getColumnName()).ad("END").ad(')');
         }
         // WHERE ID IN (
         sql.newline().ad("WHERE").ad(pk.getColumnName()).ad("IN").ad('(').newline().tab();
@@ -115,7 +122,9 @@ public class BatchUpdateByCaseWhenExecutor implements BatchUpdateExecutor {
             if (i > 0) {
                 sql.ad(',').newline();
             }
-            sql.omit(i, size); // 插入省略标记
+            if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+            }
             // 获取主键值
             sql.var(item.getPrimaryKey());
         }

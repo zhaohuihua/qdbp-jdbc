@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.sql;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +11,10 @@ import com.gitee.qdbp.able.jdbc.model.DbFieldName;
 import com.gitee.qdbp.able.jdbc.model.DbRawValue;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.IndentTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -64,6 +67,11 @@ public class SqlBuffer implements Serializable {
             this.shortcut = new SqlBuilder(this);
         }
         return this.shortcut;
+    }
+
+    /** 清除内容 **/
+    public void clear() {
+        this.buffer.clear();
     }
 
     /**
@@ -301,15 +309,21 @@ public class SqlBuffer implements Serializable {
      * @return 返回当前SQL容器用于连写
      */
     public SqlBuffer addVariable(Object value) {
-        if (value instanceof SqlBuffer) {
+        if (value == null) {
+            this.buffer.add(new VariableItem(index++, value));
+        } else if (value instanceof SqlBuffer) {
             append((SqlBuffer) value);
         } else if (value instanceof SqlBuilder) {
             append(((SqlBuilder) value).out());
         } else if (value instanceof DbRawValue) {
             DbRawValue raw = (DbRawValue) value;
             this.buffer.add(new RawValueItem(raw.toString()));
+        } else if (value instanceof Collection) {
+            this.addVariables(new ArrayList<>((Collection<?>) value));
+        } else if (value.getClass().isArray()) {
+            this.addVariables(ConvertTools.parseList(value));
         } else if (value instanceof DbFieldName) {
-            // append(value.toString());
+            // this.append(value.toString());
             // 缺少环境数据, 无法将字段名转换为列名
             throw new IllegalArgumentException("CanNotSupportedVariableType: DbFieldName");
         } else {
@@ -318,8 +332,178 @@ public class SqlBuffer implements Serializable {
         return this;
     }
 
+    private void addVariables(List<?> values) {
+        List<?> items = SqlTools.duplicateRemoval(values);
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.in.sql.omitStrategy", "50:5");
+        for (int i = 0, count = items.size(); i < count; i++) {
+            Object value = items.get(i);
+            if (i > 0) {
+                this.append(',');
+            }
+            if (omits.getMinSize() > 0 && count > omits.getMinSize()) {
+                this.tryOmit(i, count, omits.getKeepSize());
+            }
+            this.buffer.add(new VariableItem(index++, value));
+        }
+    }
+
+    /** 删除左右两则的空白字符 **/
+    public SqlBuffer trim() {
+        trimLeft();
+        trimRight();
+        return this;
+    }
+
+    /** 删除左侧空白 **/
+    private void trimLeft() {
+        if (buffer.isEmpty()) {
+            return;
+        }
+        for (int i = 0, last = buffer.size() - 1; i <= last; i++) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                int size = stringItem.trimLeft();
+                if (size == 0) {
+                    continue;
+                }
+            }
+            return;
+        }
+    }
+
+    /** 删除右侧空白 **/
+    private void trimRight() {
+        if (buffer.isEmpty()) {
+            return;
+        }
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                int size = stringItem.trimRight();
+                if (size == 0) {
+                    continue;
+                }
+            }
+            return;
+        }
+    }
+
+    /**
+     * 在第1个非空字符前插入前缀<br>
+     * 删除prefixOverrides, 插入prefix<br>
+     * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+     * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
+     * 
+     * @param prefix 待插入的前缀
+     * @param prefixOverrides 待替换的前缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
+     * @return 是否有变更
+     */
+    public boolean insertPrefix(String prefix, String prefixOverrides) {
+        if (buffer.isEmpty() || VerifyTools.isAllBlank(prefix, prefixOverrides)) {
+            return false;
+        }
+        for (int i = 0, last = buffer.size() - 1; i <= last; i++) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                boolean changed = stringItem.insertPrefix(prefix, prefixOverrides);
+                if (changed) {
+                    return true;
+                }
+            } else if (item instanceof VariableItem || item instanceof RawValueItem) {
+                if (VerifyTools.isBlank(prefix)) {
+                    return false;
+                }
+                StringItem element = new StringItem();
+                element.append(prefix);
+                if (!SqlTextTools.endsWithSqlSymbol(prefix, ')')) {
+                    element.append(' ');
+                }
+                buffer.add(i, element);
+                return true;
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 在最后1个非空字符后插入后缀<br>
+     * 删除suffixOverrides, 插入suffix<br>
+     * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+     * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
+     * 
+     * @param suffix 待插入的后缀
+     * @param suffixOverrides 待替换的后缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
+     * @return 是否有变更
+     */
+    public boolean insertSuffix(String suffix, String suffixOverrides) {
+        if (buffer.isEmpty() || VerifyTools.isAllBlank(suffix, suffixOverrides)) {
+            return false;
+        }
+        for (int i = buffer.size() - 1; i >= 0; i--) {
+            Item item = buffer.get(i);
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                boolean changed = stringItem.insertSuffix(suffix, suffixOverrides);
+                if (changed) {
+                    return true;
+                }
+            } else if (item instanceof VariableItem || item instanceof RawValueItem) {
+                if (VerifyTools.isBlank(suffix)) {
+                    return false;
+                }
+                StringItem element = new StringItem();
+                if (!SqlTextTools.startsWithSqlSymbol(suffix)) {
+                    element.append(' ');
+                }
+                element.append(suffix);
+                buffer.add(i + 1, element);
+                return true;
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return false;
+    }
+
     public boolean isEmpty() {
         return buffer.isEmpty();
+    }
+
+    public boolean isBlank() {
+        if (buffer.isEmpty()) {
+            return true;
+        }
+        for (Item item : buffer) {
+            if (item instanceof StringItem) {
+                StringItem stringItem = (StringItem) item;
+                String stringValue = stringItem.getValue().toString();
+                if (stringValue.trim().length() > 0) {
+                    return false;
+                }
+            } else if (item instanceof VariableItem) {
+                return false;
+            } else if (item instanceof RawValueItem) {
+                RawValueItem rawValueItem = (RawValueItem) item;
+                String stringValue = rawValueItem.getValue();
+                if (stringValue.trim().length() > 0) {
+                    return false;
+                }
+            } else if (item instanceof OmitItem) {
+                continue;
+            } else {
+                throw new UnsupportedOperationException("Unsupported item: " + item.getClass());
+            }
+        }
+        return true;
     }
 
     /**
@@ -526,7 +710,7 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等)<br>
      * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param version 数据库版本
@@ -538,7 +722,7 @@ public class SqlBuffer implements Serializable {
 
     /**
      * 获取用于日志输出的SQL语句(预编译参数替换为拼写式参数)<br>
-     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等);<br>
+     * 如果参数值长度超过100会被截断(例如大片的HTML富文本代码等)<br>
      * 批量SQL会省略部分语句不输出到日志中(几百几千个批量操作会导致SQL太长)
      * 
      * @param dialect 数据库方言
@@ -690,7 +874,7 @@ public class SqlBuffer implements Serializable {
         msg.append(' ').append("are omitted here").append(' ').append("...").append(' ').append("*/");
         return msg;
     }
-    
+
     private int calcOmittedIndex(OmitItem start, OmitItem end) {
         if (start == null || end == null) {
             return -1;
@@ -932,6 +1116,53 @@ public class SqlBuffer implements Serializable {
             this.value.insert(0, suffix).insert(0, value).insert(0, prefix);
         }
 
+        /**
+         * 删除左侧空白
+         * 
+         * @return 删除后剩下多少字符
+         */
+        public int trimLeft() {
+            return trimLeftRight(true, false);
+        }
+
+        /**
+         * 删除右侧空白
+         * 
+         * @return 删除后剩下多少字符
+         */
+        public int trimRight() {
+            return trimLeftRight(false, true);
+        }
+
+        private int trimLeftRight(boolean trimLeft, boolean trimRight) {
+            if (value == null || value.length() == 0) {
+                return 0;
+            }
+
+            int size = value.length();
+            char[] chars = value.toString().toCharArray();
+
+            if (trimLeft) {
+                int start = 0;
+                while ((start < size) && (chars[start] <= ' ')) {
+                    start++;
+                }
+                if (start > 0) {
+                    value.delete(0, start);
+                }
+            }
+            if (trimRight) {
+                int end = size;
+                while ((end > 0) && (chars[end - 1] <= ' ')) {
+                    end--;
+                }
+                if (end < size) {
+                    value.delete(end, size);
+                }
+            }
+            return value.length();
+        }
+
         /** 缩进TAB(只在换行符后面增加TAB) **/
         public void indentAll(char[] tabs) {
             for (int i = value.length() - 1; i >= 0; i--) {
@@ -939,6 +1170,165 @@ public class SqlBuffer implements Serializable {
                     value.insert(i + 1, tabs);
                 }
             }
+        }
+
+        /**
+         * 在第1个非空字符前插入前缀<br>
+         * 删除prefixOverrides, 插入prefix<br>
+         * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+         * 如果prefix为空, 又没有找到prefixOverrides, 也会返回false
+         * 
+         * @param prefix 待插入的前缀
+         * @param prefixOverrides 待替换的前缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
+         * @return 是否有变更
+         */
+        public boolean insertPrefix(String prefix, String prefixOverrides) {
+            if (value.length() == 0) {
+                return false;
+            }
+
+            int last = value.length() - 1;
+            int position = -1;
+            // 查找插入点: 第1个非空字符的位置
+            for (int i = 0; i <= last; i++) {
+                char c = value.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    continue;
+                } else {
+                    position = i;
+                    break; // 位置找到了
+                }
+            }
+            if (position < 0) {
+                return false;
+            }
+            boolean removed = false;
+            boolean changed = false;
+            if (VerifyTools.isNotBlank(prefixOverrides)) {
+                String[] array = StringTools.split(prefixOverrides, '|');
+                for (String prefixOverride : array) {
+                    if (startsWith(value, prefixOverride, position)) {
+                        value.delete(position, position + prefixOverride.length());
+                        removed = true;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            if (VerifyTools.isNotBlank(prefix)) {
+                changed = true;
+                if (removed) {
+                    value.insert(position, prefix);
+                } else {
+                    String suffix = value.substring(position, Math.min(position + 10, value.length()));
+                    if (SqlTextTools.endsWithSqlSymbol(prefix, ')') || SqlTextTools.startsWithSqlSymbol(suffix)) {
+                        value.insert(position, prefix);
+                    } else {
+                        value.insert(position, prefix + ' ');
+                    }
+                }
+            }
+            return changed;
+        }
+
+        /**
+         * 在最后1个非空字符后插入后缀<br>
+         * 删除suffixOverrides, 插入suffix<br>
+         * 如果内容全部为空, 将不会做任何处理, 返回false<br>
+         * 如果suffix为空, 又没有找到suffixOverrides, 也会返回false
+         * 
+         * @param suffix 待插入的后缀
+         * @param suffixOverrides 待替换的后缀, 不区分大小写, 支持以|拆分的多个前缀, 如AND|OR
+         * @return 是否有变更
+         */
+        public boolean insertSuffix(String suffix, String suffixOverrides) {
+            if (value.length() == 0) {
+                return false;
+            }
+
+            int last = value.length() - 1;
+            int position = -1;
+            // 查找插入点: 第1个非空字符之后的那个位置
+            for (int i = last; i >= 0; i--) {
+                char c = value.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                    continue;
+                } else {
+                    position = i + 1;
+                    break; // 位置找到了
+                }
+            }
+            // 停在第1个非空字符之后, 所以不能等于0
+            if (position <= 0) {
+                return false;
+            }
+            boolean removed = false;
+            boolean changed = false;
+            if (VerifyTools.isNotBlank(suffixOverrides)) {
+                String[] array = StringTools.split(suffixOverrides, '|');
+                for (String suffixOverride : array) {
+                    if (endsWith(value, suffixOverride, position)) {
+                        value.delete(position - suffixOverride.length(), position);
+                        position -= suffixOverride.length();
+                        removed = true;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            if (VerifyTools.isNotBlank(suffix)) {
+                changed = true;
+                if (removed) {
+                    value.insert(position, suffix);
+                } else {
+                    String prefix = value.substring(Math.max(position - 10, 0), position);
+                    if (SqlTextTools.endsWithSqlSymbol(prefix, ')') || SqlTextTools.startsWithSqlSymbol(suffix)) {
+                        value.insert(position, suffix);
+                    } else {
+                        value.insert(position, ' ' + suffix);
+                    }
+                }
+            }
+            return changed;
+        }
+
+        private static boolean startsWith(CharSequence string, String prefix, int index) {
+            if (string.length() < index + prefix.length()) {
+                return false;
+            }
+            int i = 0;
+            for (; i < prefix.length(); i++) {
+                if (Character.toUpperCase(prefix.charAt(i)) != Character.toUpperCase(string.charAt(i + index))) {
+                    return false;
+                }
+            }
+            // 如果prefix是单词结尾, 则下一个字符必须不是单词
+            // 例如替换OR, 遇到ORG_ID, 应判定为不匹配
+            if (i + index < string.length() && SqlTextTools.isSqlWordChar(prefix.charAt(prefix.length() - 1))) {
+                if (SqlTextTools.isSqlWordChar(string.charAt(i + index))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static boolean endsWith(CharSequence string, String suffix, int index) {
+            int si = index - suffix.length();
+            if (si < 0) {
+                return false;
+            }
+            for (int i = 0; i < suffix.length(); i++) {
+                if (Character.toUpperCase(suffix.charAt(i)) != Character.toUpperCase(string.charAt(si + i))) {
+                    return false;
+                }
+            }
+            // 如果suffix是单词开头, 则前一个字符必须不是单词
+            if (si > 0 && SqlTextTools.isSqlWordChar(suffix.charAt(0))) {
+                if (SqlTextTools.isSqlWordChar(string.charAt(si - 1))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public StringBuilder getValue() {

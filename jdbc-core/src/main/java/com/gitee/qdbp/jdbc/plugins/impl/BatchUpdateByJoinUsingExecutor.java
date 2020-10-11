@@ -8,7 +8,9 @@ import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.sql.SqlBuilder;
@@ -45,15 +47,18 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
     public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         CrudFragmentHelper sqlHelper = sqlBuilder.helper();
         String tableName = sqlHelper.getTableName();
-        PrimaryKeyFieldColumn pk = sqlHelper.getPrimaryKey();
+        SimpleFieldColumn pk = sqlHelper.getPrimaryKey();
         Set<String> fieldNames = mergeFields(entities);
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
 
         // 检查字段名
-        sqlHelper.checkSupportedFields(fieldNames, "build batch update sql");
+        sqlHelper.checkSupportedFields(FieldScene.UPDATE, fieldNames, "build batch update sql");
         // 字段名映射表
         Map<String, ?> fieldMap = ConvertTools.toMap(fieldNames);
 
-        AllFieldColumn<? extends SimpleFieldColumn> columns = sqlHelper.getAllFieldColumns();
+        AllFieldColumn<? extends SimpleFieldColumn> all = sqlHelper.getAllFieldColumns();
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = all.filter(FieldScene.UPDATE);
 
         // UPDATE {tableName} A JOIN (
         //     SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
@@ -72,11 +77,13 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
             if (i > 0) {
                 sql.newline().ad("UNION").newline();
             }
-            sql.omit(i, size); // 插入省略标记
+            if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+            }
             // SELECT {id1} ID, {field11} FIELD11, {field12} FIELD12, ..., {field1n} FIELD1n
             sql.ad("SELECT").var(item.getPrimaryKey()).ad(pk.getColumnName());
             Map<String, Object> entity = item.getEntity();
-            for (SimpleFieldColumn column : columns.items()) {
+            for (SimpleFieldColumn column : fieldColumns) {
                 String fieldName = column.getFieldName();
                 if (fieldMap.containsKey(fieldName) && !fieldName.equals(pk.getFieldName())) {
                     Object fieldValue = entity.get(fieldName);
@@ -93,7 +100,7 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
         sql.newline().ad("SET");
         boolean firstColumn = true;
         // A.FIELD1=B.FIELD1, A.FIELD2=B.FIELD2, ..., A.FIELDn=B.FIELDn
-        for (SimpleFieldColumn column : columns.items()) {
+        for (SimpleFieldColumn column : fieldColumns) {
             String fieldName = column.getFieldName();
             if (fieldMap.containsKey(fieldName) && !fieldName.equals(pk.getFieldName())) {
                 if (firstColumn) {

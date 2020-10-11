@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.api;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -232,6 +233,15 @@ public interface SqlBufferJdbcOperations {
      * @throws ServiceException if there is any problem issuing the update
      */
     int batchUpdate(SqlBuffer sb) throws ServiceException;
+    
+    /**
+	 * 根据查询语句统计记录总数 (解析查询语句生成统计语句)
+	 
+     * @param querySql 查询语句
+	 * @return 记录总数
+     * @since 3.2.0
+	 */
+    int countByQuerySql(SqlBuffer querySql) throws ServiceException;
 
     /**
      * 执行SQL脚本<br>
@@ -240,10 +250,19 @@ public interface SqlBufferJdbcOperations {
      * 如: executeSqlScript("classpath:settings/sqls/create.tables.oracle.sql", Xxx.class);<br>
      * 
      * @param sqlFilePath SQL文件路径
+     * @params classes 备选查找位置
      * @see PathTools#findResource(String, Class...)
      * @since 3.1.0
      */
     void executeSqlScript(String sqlFilePath, Class<?>... classes);
+
+    /**
+     * 执行SQL脚本
+     * 
+     * @param sqlFilePath SQL文件路径
+     * @since 3.1.0
+     */
+    void executeSqlScript(URL sqlFilePath);
 
     /**
      * Expose the classic Spring JdbcTemplate to allow invocation of

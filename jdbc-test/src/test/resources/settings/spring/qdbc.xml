@@ -19,9 +19,34 @@
 		<property name="sqlFormatter">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter" />
 		</property>
+		<property name="sqlTaglibPath" value="${qdbc.sql.taglibPath:settings/dbtags/taglib.txt}" />
+		<property name="sqlFileScanner">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFileScanner">
+				<constructor-arg value="${qdbc.sql.template.folder:settings/sqls/}"/>
+				<constructor-arg value="${qdbc.sql.template.filter:*.sql}"/>
+			</bean>
+		</property>
+		<property name="availableDbTypeClasses">
+			<list>
+				<value>com.gitee.qdbp.jdbc.model.MainDbType</value>
+			</list>
+		</property>
+		<property name="rawValueConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter" />
+		</property>
+		<property name="dbConditionConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.FastJsonDbConditionConverter" />
+		</property>
+		<property name="beanToMapConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.FastJsonBeanToMapConverter" />
+		</property>
+		<property name="mapToBeanConverter">
+			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter">
+				<property name="conversionService" ref="conversionService" />
+			</bean>
+		</property>
 		<property name="tableInfoScans">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans">
-				<property name="useMissAnnotationField" value="false" />
 				<property name="primaryKeyMatcher">
 					<bean class="com.gitee.qdbp.able.matches.EqualsStringMatcher">
 						<constructor-arg value="${qdbc.entityData.primaryKeyField:id}" />
@@ -90,12 +115,6 @@
 				<property name="objectToStringEspecialText" value="${qdbc.converter.objectToStringEspecialList:}" />
 			</bean>
 		</property>
-		<property name="mapToBeanConverter">
-			<bean class="com.gitee.qdbp.jdbc.plugins.impl.SpringMapToBeanConverter">
-				<property name="conversionService" ref="conversionService" />
-			</bean>
-		</property>
-		<!--
 		<property name="defaultBatchInsertExecutor">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchOperateByForEachExecutor"/>
 		</property>
@@ -114,7 +133,6 @@
 				<bean class="com.gitee.qdbp.jdbc.plugins.impl.BatchUpdateByCaseWhenExecutor"/>
 			</list>
 		</property>
-		-->
 	</bean>
 
 </beans>

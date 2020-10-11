@@ -37,9 +37,10 @@ public class PagingQuery {
             return list == null ? null : new PartList<>(list, list.size());
         } else { // 分页
             // 先查询总数据量
-            Integer total = null;
+            Integer total = paging.getTotal();
             if (paging.isNeedCount()) {
                 total = jdbc.queryForObject(csb, Integer.class);
+                paging.setTotal(total);
             }
             // 再查询数据列表
             List<Map<String, Object>> list;
@@ -73,9 +74,10 @@ public class PagingQuery {
             return list == null ? null : new PartList<>(list, list.size());
         } else { // 分页
             // 先查询总数据量
-            Integer total = null;
+            Integer total = paging.getTotal();
             if (paging.isNeedCount()) {
                 total = jdbc.queryForObject(csb, Integer.class);
+                paging.setTotal(total);
             }
             // 再查询数据列表
             List<T> list;
@@ -109,9 +111,10 @@ public class PagingQuery {
             return list == null ? null : new PartList<>(list, list.size());
         } else { // 分页
             // 先查询总数据量
-            Integer total = null;
+            Integer total = paging.getTotal();
             if (paging.isNeedCount()) {
                 total = jdbc.queryForObject(csb, Integer.class);
+                paging.setTotal(total);
             }
             // 再查询数据列表
             List<T> list;

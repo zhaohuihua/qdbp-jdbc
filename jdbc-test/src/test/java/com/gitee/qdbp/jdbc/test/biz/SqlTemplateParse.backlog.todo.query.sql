@@ -1,6 +1,3 @@
--- import com.gitee.qdbp.jdbc.sql.SqlTools
--- import com.gitee.qdbp.general.common.EntityTools
--- << bus.backlog.todo.query >>
 SELECT * FROM (
    SELECT '1' AS TYPE,S.IS_START_NODE,C.TASK_NAME,S.BUSINESS_ID,S.BUS_CODE AS BUSCODE,
        S.PROJECT_CODE,S.PROJECT_NAME,S.PROD_TYPE_CODE,S.PROD_TYPE_NAME,S.PROC_STATE_CODE,
@@ -13,13 +10,13 @@ SELECT * FROM (
    INNER JOIN ACT_HI_PROCINST P ON T.PROC_INST_ID_=P.PROC_INST_ID_
    LEFT JOIN ACT_BACKLOG_CONFIG C ON S.BUS_CODE=C.BUS_CODE
    WHERE (
-       T.ASSIGNEE_=#{userName}
+       T.ASSIGNEE_='U0000001'/*$1*/
        OR (
-           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,$.dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',$.dialect)}</append>
+           T.ASSIGNEE_ IN('R0000001'/*$2*/,'R0000006'/*$3*/)
+           AND S.ORG_ID IN('D0000001'/*$4*/,'D0000005'/*$5*/,'D0000012'/*$6*/)
        )
    )
-   <append prefix="AND">#{whereCondition}</append>
+   AND S.PROJECT_CODE='P0000001'/*$7*/
 UNION ALL
    SELECT '2' AS TYPE,NULL IS_START_NODE,C.TASK_NAME,S.BUSINESS_ID,S.BUS_CODE AS BUSCODE,
        S.PROJECT_CODE,S.PROJECT_NAME,S.PROD_TYPE_CODE,S.PROD_TYPE_NAME,NULL PROC_STATE_CODE,
@@ -30,12 +27,12 @@ UNION ALL
    FROM COMM_OPERATE_TASK S
    LEFT JOIN ACT_BACKLOG_CONFIG C ON S.BUS_CODE=C.BUS_CODE
    WHERE (
-       S.ASSIGNEE=#{userName}
+       S.ASSIGNEE='U0000001'/*$8*/
        OR (
-           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           S.ASSIGNEE IN('R0000001'/*$9*/,'R0000006'/*$10*/)
+           AND S.ORG_ID IN('D0000001'/*$11*/,'D0000005'/*$12*/,'D0000012'/*$13*/)
        )
    )
-   <append prefix="AND">#{whereCondition}</append>
+   AND S.PROJECT_CODE='P0000001'/*$14*/
 ) R
-ORDER BY R.RECEIVE_TIME DESC,R.CREATE_TIME DESC,R.BUSINESS_ID;
+ORDER BY R.RECEIVE_TIME DESC,R.CREATE_TIME DESC,R.BUSINESS_ID

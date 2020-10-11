@@ -28,6 +28,8 @@ import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.operator.DbBinaryOperator;
@@ -168,7 +170,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
         String columnName;
         try {
-            columnName = getColumnName(fieldName);
+            columnName = getColumnName(FieldScene.CONDITION, fieldName);
         } catch (UnsupportedFieldException e) {
             e.setMessage("build where sql unsupported field");
             throw e;
@@ -213,7 +215,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             throws UnsupportedFieldException {
         String columnName;
         try {
-            columnName = getColumnName(fieldName);
+            columnName = getColumnName(FieldScene.CONDITION, fieldName);
         } catch (UnsupportedFieldException e) {
             e.setMessage("build where in sql unsupported field");
             throw e;
@@ -231,7 +233,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             throws UnsupportedFieldException {
         String columnName;
         try {
-            columnName = getColumnName(fieldName);
+            columnName = getColumnName(FieldScene.CONDITION, fieldName);
         } catch (UnsupportedFieldException e) {
             e.setMessage("build where not in sql unsupported field");
             throw e;
@@ -253,8 +255,8 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return buildOperatorSql(fieldName, columnName, operateType, operator, fieldValue, desc);
     }
 
-    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, String operateType, DbBaseOperator operator,
-            Object fieldValue, String desc) {
+    protected SqlBuffer buildOperatorSql(String fieldName, String columnName, String operateType,
+            DbBaseOperator operator, Object fieldValue, String desc) {
         if (operator instanceof DbUnaryOperator) {
             if (VerifyTools.isBlank(fieldValue)) {
                 return ((DbUnaryOperator) operator).buildSql(columnName, dialect);
@@ -290,11 +292,15 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     /** {@inheritDoc} **/
     @Override
     public Object convertSpecialFieldValue(Object fieldValue) {
+        // 这里是生成aColumnName=bColumnName表达式中bColumnName的值
+        // 因此应该使用FieldScene.CONDITION, 只要有@Column注解, 就是字段名
+        // 即使bColumnName的updatable=false, 只要aColumnName的updatable=true即可
+
         if (fieldValue instanceof DbFieldName) {
             // 已指定是字段名, 按字段名处理, 根据字段名转换为列名
             DbFieldName temp = (DbFieldName) fieldValue;
             String fieldName = temp.getFieldName();
-            String columnName = getColumnName(fieldName);
+            String columnName = getColumnName(FieldScene.CONDITION, fieldName);
             return new DbRawValue(columnName);
         }
         if (fieldValue instanceof DbFieldValue) {
@@ -303,7 +309,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
         if (fieldValue instanceof String && ((String) fieldValue).indexOf('.') > 0) {
             // 字符值是字符串并且是表别名.字段名格式, 如t.updateTime, 尝试作为字段名处理
-            String columnName = getColumnName((String) fieldValue, false);
+            String columnName = getColumnName(FieldScene.CONDITION, (String) fieldValue, false);
             if (columnName != null) {
                 return new DbRawValue(columnName);
             }
@@ -344,7 +350,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
             }
             String columnName;
             try {
-                columnName = getColumnName(fieldName);
+                columnName = getColumnName(FieldScene.CONDITION, fieldName);
             } catch (UnsupportedFieldException e) {
                 unsupported.addAll(e.getFields());
                 continue;
@@ -378,74 +384,74 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
     @Override
     public SqlBuffer buildSelectFieldsSql(String... fields) throws UnsupportedFieldException {
         // fields可以为空, 走doChooseBuildFieldsSql判断
-        return doChooseBuildFieldsSql(fields, true);
+        return doChooseBuildFieldsSql(FieldScene.CONDITION, fields, true);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildSelectFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
         // fields不能为空, 直接调doBuildSpecialFieldsSql
-        return doBuildSpecialFieldsSql(fields, true, true);
+        return doBuildSpecialFieldsSql(FieldScene.CONDITION, fields, true, true);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildSelectFieldsSql(Fields fields) throws UnsupportedFieldException {
-        return doChooseBuildFieldsSql(fields, true);
+        return doChooseBuildFieldsSql(FieldScene.INSERT, fields, true);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildInsertFieldsSql(String... fields) throws UnsupportedFieldException {
-        return doChooseBuildFieldsSql(fields, false);
+        return doChooseBuildFieldsSql(FieldScene.INSERT, fields, false);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildInsertFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
-        return doBuildSpecialFieldsSql(fields, true, false);
+        return doBuildSpecialFieldsSql(FieldScene.INSERT, fields, true, false);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildByFieldsSql(String... fields) throws UnsupportedFieldException {
-        return doChooseBuildFieldsSql(fields, false);
+        return doChooseBuildFieldsSql(FieldScene.CONDITION, fields, false);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildByFieldsSql(Collection<String> fields) throws UnsupportedFieldException {
-        return doBuildSpecialFieldsSql(fields, true, false);
+        return doBuildSpecialFieldsSql(FieldScene.CONDITION, fields, true, false);
     }
 
     /** {@inheritDoc} **/
     @Override
     public SqlBuffer buildByFieldsSql(Fields fields) throws UnsupportedFieldException {
-        return doChooseBuildFieldsSql(fields, false);
+        return doChooseBuildFieldsSql(FieldScene.CONDITION, fields, false);
     }
 
-    protected SqlBuffer doChooseBuildFieldsSql(String[] fields, boolean columnAlias) {
+    protected SqlBuffer doChooseBuildFieldsSql(FieldScene scene, String[] fields, boolean columnAlias) {
         if (fields == null || fields.length == 0) {
-            return doBuildAllFieldsSql(columnAlias);
+            return doBuildAllFieldsSql(scene, columnAlias);
         } else {
             Set<String> fieldList = ConvertTools.toSet(fields);
-            return doBuildSpecialFieldsSql(fieldList, true, columnAlias);
+            return doBuildSpecialFieldsSql(scene, fieldList, true, columnAlias);
         }
     }
 
-    protected SqlBuffer doChooseBuildFieldsSql(Fields fields, boolean columnAlias) {
+    protected SqlBuffer doChooseBuildFieldsSql(FieldScene scene, Fields fields, boolean columnAlias) {
         if (fields == null || fields instanceof AllFields) {
             // 全部字段
-            return doBuildAllFieldsSql(columnAlias);
+            return doBuildDefFieldsSql(scene, columnAlias);
         } else if (fields instanceof ExcludeFields) {
             // 排除型字段列表
             List<String> items = fields.getItems();
             if (items == null || items.isEmpty()) {
                 // 如果未排除任何字段, 就是全部字段
-                return doBuildAllFieldsSql(columnAlias);
+                return doBuildAllFieldsSql(scene, columnAlias);
             } else {
                 // isWhitelist=false, 只生成不在列表中的字段
-                return doBuildSpecialFieldsSql(items, false, columnAlias);
+                return doBuildSpecialFieldsSql(scene, items, false, columnAlias);
             }
         } else if (fields instanceof IncludeFields) {
             // 导入型字段列表
@@ -455,7 +461,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
                 throw new ServiceException(DbErrorCode.DB_INCLUDE_FIELDS_IS_EMPTY);
             } else {
                 // 以白名单方式生成在列表中指定的字段
-                SqlBuffer buffer = doBuildSpecialFieldsSql(items, true, columnAlias);
+                SqlBuffer buffer = doBuildSpecialFieldsSql(scene, items, true, columnAlias);
                 // 如果是DistinctFields, SQL前面加上DISTINCT
                 if (fields instanceof DistinctFields) {
                     buffer.shortcut().pd("DISTINCT");
@@ -469,9 +475,37 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         }
     }
 
-    protected SqlBuffer doBuildAllFieldsSql(boolean columnAlias) {
+    /**
+     * 生成默认字段列表<br>
+     * 单表时与doBuildAllFieldsSql相同<br>
+     * 表关联时, 默认只生成指定了resultField的表字段<br>
+     * 例如此处查询角色下的用户, 只有SysUser指定了resultField<br>
+     * Fields.ALL只会查询SysUser的字段, 而不会查询SysUserRole的字段<br>
+     * <pre>
+     * TableJoin tables = new TableJoin(SysUserRole.class, "ur")
+     *     .innerJoin(SysUser.class, "u", "this")
+     *     .on("u.id", "=", "ur.userId")
+     *     .end();</pre>
+     * 
+     * @param scene 字段使用场景
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     */
+    protected SqlBuffer doBuildDefFieldsSql(FieldScene scene, boolean columnAlias) {
+        return doBuildAllFieldsSql(scene, columnAlias);
+    }
+
+    /**
+     * 生成全部字段列表
+     * 
+     * @param scene 字段使用场景
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     */
+    protected SqlBuffer doBuildAllFieldsSql(FieldScene scene, boolean columnAlias) {
         SqlBuilder buffer = new SqlBuilder();
-        for (SimpleFieldColumn item : this.columns.items()) {
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        for (SimpleFieldColumn item : fieldColumns) {
             if (!buffer.isEmpty()) {
                 buffer.ad(',');
             }
@@ -480,18 +514,29 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
         return buffer.out();
     }
 
-    protected SqlBuffer doBuildSpecialFieldsSql(Collection<String> fields, boolean isWhitelist, boolean columnAlias)
-            throws UnsupportedFieldException {
+    /**
+     * 生成指定字段列表
+     * 
+     * @param scene 字段使用场景
+     * @param fields 指定的字段名
+     * @param isWhitelist 是白名单方式还是黑名单方式
+     * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
+     * @return 字段列表SQL片段
+     * @throws UnsupportedFieldException 存在不支持的字段
+     */
+    protected SqlBuffer doBuildSpecialFieldsSql(FieldScene scene, Collection<String> fields, boolean isWhitelist,
+            boolean columnAlias) throws UnsupportedFieldException {
         VerifyTools.requireNotBlank(fields, "fields");
 
         // 检查字段名
-        checkSupportedFields(fields, "build field sql");
+        checkSupportedFields(scene, fields, "build field sql");
         // 字段名映射表
         Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
         SqlBuilder buffer = new SqlBuilder();
-        for (SimpleFieldColumn item : this.columns.items()) {
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        for (SimpleFieldColumn item : fieldColumns) {
             if (fieldMap.containsKey(item.getFieldName()) == isWhitelist) {
                 if (!buffer.isEmpty()) {
                     buffer.ad(',');
@@ -509,11 +554,28 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public void checkSupportedFields(Collection<String> fields, String desc) {
+    public void checkSupportedFields(FieldScene scene, Collection<String> fields, String desc) {
         // 不支持的字段名列表
         List<String> unsupported = new ArrayList<String>();
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        FieldColumns<? extends SimpleFieldColumn> conditionColumns = this.columns.filter(FieldScene.CONDITION);
         for (String fieldName : fields) {
-            if (!containsField(fieldName)) {
+            if (fieldColumns.containsByFieldName(fieldName)) {
+                continue;
+            }
+            if (scene == FieldScene.INSERT) {
+                if (conditionColumns.containsByFieldName(fieldName)) {
+                    unsupported.add(fieldName + '#' + "NonInsertable");
+                } else {
+                    unsupported.add(fieldName);
+                }
+            } else if (scene == FieldScene.UPDATE) {
+                if (conditionColumns.containsByFieldName(fieldName)) {
+                    unsupported.add(fieldName + '#' + "NonUpdatable");
+                } else {
+                    unsupported.add(fieldName);
+                }
+            } else {
                 unsupported.add(fieldName);
             }
         }
@@ -531,33 +593,25 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public boolean containsField(String fieldName) {
-        if (VerifyTools.isBlank(fieldName) || VerifyTools.isBlank(columns)) {
+    public boolean containsField(FieldScene scene, String fieldName) {
+        if (VerifyTools.isBlank(fieldName)) {
             return false;
         }
-        for (SimpleFieldColumn item : this.columns.items()) {
-            if (item.matchesByFieldName(fieldName)) {
-                return true;
-            }
-        }
-        return false;
+        return this.columns.filter(scene).containsByFieldName(fieldName);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public List<String> getFieldNames() {
-        List<String> list = new ArrayList<>();
-        for (SimpleFieldColumn item : this.columns.items()) {
-            list.add(item.toTableFieldName());
-        }
-        return list;
+    public List<String> getFieldNames(FieldScene scene) {
+        return this.columns.filter(scene).getFieldNames();
     }
 
     /** {@inheritDoc} **/
     @Override
-    public List<String> getColumnNames() {
+    public List<String> getColumnNames(FieldScene scene) {
         List<String> list = new ArrayList<>();
-        for (SimpleFieldColumn item : this.columns.items()) {
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        for (SimpleFieldColumn item : fieldColumns) {
             list.add(item.toTableColumnName());
         }
         return list;
@@ -565,14 +619,16 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName) throws UnsupportedFieldException {
-        return getColumnName(fieldName, true);
+    public String getColumnName(FieldScene scene, String fieldName) throws UnsupportedFieldException {
+        return getColumnName(scene, fieldName, true);
     }
 
     /** {@inheritDoc} **/
     @Override
-    public String getColumnName(String fieldName, boolean throwOnUnsupportedField) throws UnsupportedFieldException {
-        for (SimpleFieldColumn item : this.columns.items()) {
+    public String getColumnName(FieldScene scene, String fieldName, boolean throwOnUnsupportedField)
+            throws UnsupportedFieldException {
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(scene);
+        for (SimpleFieldColumn item : fieldColumns) {
             if (item.matchesByFieldName(fieldName)) {
                 return item.toTableColumnName();
             }

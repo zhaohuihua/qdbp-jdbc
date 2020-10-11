@@ -187,7 +187,12 @@ public class SpringMapToBeanConverter
 
     @Override
     public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
-        return sourceType.isMap() || sourceType.getObjectType() == String.class;
+        if (targetType.getObjectType().getClass().getName().startsWith("java")) {
+            // 目标对象是JavaBean, 但是普通的JavaBean没有显著特征可以区分, 只简单的过滤掉java包中的类
+            return false;
+        } else {
+            return sourceType.isMap() || sourceType.getObjectType() == String.class;
+        }
     }
 
     @Override
@@ -199,6 +204,8 @@ public class SpringMapToBeanConverter
             @SuppressWarnings("unchecked")
             Map<String, ?> map = (Map<String, ?>) source;
             return convert(map, targetType.getType());
+        } else if (sourceType.getObjectType() == Object.class) {
+            return source;
         } else if (sourceType.getObjectType() == String.class) {
             if (targetType.getObjectType() == String.class) {
                 return (String) source;

@@ -11,7 +11,8 @@ import com.gitee.qdbp.able.jdbc.base.UpdateCondition;
 import com.gitee.qdbp.able.jdbc.condition.DbField;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.jdbc.exception.UnsupportedFieldException;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldColumns;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.operator.DbBaseOperator;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
@@ -32,11 +33,11 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     private final Class<?> clazz;
     private final String tableName;
-    private final PrimaryKeyFieldColumn primaryKey;
+    private final SimpleFieldColumn primaryKey;
 
     /** 构造函数 **/
     public TableCrudFragmentHelper(Class<?> clazz, SqlDialect dialect) {
-        super(DbTools.parseToAllFieldColumn(clazz), dialect);
+        super(DbTools.parseAllFieldColumns(clazz), dialect);
         this.clazz = clazz;
         this.tableName = DbTools.parseTableName(clazz);
         this.primaryKey = DbTools.parsePrimaryKey(clazz);
@@ -62,13 +63,14 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         VerifyTools.requireNotBlank(entity, "entity");
 
         // 检查字段名
-        checkSupportedFields(fields, "insert values sql");
+        checkSupportedFields(FieldScene.INSERT, fields, "insert values sql");
         // 字段名映射表
         Map<String, ?> fieldMap = ConvertTools.toMap(fields);
 
         // 根据列顺序生成SQL
         SqlBuilder buffer = new SqlBuilder();
-        for (SimpleFieldColumn item : this.columns.items()) {
+        FieldColumns<? extends SimpleFieldColumn> fieldColumns = this.columns.filter(FieldScene.INSERT);
+        for (SimpleFieldColumn item : fieldColumns) {
             if (!fieldMap.containsKey(item.getFieldName())) {
                 continue;
             }
@@ -134,7 +136,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
         if (VerifyTools.isBlank(fieldName)) {
             throw ufe("build update sql", "fieldName:MustNotBe" + (fieldName == null ? "Null" : "Empty"));
         }
-        String columnName = getColumnName(fieldName);
+        String columnName = getColumnName(FieldScene.UPDATE, fieldName);
 
         // 查找Update运算符处理类
         DbBaseOperator operator = DbTools.getUpdateOperator(operateType);
@@ -187,7 +189,7 @@ public class TableCrudFragmentHelper extends TableQueryFragmentHelper implements
 
     /** {@inheritDoc} **/
     @Override
-    public PrimaryKeyFieldColumn getPrimaryKey() {
+    public SimpleFieldColumn getPrimaryKey() {
         return primaryKey;
     }
 

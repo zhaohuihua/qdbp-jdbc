@@ -4,6 +4,7 @@ import java.util.Map;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
+import com.gitee.qdbp.jdbc.model.FieldScene;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -49,7 +50,7 @@ public class EntityFieldFillExecutor {
         if (VerifyTools.isBlank(logicalDeleteField)) {
             return false;
         } else {
-            return allFields.containsByFieldName(logicalDeleteField);
+            return allFields.filter(FieldScene.UPDATE).containsByFieldName(logicalDeleteField);
         }
     }
 

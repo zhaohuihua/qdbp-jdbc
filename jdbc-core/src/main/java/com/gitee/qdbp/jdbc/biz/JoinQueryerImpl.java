@@ -42,7 +42,7 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
     }
 
     private static EntityFieldFillExecutor newEntityFieldFillExecutor(TableJoin tables) {
-        AllFieldColumn<?> allFields = DbTools.parseToAllFieldColumn(tables);
+        AllFieldColumn<?> allFields = DbTools.parseAllFieldColumns(tables);
         if (allFields.isEmpty()) {
             throw new IllegalArgumentException("fields is empty");
         }

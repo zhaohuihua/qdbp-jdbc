@@ -8,7 +8,8 @@ import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
 import com.gitee.qdbp.jdbc.model.DbVersion;
-import com.gitee.qdbp.jdbc.model.PrimaryKeyFieldColumn;
+import com.gitee.qdbp.jdbc.model.OmitStrategy;
+import com.gitee.qdbp.jdbc.model.SimpleFieldColumn;
 import com.gitee.qdbp.jdbc.plugins.BatchInsertExecutor;
 import com.gitee.qdbp.jdbc.plugins.BatchUpdateExecutor;
 import com.gitee.qdbp.jdbc.plugins.DbConditionConverter;
@@ -71,6 +72,8 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     public List<String> inserts(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         SqlBuilder sql = new SqlBuilder();
         List<String> ids = new ArrayList<>();
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
         int size = entities.size();
         for (int i = 0; i < size; i++) {
             PkEntity item = entities.get(i);
@@ -79,7 +82,9 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
             ids.add(id);
             if (i > 0) {
                 sql.ad('\n');
-                sql.omit(i, size); // 插入省略标记
+                if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                    sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+                }
             }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildInsertSql(entity);
@@ -102,8 +107,10 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
     @Override
     public int updates(List<PkEntity> entities, SqlBufferJdbcOperations jdbc, CrudSqlBuilder sqlBuilder) {
         // 查找主键(批量更新必须要有主键)
-        PrimaryKeyFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
+        SimpleFieldColumn pk = sqlBuilder.helper().getPrimaryKey();
         DbConditionConverter converter = DbTools.getDbConditionConverter();
+        // 获取批量操作语句的省略策略配置项
+        OmitStrategy omits = DbTools.getOmitSizeConfig("qdbc.batch.sql.omitStrategy", "8:3");
         SqlBuilder sql = new SqlBuilder();
         int size = entities.size();
         for (int i = 0; i < size; i++) {
@@ -117,7 +124,9 @@ public class BatchOperateByMultiSqlExecutor implements BatchInsertExecutor, Batc
             DbUpdate ud = converter.parseMapToDbUpdate(entity);
             if (i > 0) {
                 sql.ad('\n');
-                sql.omit(i, size); // 插入省略标记
+                if (omits.getMinSize() > 0 && size > omits.getMinSize()) {
+                    sql.omit(i, size, omits.getKeepSize()); // 插入省略标记
+                }
             }
             // 拼接SQL
             SqlBuffer temp = sqlBuilder.buildUpdateSql(ud, where);

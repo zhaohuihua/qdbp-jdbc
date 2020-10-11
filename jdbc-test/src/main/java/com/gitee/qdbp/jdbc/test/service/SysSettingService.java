@@ -77,17 +77,34 @@ public class SysSettingService {
         return list;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void clearAllRecord() {
+        {
+            CrudDao<SysSettingEntity> dao = qdbcBoot.buildCrudDao(SysSettingEntity.class);
+            dao.physicalDelete(DbWhere.NONE);
+        }
+        {
+            CrudDao<SysLoggerEntity> dao = qdbcBoot.buildCrudDao(SysLoggerEntity.class);
+            dao.physicalDelete(DbWhere.NONE);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public String createSetting(SysSettingEntity entity) {
+        return createSetting(entity, 0, TestModel.skipLogging);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public String createSetting(SysSettingEntity entity, long sleepMills) {
         return createSetting(entity, sleepMills, TestModel.skipLogging);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+    @Transactional(propagation = Propagation.REQUIRED)
     public String createSetting(SysSettingEntity entity, TestModel testModel) {
         return createSetting(entity, 0, testModel);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+    @Transactional(propagation = Propagation.REQUIRED)
     public String createSetting(SysSettingEntity entity, long sleepMills, TestModel testModel) {
         // 新增数据
         log.debug("Before insert setting");
