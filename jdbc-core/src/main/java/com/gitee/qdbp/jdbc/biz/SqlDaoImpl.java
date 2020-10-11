@@ -56,8 +56,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> T findForObject(String sqlId, Object params, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.queryForObject(buffer, resultType);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.queryForObject(sql, resultType);
     }
 
     @Override
@@ -68,8 +68,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> T findForObject(String sqlId, Object params, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.queryForObject(buffer, rowMapper);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.queryForObject(sql, rowMapper);
     }
 
     @Override
@@ -80,8 +80,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public Map<String, Object> findForMap(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.queryForMap(buffer);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.queryForMap(sql);
     }
 
     @Override
@@ -92,8 +92,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> List<T> listForObjects(String sqlId, Object params, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.queryForList(buffer, resultType);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.queryForList(sql, resultType);
     }
 
     @Override
@@ -104,8 +104,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> List<T> listForObjects(String sqlId, Object params, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.query(buffer, rowMapper);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.query(sql, rowMapper);
     }
 
     @Override
@@ -116,8 +116,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public List<Map<String, Object>> listForMaps(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.queryForList(buffer);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.queryForList(sql);
     }
 
     @Override
@@ -128,12 +128,12 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
         if (paging.isNeedCount()) {
-            total = jdbc.countByQuerySql(buffer);
+            total = jdbc.countByQuerySql(sql);
             paging.setTotal(total);
         }
         // 再查询数据列表
@@ -143,9 +143,9 @@ public class SqlDaoImpl implements SqlDao {
         } else {
             SqlDialect dialect = jdbc.findSqlDialect();
             // 处理分页
-            dialect.processPagingSql(buffer, paging);
+            dialect.processPagingSql(sql, paging);
             // 查询数据列表
-            list = jdbc.queryForList(buffer, resultType);
+            list = jdbc.queryForList(sql, resultType);
         }
         return new PageList<>(list, total == null ? list.size() : total);
     }
@@ -158,12 +158,12 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
         if (paging.isNeedCount()) {
-            total = jdbc.countByQuerySql(buffer);
+            total = jdbc.countByQuerySql(sql);
             paging.setTotal(total);
         }
         // 再查询数据列表
@@ -173,9 +173,9 @@ public class SqlDaoImpl implements SqlDao {
         } else {
             SqlDialect dialect = jdbc.findSqlDialect();
             // 处理分页
-            dialect.processPagingSql(buffer, paging);
+            dialect.processPagingSql(sql, paging);
             // 查询数据列表
-            list = jdbc.query(buffer, rowMapper);
+            list = jdbc.query(sql, rowMapper);
         }
         return new PageList<>(list, total == null ? list.size() : total);
     }
@@ -188,12 +188,12 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
         if (paging.isNeedCount()) {
-            total = jdbc.countByQuerySql(buffer);
+            total = jdbc.countByQuerySql(sql);
             paging.setTotal(total);
         }
         // 再查询数据列表
@@ -203,9 +203,104 @@ public class SqlDaoImpl implements SqlDao {
         } else {
             SqlDialect dialect = jdbc.findSqlDialect();
             // 处理分页
-            dialect.processPagingSql(buffer, paging);
+            dialect.processPagingSql(sql, paging);
             // 查询数据列表
-            list = jdbc.queryForList(buffer);
+            list = jdbc.queryForList(sql);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, Class<T> resultType) {
+        return pageForObjects(queryId, countId, null, paging, resultType);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging,
+            Class<T> resultType) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer querySql = container.render(queryId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            SqlBuffer countSql = container.render(countId, map, dialect);
+            total = jdbc.queryForObject(countSql, Integer.class);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<T> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(querySql, paging);
+            // 查询数据列表
+            list = jdbc.queryForList(querySql, resultType);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, RowMapper<T> rowMapper) {
+        return pageForObjects(queryId, countId, null, paging, rowMapper);
+    }
+
+    @Override
+    public <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging,
+            RowMapper<T> rowMapper) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer querySql = container.render(queryId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            SqlBuffer countSql = container.render(countId, map, dialect);
+            total = jdbc.queryForObject(countSql, Integer.class);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<T> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<T>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(querySql, paging);
+            // 查询数据列表
+            list = jdbc.query(querySql, rowMapper);
+        }
+        return new PageList<>(list, total == null ? list.size() : total);
+    }
+
+    @Override
+    public PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Paging paging) {
+        return pageForMaps(queryId, countId, null, paging);
+    }
+
+    @Override
+    public PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Object params, Paging paging) {
+        Map<String, Object> map = params == null ? null : beanToMap(params);
+        SqlBuffer querySql = container.render(queryId, map, dialect);
+
+        // 先查询总数据量
+        Integer total = paging.getTotal();
+        if (paging.isNeedCount()) {
+            SqlBuffer countSql = container.render(countId, map, dialect);
+            total = jdbc.queryForObject(countSql, Integer.class);
+            paging.setTotal(total);
+        }
+        // 再查询数据列表
+        List<Map<String, Object>> list;
+        if (total != null && total == 0) {
+            list = new ArrayList<Map<String, Object>>(); // 已知无数据, 不需要再查询
+        } else {
+            SqlDialect dialect = jdbc.findSqlDialect();
+            // 处理分页
+            dialect.processPagingSql(querySql, paging);
+            // 查询数据列表
+            list = jdbc.queryForList(querySql);
         }
         return new PageList<>(list, total == null ? list.size() : total);
     }
@@ -218,8 +313,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public int insert(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.insert(buffer);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.insert(sql);
     }
 
     @Override
@@ -230,8 +325,8 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public int update(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.update(buffer);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.update(sql);
     }
 
     @Override
@@ -242,8 +337,13 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public int delete(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer buffer = container.render(sqlId, map, dialect);
-        return jdbc.delete(buffer);
+        SqlBuffer sql = container.render(sqlId, map, dialect);
+        return jdbc.delete(sql);
+    }
+
+    @Override
+    public boolean existSqlTemplate(String sqlId) {
+        return container.exist(sqlId, dialect.getDbVersion().getDbType());
     }
 
     @Override

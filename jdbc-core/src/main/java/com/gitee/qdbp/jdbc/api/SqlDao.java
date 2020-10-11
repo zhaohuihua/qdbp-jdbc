@@ -200,6 +200,78 @@ public interface SqlDao {
     PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging);
 
     /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param paging 分页对象
+     * @param resultType 结果类型
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, Class<T> resultType);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @param resultType 结果类型
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging, Class<T> resultType);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param paging 分页对象
+     * @param rowMapper 结果转换类
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, RowMapper<T> rowMapper);
+
+    /**
+     * 分页查询数据列表
+     * 
+     * @param <T> 对象类型
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @param rowMapper 结果转换类
+     * @return 查询结果列表
+     */
+    <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging,
+            RowMapper<T> rowMapper);
+
+    /**
+     * 分页查询数据列表, 结果为Map列表
+     * 
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param paging 分页对象
+     * @return Map列表
+     */
+    PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Paging paging);
+
+    /**
+     * 分页查询数据列表, 结果为Map列表
+     * 
+     * @param queryId 查询语句的SqlId
+     * @param countId 统计语句的SqlId
+     * @param params 查询参数
+     * @param paging 分页对象
+     * @return Map列表
+     */
+    PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Object params, Paging paging);
+
+    /**
      * 执行插入语句
      * 
      * @param sqlId SqlId
@@ -249,6 +321,14 @@ public interface SqlDao {
      * @return 影响行数
      */
     int delete(String sqlId, Object params);
+
+    /**
+     * 是否存在指定的SQL模板
+     * 
+     * @param sqlId SqlId
+     * @return 是否存在
+     */
+    public boolean existSqlTemplate(String sqlId);
 
     /**
      * 获取SQL内容
