@@ -11,13 +11,17 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
+import com.gitee.qdbp.able.jdbc.ordering.OrderPaging;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
+import com.gitee.qdbp.able.jdbc.paging.PageList;
+import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.test.enums.Gender;
 import com.gitee.qdbp.jdbc.test.enums.UserSource;
 import com.gitee.qdbp.jdbc.test.enums.UserState;
 import com.gitee.qdbp.jdbc.test.enums.UserType;
+import com.gitee.qdbp.jdbc.test.model.RoleIdUserResult;
 import com.gitee.qdbp.jdbc.test.model.SysRoleEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserEntity;
 import com.gitee.qdbp.jdbc.test.model.SysUserRoleEntity;
@@ -45,12 +49,12 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         CrudDao<SysUserEntity> dao = qdbcBoot.buildCrudDao(SysUserEntity.class);
         { // 清理用户数据
             DbWhere where = new DbWhere();
-            where.on("tenantCode", "=", "userroles");
+            where.on("tenantCode", "=", "userrole");
             dao.physicalDelete(where);
         }
         { // 新增用户数据
             SysUserEntity entity = new SysUserEntity();
-            entity.setTenantCode("userroles");
+            entity.setTenantCode("userrole");
             entity.setSuperman(false);
             entity.setDeptCode("0");
             entity.setGender(Gender.FEMALE);
@@ -72,12 +76,12 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         CrudDao<SysRoleEntity> dao = qdbcBoot.buildCrudDao(SysRoleEntity.class);
         { // 清理角色数据
             DbWhere where = new DbWhere();
-            where.on("tenantCode", "=", "userroles");
+            where.on("tenantCode", "=", "userrole");
             dao.physicalDelete(where);
         }
         { // 新增角色数据
             SysRoleEntity entity = new SysRoleEntity();
-            entity.setTenantCode("userroles"); // 租户编号
+            entity.setTenantCode("userrole"); // 租户编号
             entity.setUserType(UserType.USER); // 用户类型
             entity.setDefaults(false);
             List<SysRoleEntity> entities = new ArrayList<>();
@@ -110,18 +114,28 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         return dao.inserts(entities);
     }
 
+    ///////////////////////////////////////////////
+    // 查询用户所分配的角色
+    ///////////////////////////////////////////////
+
     @Test
     public void testGetUserRolesQuerySql11() throws IOException {
         String userId = "U0000001";
         List<SysRoleEntity> list = userService.getUserRoles(userId, DbWhere.NONE, Orderings.NONE);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 2;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
     @Test
     public void testGetUserRolesQuerySql12() throws IOException {
         List<String> userIds = Arrays.asList("U0000001", "U0000002", "U0000008");
         List<UserIdRoleResult> list = userService.getUserRoles(userIds, DbWhere.NONE, Orderings.NONE);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 22;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
     @Test
@@ -129,7 +143,10 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         String userId = "U0000001";
         Orderings orderings = Orderings.of("ur.userId, r.id");
         List<SysRoleEntity> list = userService.getUserRoles(userId, DbWhere.NONE, orderings);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 2;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
     @Test
@@ -137,27 +154,121 @@ public class SqlTemplateUserRolesQueryTest extends AbstractTestNGSpringContextTe
         List<String> userIds = Arrays.asList("U0000001", "U0000002", "U0000008");
         Orderings orderings = Orderings.of("ur.userId, r.id");
         List<UserIdRoleResult> list = userService.getUserRoles(userIds, DbWhere.NONE, orderings);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 22;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
     @Test
     public void testGetUserRolesQuerySql31() throws IOException {
         String userId = "U0000001";
         DbWhere where = new DbWhere();
-        where.on("r.defaults", "=", false);
+        where.on("r.tenantCode", "=", "userrole");
         Orderings orderings = Orderings.of("ur.userId, r.id");
         List<SysRoleEntity> list = userService.getUserRoles(userId, where, orderings);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 2;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
     @Test
     public void testGetUserRolesQuerySql32() throws IOException {
         List<String> userIds = Arrays.asList("U0000001", "U0000002", "U0000008");
         DbWhere where = new DbWhere();
-        where.on("r.defaults", "=", false);
+        where.on("r.tenantCode", "=", "userrole");
         Orderings orderings = Orderings.of("ur.userId, r.id");
         List<UserIdRoleResult> list = userService.getUserRoles(userIds, where, orderings);
-        Assert.assertTrue(list.size() > 0, "SysUserService.getUserRoles");
+
+        // 用户1有2个角色, 2有4个, 3=6, 4=8, ...
+        int size = 22;
+        Assert.assertTrue(list.size() == size, "SysUserService.getUserRoles");
     }
 
+    ///////////////////////////////////////////////
+    // 查询角色下的用户, 分页查询
+    ///////////////////////////////////////////////
+
+    @Test
+    public void testGetRoleUsersQuerySql11() throws IOException {
+        String roleId = "R0000001";
+        OrderPaging odpg = OrderPaging.of(new Paging(1, 5));
+        PageList<SysUserEntity> list = userService.getRoleUsers(roleId, DbWhere.NONE, odpg);
+
+        // 角色1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 5;
+        int total = 10;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
+
+    @Test
+    public void testGetRoleUsersQuerySql12() throws IOException {
+        List<String> roleIds = Arrays.asList("R0000001", "R0000002", "R0000008");
+        OrderPaging odpg = OrderPaging.of(new Paging(3, 10));
+        PageList<RoleIdUserResult> list = userService.getRoleUsers(roleIds, DbWhere.NONE, odpg);
+
+        // 角色1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 7;
+        int total = 27;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
+
+    @Test
+    public void testGetRoleUsersQuerySql21() throws IOException {
+        String roleId = "R0000001";
+        OrderPaging odpg = OrderPaging.of(new Paging(1, 5), "ur.roleId, u.id");
+        PageList<SysUserEntity> list = userService.getRoleUsers(roleId, DbWhere.NONE, odpg);
+
+        // 角色1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 5;
+        int total = 10;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
+
+    @Test
+    public void testGetRoleUsersQuerySql22() throws IOException {
+        List<String> roleIds = Arrays.asList("R0000001", "R0000002", "R0000008");
+        OrderPaging odpg = OrderPaging.of(new Paging(3, 10), "ur.roleId, u.id");
+        PageList<RoleIdUserResult> list = userService.getRoleUsers(roleIds, DbWhere.NONE, odpg);
+
+        // 1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 7;
+        int total = 27;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
+
+    @Test
+    public void testGetRoleUsersQuerySql31() throws IOException {
+        String roleId = "R0000001";
+        DbWhere where = new DbWhere();
+        where.on("u.tenantCode", "=", "userrole");
+        OrderPaging odpg = OrderPaging.of(new Paging(1, 5), "ur.roleId, u.id");
+        PageList<SysUserEntity> list = userService.getRoleUsers(roleId, where, odpg);
+
+        // 1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 5;
+        int total = 10;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
+
+    @Test
+    public void testGetRoleUsersQuerySql32() throws IOException {
+        List<String> roleIds = Arrays.asList("R0000001", "R0000002", "R0000008");
+        DbWhere where = new DbWhere();
+        where.on("u.tenantCode", "=", "userrole");
+        OrderPaging odpg = OrderPaging.of(new Paging(3, 10), "ur.roleId, u.id");
+        PageList<RoleIdUserResult> list = userService.getRoleUsers(roleIds, where, odpg);
+
+        // 1/2分别有10个用户, 3/4=9, 5/6=8, 7/8=7, ..., 19/20=1
+        int size = 7;
+        int total = 27;
+        Assert.assertTrue(list.size() == size, "SysUserService.getRoleUsers[result.size]");
+        Assert.assertTrue(list.getTotal() == total, "SysUserService.getRoleUsers[result.total]");
+    }
 }
