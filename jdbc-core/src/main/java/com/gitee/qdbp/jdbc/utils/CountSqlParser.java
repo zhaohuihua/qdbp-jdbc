@@ -26,6 +26,7 @@ package com.gitee.qdbp.jdbc.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.gitee.qdbp.tools.utils.IndentTools;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -63,8 +64,8 @@ public class CountSqlParser {
     /**
      * 获取智能的countSql
      *
-     * @param sql
-     * @return
+     * @param sql 原查询SQL
+     * @return 返回count查询sql
      */
     public String getSmartCountSql(String sql) {
         return getSmartCountSql(sql, "0");
@@ -73,9 +74,9 @@ public class CountSqlParser {
     /**
      * 获取智能的countSql
      *
-     * @param sql
-     * @param name 列名，默认 0
-     * @return
+     * @param sql 原查询SQL
+     * @param name 查询列名，默认 0
+     * @return 返回count查询sql
      */
     public String getSmartCountSql(String sql, String name) {
         //解析SQL
@@ -121,22 +122,24 @@ public class CountSqlParser {
      * 获取普通的Count-sql
      *
      * @param sql 原查询sql
+     * @param name 查询列名，默认 0
      * @return 返回count查询sql
      */
     public String getSimpleCountSql(final String sql, String name) {
         StringBuilder stringBuilder = new StringBuilder(sql.length() + 40);
-        stringBuilder.append("SELECT COUNT(");
-        stringBuilder.append(name);
-        stringBuilder.append(") FROM (");
-        stringBuilder.append(sql);
-        stringBuilder.append(") TMP_COUNT");
+        stringBuilder.append("SELECT").append(' ');
+        stringBuilder.append("COUNT").append('(').append(name).append(')').append(' ');
+        stringBuilder.append("FROM").append(' ').append('(').append('\n');
+        stringBuilder.append(IndentTools.indentAll(sql, 1));
+        stringBuilder.append('\n').append(')').append(' ').append("TMP_COUNT");
         return stringBuilder.toString();
     }
 
     /**
      * 将sql转换为count查询
      *
-     * @param select
+     * @param select 查询语句
+     * @param name 查询列名，默认 0
      */
     public void sqlToCount(Select select, String name) {
         SelectBody selectBody = select.getSelectBody();
@@ -159,8 +162,8 @@ public class CountSqlParser {
     /**
      * 是否可以用简单的count查询方式
      *
-     * @param select
-     * @return
+     * @param select 查询语句
+     * @return 是否可以转换为简单的count查询方式
      */
     public boolean isSimpleCount(PlainSelect select) {
         //包含group by的时候不可以
@@ -189,7 +192,7 @@ public class CountSqlParser {
     /**
      * 处理selectBody去除Order by
      *
-     * @param selectBody
+     * @param selectBody 查询体
      */
     public void processSelectBody(SelectBody selectBody) {
         if (selectBody instanceof PlainSelect) {
@@ -216,7 +219,7 @@ public class CountSqlParser {
     /**
      * 处理PlainSelect类型的selectBody
      *
-     * @param plainSelect
+     * @param plainSelect PlainSelect类型的selectBody
      */
     public void processPlainSelect(PlainSelect plainSelect) {
         if (!orderByHashParameters(plainSelect.getOrderByElements())) {
@@ -238,7 +241,7 @@ public class CountSqlParser {
     /**
      * 处理WithItem
      *
-     * @param withItemsList
+     * @param withItemsList With内容
      */
     public void processWithItemsList(List<WithItem> withItemsList) {
         if (withItemsList != null && withItemsList.size() > 0) {
@@ -251,7 +254,7 @@ public class CountSqlParser {
     /**
      * 处理子查询
      *
-     * @param fromItem
+     * @param fromItem From内容
      */
     public void processFromItem(FromItem fromItem) {
         if (fromItem instanceof SubJoin) {
@@ -288,8 +291,8 @@ public class CountSqlParser {
     /**
      * 判断Orderby是否包含参数，有参数的不能去
      *
-     * @param orderByElements
-     * @return
+     * @param orderByElements OrderBy排序项
+     * @return 是否包含参数
      */
     public boolean orderByHashParameters(List<OrderByElement> orderByElements) {
         if (orderByElements == null) {
