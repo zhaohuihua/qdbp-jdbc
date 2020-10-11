@@ -420,19 +420,19 @@ public abstract class DbTools {
      */
     public static AllFieldColumn<SimpleFieldColumn> parseAllFieldColumns(Class<?> clazz) {
         VerifyTools.requireNonNull(clazz, "class");
-        AllFieldColumn<SimpleFieldColumn> all;
         if (entityColumnsCache.containsKey(clazz)) {
-            all = entityColumnsCache.get(clazz);
+            return entityColumnsCache.get(clazz);
         } else {
             TableInfoScans scans = DbPluginContainer.defaults().getTableInfoScans();
             List<SimpleFieldColumn> fields = scans.scanColumnList(clazz);
-            all = new AllFieldColumn<>(fields);
+            if (fields.isEmpty()) {
+                String m = "Fields not found, please check config of TableInfoScans, class=" + clazz.getName();
+                throw new IllegalArgumentException(m);
+            }
+
+            AllFieldColumn<SimpleFieldColumn> all = new AllFieldColumn<>(fields);
             entityColumnsCache.put(clazz, all);
+            return all;
         }
-        if (all.isEmpty()) {
-            String m = "Fields not found, please check config of TableInfoScans, class=" + clazz.getName();
-            throw new IllegalArgumentException(m);
-        }
-        return all;
     }
 }
