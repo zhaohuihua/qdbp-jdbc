@@ -13,6 +13,7 @@ import com.gitee.qdbp.staticize.tags.base.CachingTag;
  * 
  * @author zhaohuihua
  * @version 20200906
+ * @since 3.2.0
  */
 public abstract class SqlCachingTag extends CachingTag<SqlCachingWriter> {
 

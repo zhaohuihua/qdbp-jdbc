@@ -260,7 +260,7 @@ public interface SqlBufferJdbcOperations {
      * 执行SQL脚本
      * 
      * @param sqlFilePath SQL文件路径
-     * @since 3.1.0
+     * @since 3.2.0
      */
     void executeSqlScript(URL sqlFilePath);
 

@@ -5,6 +5,7 @@ package com.gitee.qdbp.jdbc.tags;
  *
  * @author zhaohuihua
  * @version 20200906
+ * @since 3.2.0
  */
 public class WhereTag extends TrimBase {
 

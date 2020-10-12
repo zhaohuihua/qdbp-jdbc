@@ -13,6 +13,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  *
  * @author zhaohuihua
  * @version 20200906
+ * @since 3.2.0
  */
 public abstract class TrimBase extends SqlCachingTag {
 

@@ -10,6 +10,7 @@ import com.gitee.qdbp.staticize.common.IWriter;
  *
  * @author zhaohuihua
  * @version 20200912
+ * @since 3.2.0
  */
 public class SqlCachingWriter implements IWriter {
 

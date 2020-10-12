@@ -29,6 +29,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  *
  * @author zhaohuihua
  * @version 20200817
+ * @since 3.2.0
  */
 class SqlFragmentParser {
 

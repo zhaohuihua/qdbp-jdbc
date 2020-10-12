@@ -51,6 +51,7 @@ import net.sf.jsqlparser.statement.select.WithItem;
  * sql解析类，提供更智能的count查询sql
  *
  * @author liuzh
+ * @since 3.2.0
  */
 public class CountSqlParser {
     public static final String KEEP_ORDERBY = "/*keep orderby*/";

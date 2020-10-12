@@ -26,6 +26,7 @@ import com.gitee.qdbp.tools.utils.ConvertTools;
  *
  * @author zhaohuihua
  * @version 20200830
+ * @since 3.2.0
  */
 public class SqlFragmentContainer {
 
