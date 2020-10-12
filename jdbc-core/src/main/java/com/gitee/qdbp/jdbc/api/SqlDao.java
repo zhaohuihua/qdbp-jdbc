@@ -213,7 +213,7 @@ public interface SqlDao {
     <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, Class<T> resultType);
 
     /**
-     * 分页查询数据列表
+     * 分页查询数据列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
      * 
      * @param <T> 对象类型
      * @param queryId 查询语句的SqlId
@@ -238,7 +238,7 @@ public interface SqlDao {
     <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, RowMapper<T> rowMapper);
 
     /**
-     * 分页查询数据列表
+     * 分页查询数据列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
      * 
      * @param <T> 对象类型
      * @param queryId 查询语句的SqlId
@@ -262,7 +262,7 @@ public interface SqlDao {
     PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Paging paging);
 
     /**
-     * 分页查询数据列表, 结果为Map列表
+     * 分页查询数据列表, 结果为Map列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
      * 
      * @param queryId 查询语句的SqlId
      * @param countId 统计语句的SqlId
