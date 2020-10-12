@@ -19,7 +19,7 @@ public class EntityTools {
         return Arrays.asList("D0000001", "D0000005", "D0000012");
     }
 
-    /** 生成部门数据权限查询条件 **/
+    /** 生成机构数据权限查询条件 **/
     public static SqlBuffer buildOrgDataPermission(String orgColumn, SqlDialect dialect) {
         List<String> orgIds = getCurrOrgIdsFromSession();
         return SqlTools.buildInSql(orgColumn, orgIds, dialect);
