@@ -22,17 +22,7 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param resultType 结果类型
-     * @return 查询结果对象
-     */
-    <T> T findForObject(String sqlId, Class<T> resultType);
-
-    /**
-     * 查询对象
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @param resultType 结果类型
      * @return 查询结果对象
      */
@@ -43,17 +33,7 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param rowMapper 结果转换类
-     * @return 查询结果对象
-     */
-    <T> T findForObject(String sqlId, RowMapper<T> rowMapper);
-
-    /**
-     * 查询对象
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @param rowMapper 结果转换类
      * @return 查询结果对象
      */
@@ -63,15 +43,7 @@ public interface SqlDao {
      * 查询数据, 结果为Map结构
      * 
      * @param sqlId SqlId
-     * @return Map结果
-     */
-    Map<String, Object> findForMap(String sqlId);
-
-    /**
-     * 查询数据, 结果为Map结构
-     * 
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @return Map结果
      */
     Map<String, Object> findForMap(String sqlId, Object params);
@@ -81,17 +53,7 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param resultType 结果类型
-     * @return 查询结果列表
-     */
-    <T> List<T> listForObjects(String sqlId, Class<T> resultType);
-
-    /**
-     * 查询列表
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @param resultType 结果类型
      * @return 查询结果列表
      */
@@ -102,17 +64,7 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param rowMapper 结果转换类
-     * @return 查询结果列表
-     */
-    <T> List<T> listForObjects(String sqlId, RowMapper<T> rowMapper);
-
-    /**
-     * 查询列表
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @param rowMapper 结果转换类
      * @return 查询结果列表
      */
@@ -122,15 +74,7 @@ public interface SqlDao {
      * 查询数据列表, 结果为Map列表
      * 
      * @param sqlId SqlId
-     * @return Map列表
-     */
-    List<Map<String, Object>> listForMaps(String sqlId);
-
-    /**
-     * 查询数据列表, 结果为Map列表
-     * 
-     * @param sqlId SqlId
-     * @param params 查询参数
+     * @param params 查询参数 (可为null)
      * @return Map列表
      */
     List<Map<String, Object>> listForMaps(String sqlId, Object params);
@@ -140,19 +84,8 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param paging 分页对象
-     * @param resultType 结果类型
-     * @return 查询结果列表
-     */
-    <T> PageList<T> pageForObjects(String sqlId, Paging paging, Class<T> resultType);
-
-    /**
-     * 分页查询数据列表
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @param resultType 结果类型
      * @return 查询结果列表
      */
@@ -163,19 +96,8 @@ public interface SqlDao {
      * 
      * @param <T> 对象类型
      * @param sqlId SqlId
-     * @param paging 分页对象
-     * @param rowMapper 结果转换类
-     * @return 查询结果列表
-     */
-    <T> PageList<T> pageForObjects(String sqlId, Paging paging, RowMapper<T> rowMapper);
-
-    /**
-     * 分页查询数据列表
-     * 
-     * @param <T> 对象类型
-     * @param sqlId SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @param rowMapper 结果转换类
      * @return 查询结果列表
      */
@@ -185,32 +107,11 @@ public interface SqlDao {
      * 分页查询数据列表, 结果为Map列表
      * 
      * @param sqlId SqlId
-     * @param paging 分页对象
-     * @return Map列表
-     */
-    PageList<Map<String, Object>> pageForMaps(String sqlId, Paging paging);
-
-    /**
-     * 分页查询数据列表, 结果为Map列表
-     * 
-     * @param sqlId SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @return Map列表
      */
     PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging);
-
-    /**
-     * 分页查询数据列表
-     * 
-     * @param <T> 对象类型
-     * @param queryId 查询语句的SqlId
-     * @param countId 统计语句的SqlId
-     * @param paging 分页对象
-     * @param resultType 结果类型
-     * @return 查询结果列表
-     */
-    <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, Class<T> resultType);
 
     /**
      * 分页查询数据列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
@@ -218,33 +119,21 @@ public interface SqlDao {
      * @param <T> 对象类型
      * @param queryId 查询语句的SqlId
      * @param countId 统计语句的SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @param resultType 结果类型
      * @return 查询结果列表
      */
     <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging, Class<T> resultType);
 
     /**
-     * 分页查询数据列表
-     * 
-     * @param <T> 对象类型
-     * @param queryId 查询语句的SqlId
-     * @param countId 统计语句的SqlId
-     * @param paging 分页对象
-     * @param rowMapper 结果转换类
-     * @return 查询结果列表
-     */
-    <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, RowMapper<T> rowMapper);
-
-    /**
      * 分页查询数据列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
      * 
      * @param <T> 对象类型
      * @param queryId 查询语句的SqlId
      * @param countId 统计语句的SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @param rowMapper 结果转换类
      * @return 查询结果列表
      */
@@ -252,22 +141,12 @@ public interface SqlDao {
             RowMapper<T> rowMapper);
 
     /**
-     * 分页查询数据列表, 结果为Map列表
-     * 
-     * @param queryId 查询语句的SqlId
-     * @param countId 统计语句的SqlId
-     * @param paging 分页对象
-     * @return Map列表
-     */
-    PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Paging paging);
-
-    /**
      * 分页查询数据列表, 结果为Map列表 (注意:查询SQL和统计SQL中包含的占位符参数必须完全一致)
      * 
      * @param queryId 查询语句的SqlId
      * @param countId 统计语句的SqlId
-     * @param params 查询参数
-     * @param paging 分页对象
+     * @param params 查询参数 (可为null)
+     * @param paging 分页参数
      * @return Map列表
      */
     PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Object params, Paging paging);
@@ -276,15 +155,7 @@ public interface SqlDao {
      * 执行插入语句
      * 
      * @param sqlId SqlId
-     * @return 影响行数
-     */
-    int insert(String sqlId);
-
-    /**
-     * 执行插入语句
-     * 
-     * @param sqlId SqlId
-     * @param params Sql参数
+     * @param params Sql参数 (可为null)
      * @return 影响行数
      */
     int insert(String sqlId, Object params);
@@ -293,15 +164,7 @@ public interface SqlDao {
      * 执行更新语句
      * 
      * @param sqlId SqlId
-     * @return 影响行数
-     */
-    int update(String sqlId);
-
-    /**
-     * 执行更新语句
-     * 
-     * @param sqlId SqlId
-     * @param params Sql参数
+     * @param params Sql参数 (可为null)
      * @return 影响行数
      */
     int update(String sqlId, Object params);
@@ -310,15 +173,7 @@ public interface SqlDao {
      * 执行删除语句
      * 
      * @param sqlId SqlId
-     * @return 影响行数
-     */
-    int delete(String sqlId);
-
-    /**
-     * 执行删除语句
-     * 
-     * @param sqlId SqlId
-     * @param params Sql参数
+     * @param params Sql参数 (可为null)
      * @return 影响行数
      */
     int delete(String sqlId, Object params);
@@ -335,15 +190,7 @@ public interface SqlDao {
      * 获取SQL内容
      * 
      * @param sqlId SqlId
-     * @return SQL内容
-     */
-    SqlBuffer getSqlContent(String sqlId);
-
-    /**
-     * 获取SQL内容
-     * 
-     * @param sqlId SqlId
-     * @param params Sql参数
+     * @param params Sql参数 (可为null)
      * @return SQL内容
      */
     SqlBuffer getSqlContent(String sqlId, Object params);

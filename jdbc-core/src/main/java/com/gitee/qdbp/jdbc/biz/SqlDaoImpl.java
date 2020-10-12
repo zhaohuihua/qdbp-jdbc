@@ -50,20 +50,10 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public <T> T findForObject(String sqlId, Class<T> resultType) {
-        return findForObject(sqlId, null, resultType);
-    }
-
-    @Override
     public <T> T findForObject(String sqlId, Object params, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
         return jdbc.queryForObject(sql, resultType);
-    }
-
-    @Override
-    public <T> T findForObject(String sqlId, RowMapper<T> rowMapper) {
-        return findForObject(sqlId, null, rowMapper);
     }
 
     @Override
@@ -74,20 +64,10 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public Map<String, Object> findForMap(String sqlId) {
-        return findForMap(sqlId, null);
-    }
-
-    @Override
     public Map<String, Object> findForMap(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
         return jdbc.queryForMap(sql);
-    }
-
-    @Override
-    public <T> List<T> listForObjects(String sqlId, Class<T> resultType) {
-        return listForObjects(sqlId, null, resultType);
     }
 
     @Override
@@ -98,11 +78,6 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public <T> List<T> listForObjects(String sqlId, RowMapper<T> rowMapper) {
-        return listForObjects(sqlId, null, rowMapper);
-    }
-
-    @Override
     public <T> List<T> listForObjects(String sqlId, Object params, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
@@ -110,20 +85,10 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public List<Map<String, Object>> listForMaps(String sqlId) {
-        return listForMaps(sqlId, (Object) null);
-    }
-
-    @Override
     public List<Map<String, Object>> listForMaps(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
         return jdbc.queryForList(sql);
-    }
-
-    @Override
-    public <T> PageList<T> pageForObjects(String sqlId, Paging paging, Class<T> resultType) {
-        return pageForObjects(sqlId, null, paging, resultType);
     }
 
     @Override
@@ -152,11 +117,6 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public <T> PageList<T> pageForObjects(String sqlId, Paging paging, RowMapper<T> rowMapper) {
-        return pageForObjects(sqlId, null, paging, rowMapper);
-    }
-
-    @Override
     public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
@@ -182,11 +142,6 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public PageList<Map<String, Object>> pageForMaps(String sqlId, Paging paging) {
-        return pageForMaps(sqlId, null, paging);
-    }
-
-    @Override
     public PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
@@ -209,11 +164,6 @@ public class SqlDaoImpl implements SqlDao {
             list = jdbc.queryForList(sql);
         }
         return new PageList<>(list, total == null ? list.size() : total);
-    }
-
-    @Override
-    public <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, Class<T> resultType) {
-        return pageForObjects(queryId, countId, null, paging, resultType);
     }
 
     @Override
@@ -244,11 +194,6 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public <T> PageList<T> pageForObjects(String queryId, String countId, Paging paging, RowMapper<T> rowMapper) {
-        return pageForObjects(queryId, countId, null, paging, rowMapper);
-    }
-
-    @Override
     public <T> PageList<T> pageForObjects(String queryId, String countId, Object params, Paging paging,
             RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
@@ -273,11 +218,6 @@ public class SqlDaoImpl implements SqlDao {
             list = jdbc.query(querySql, rowMapper);
         }
         return new PageList<>(list, total == null ? list.size() : total);
-    }
-
-    @Override
-    public PageList<Map<String, Object>> pageForMaps(String queryId, String countId, Paging paging) {
-        return pageForMaps(queryId, countId, null, paging);
     }
 
     @Override
@@ -307,11 +247,6 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public int insert(String sqlId) {
-        return insert(sqlId, null);
-    }
-
-    @Override
     public int insert(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
@@ -319,20 +254,10 @@ public class SqlDaoImpl implements SqlDao {
     }
 
     @Override
-    public int update(String sqlId) {
-        return update(sqlId, null);
-    }
-
-    @Override
     public int update(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
         SqlBuffer sql = container.render(sqlId, map, dialect);
         return jdbc.update(sql);
-    }
-
-    @Override
-    public int delete(String sqlId) {
-        return delete(sqlId, null);
     }
 
     @Override
@@ -345,11 +270,6 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public boolean existSqlTemplate(String sqlId) {
         return container.exist(sqlId, dialect.getDbVersion().getDbType());
-    }
-
-    @Override
-    public SqlBuffer getSqlContent(String sqlId) {
-        return getSqlContent(sqlId, null);
     }
 
     @Override
