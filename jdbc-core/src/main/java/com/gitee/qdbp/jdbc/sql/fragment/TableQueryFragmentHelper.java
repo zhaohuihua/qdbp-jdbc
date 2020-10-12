@@ -490,6 +490,7 @@ public abstract class TableQueryFragmentHelper implements QueryFragmentHelper {
      * @param scene 字段使用场景
      * @param columnAlias 是否使用表别名: SELECT后面的字段列表需要使用表别名, 其他情况不需要
      * @return 字段列表SQL片段
+     * @since 3.2.0
      */
     protected SqlBuffer doBuildDefFieldsSql(FieldScene scene, boolean columnAlias) {
         return doBuildAllFieldsSql(scene, columnAlias);

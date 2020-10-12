@@ -80,7 +80,7 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         }
 
         // 如果所有字段都没有@Column注解, 则将insertable/updatable全部设置为true
-        // 也就是说, 要么完全没有@Column注解; 只要出现了一个没有注解的字段, 则所有数据库对应字段都需要有注解
+        // 也就是说, 要么完全没有@Column注解; 只要出现了一个有注解的字段, 则所有数据库对应字段都需要有注解
         // 因为表关联查询所定义的结果类, 一般是不会有@Column字段的, 此时应认为是查询全部字段
         if (!existColumnAnnotation) {
             for (SimpleFieldColumn item : allColumns) {

@@ -8,6 +8,7 @@ import com.gitee.qdbp.tools.utils.StringTools;
  *
  * @author zhaohuihua
  * @version 20201005
+ * @since 3.2.0
  */
 public class OmitStrategy {
 

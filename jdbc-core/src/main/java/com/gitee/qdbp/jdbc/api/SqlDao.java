@@ -13,6 +13,7 @@ import com.gitee.qdbp.jdbc.sql.SqlBuffer;
  *
  * @author zhaohuihua
  * @version 20200903
+ * @since 3.2.0
  */
 public interface SqlDao {
 

@@ -8,6 +8,7 @@ import java.util.Map;
  *
  * @author zhaohuihua
  * @version 20200901
+ * @since 3.2.0
  */
 public interface BeanToMapConverter {
 

@@ -8,6 +8,7 @@ import java.util.List;
  *
  * @author zhaohuihua
  * @version 20200830
+ * @since 3.2.0
  */
 public interface SqlFileScanner {
 

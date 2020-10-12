@@ -5,6 +5,13 @@ import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
+/**
+ * 数据库类型判断工具类
+ *
+ * @author zhaohuihua
+ * @version 20200902
+ * @since 3.2.0
+ */
 public abstract class DbTypes {
 
     public static boolean equals(DbType source, DbType target) {

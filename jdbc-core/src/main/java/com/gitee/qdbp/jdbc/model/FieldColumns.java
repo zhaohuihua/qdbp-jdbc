@@ -11,6 +11,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  *
  * @author zhaohuihua
  * @version 20200905
+ * @since 3.2.0
  */
 public class FieldColumns<T extends SimpleFieldColumn> implements Iterable<T> {
 

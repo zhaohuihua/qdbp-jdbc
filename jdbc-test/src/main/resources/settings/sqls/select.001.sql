@@ -1,6 +1,6 @@
 
 
--- << user.roles.query >> ²éÑ¯ÓÃ»§ÓÐÄÄÐ©½ÇÉ«
+-- << user.roles.query >> æŸ¥è¯¢ç”¨æˆ·æœ‰å“ªäº›è§’è‰²
 SELECT * FROM TEST_USER_ROLE_REF ur
     INNER JOIN TEST_ROLE_CORE_INFO r
     ON ur.ROLE_ID=r.ID
@@ -11,7 +11,7 @@ WHERE ur.DATA_STATE=1
 <append prefix="ORDER BY">${orderByCondition}</append>
 
 
--- << role.users.query >> ²éÑ¯½ÇÉ«ÏÂÓÐÄÄÐ©ÓÃ»§
+-- << role.users.query >> æŸ¥è¯¢è§’è‰²ä¸‹æœ‰å“ªäº›ç”¨æˆ·
 SELECT * FROM TEST_USER_ROLE_REF ur
     INNER JOIN TEST_USER_CORE_INFO u
     ON ur.USER_ID=u.ID

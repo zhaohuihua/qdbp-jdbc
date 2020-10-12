@@ -53,6 +53,7 @@ public interface JoinQueryer<T> {
      *            如: new IncludeFields("id"), 将会查询A.ID,B.ID<br>
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @return 实体对象
+     * @since 3.2.0
      */
     T find(Fields fields, DbWhere where) throws ServiceException;
 
@@ -80,6 +81,7 @@ public interface JoinQueryer<T> {
      *            如: new IncludeFields("a.id"), 将会查询A.ID<br>
      *            如: new IncludeFields("id"), 将会查询A.ID,B.ID<br>
      * @return 列表数据
+     * @since 3.2.0
      */
     List<T> listAll(Fields fields) throws ServiceException;
 
@@ -111,6 +113,7 @@ public interface JoinQueryer<T> {
      *            如: new IncludeFields("id"), 将会查询A.ID,B.ID<br>
      * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
+     * @since 3.2.0
      */
     List<T> listAll(Fields fields, Orderings orderings) throws ServiceException;
 
@@ -131,6 +134,7 @@ public interface JoinQueryer<T> {
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param orderings 排序字段, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
+     * @since 3.2.0
      */
     List<T> list(DbWhere where, Orderings orderings) throws ServiceException;
 
@@ -174,6 +178,7 @@ public interface JoinQueryer<T> {
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
      * @return 列表数据
+     * @since 3.2.0
      */
     List<T> list(Fields fields, DbWhere where, Orderings orderings) throws ServiceException;
 
@@ -197,6 +202,7 @@ public interface JoinQueryer<T> {
      * @param where 查询条件, 如果没有查询条件应传入DbWhere.NONE
      * @param odpg 分页/排序条件, 不需要分页也不需要排序时应传入OrderPaging.NONE
      * @return 列表数据
+     * @since 3.2.0
      */
     PageList<T> list(Fields fields, DbWhere where, OrderPaging odpg) throws ServiceException;
 
@@ -260,6 +266,7 @@ public interface JoinQueryer<T> {
      * @param orderings 排序条件, 不需要排序时应传入Orderings.NONE
      * @param valueClazz 字段值类型
      * @return 字段的值列表
+     * @since 3.2.0
      */
     <V> List<V> listFieldValues(String fieldName, boolean distinct, DbWhere where, Orderings orderings,
             Class<V> valueClazz) throws ServiceException;

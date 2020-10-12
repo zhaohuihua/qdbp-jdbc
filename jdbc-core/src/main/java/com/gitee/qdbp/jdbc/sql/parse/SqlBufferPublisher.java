@@ -15,6 +15,7 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  *
  * @author zhaohuihua
  * @version 20200912
+ * @since 3.2.0
  */
 public class SqlBufferPublisher extends BasePublisher {
 

@@ -37,7 +37,12 @@ public class AllFieldColumn<T extends SimpleFieldColumn> {
         return this.items.isEmpty();
     }
 
-    /** 查找主键字段 **/
+    /**
+     * 查找主键字段
+     * 
+     * @return 主键字段
+     * @since 3.2.0
+     */
     public SimpleFieldColumn findPrimaryKey() {
         for (T item : this.items) {
             if (item.isPrimaryKey()) {
@@ -47,7 +52,13 @@ public class AllFieldColumn<T extends SimpleFieldColumn> {
         return null;
     }
 
-    /** 根据使用场景过滤子集 **/
+    /**
+     * 根据使用场景过滤子集
+     * 
+     * @param scene 使用场景
+     * @return 字段列表子集
+     * @since 3.2.0
+     */
     public FieldColumns<T> filter(FieldScene scene) {
         if (sceneItems.containsKey(scene)) {
             return sceneItems.get(scene);

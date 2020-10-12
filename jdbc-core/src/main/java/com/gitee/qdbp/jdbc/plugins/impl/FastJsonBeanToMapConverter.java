@@ -9,6 +9,7 @@ import com.gitee.qdbp.jdbc.plugins.BeanToMapConverter;
  *
  * @author zhaohuihua
  * @version 20200901
+ * @since 3.2.0
  */
 public class FastJsonBeanToMapConverter implements BeanToMapConverter {
 

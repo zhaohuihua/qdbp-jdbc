@@ -242,17 +242,32 @@ public class DbPluginContainer {
     /** 可用的数据库类型 **/
     private List<DbType> availableDbTypes;
 
-    /** 可用的数据库类型 **/
+    /**
+     * 获取可用的数据库类型
+     * 
+     * @return 数据库类型列表
+     * @since 3.2.0
+     */
     public List<DbType> getAvailableDbTypes() {
         return availableDbTypes;
     }
 
-    /** 可用的数据库类型 **/
+    /**
+     * 设置可用的数据库类型
+     * 
+     * @param dbTypes 数据库类型列表
+     * @since 3.2.0
+     */
     public void setAvailableDbTypes(List<DbType> dbTypes) {
         this.availableDbTypes = dbTypes;
     }
 
-    /** 可用的数据库类型 **/
+    /**
+     * 设置可用的数据库类型枚举类
+     * 
+     * @param dbTypes 数据库类型枚举类
+     * @since 3.2.0
+     */
     public <E extends Enum<?>> void setAvailableDbTypeClasses(List<Class<E>> classes) {
         this.availableDbTypes = new ArrayList<>();
         for (Class<E> item : classes) {
@@ -260,7 +275,12 @@ public class DbPluginContainer {
         }
     }
 
-    /** 可用的数据库类型 **/
+    /**
+     * 增加可用的数据库类型枚举类
+     * 
+     * @param dbTypes 数据库类型枚举类
+     * @since 3.2.0
+     */
     public <E extends Enum<?>> void addAvailableDbTypeClass(Class<E> clazz) {
         if (!DbType.class.isAssignableFrom(clazz)) {
             String msg = clazz.getName() + " is not assignable for " + DbType.class.getName();
@@ -298,17 +318,32 @@ public class DbPluginContainer {
     /** SQL标签库 **/
     private Taglib sqlTaglib;
 
-    /** 获取SQL标签库 **/
+    /**
+     * 获取SQL标签库
+     * 
+     * @return SQL标签库
+     * @since 3.2.0
+     */
     public Taglib getSqlTaglib() {
         return sqlTaglib;
     }
 
-    /** 设置SQL标签库 **/
+    /**
+     * 设置SQL标签库
+     * 
+     * @param taglib SQL标签库
+     * @since 3.2.0
+     */
     public void setSqlTaglib(Taglib taglib) {
         this.sqlTaglib = taglib;
     }
 
-    /** 设置SQL标签库路径 **/
+    /**
+     * 设置SQL标签库路径
+     * 
+     * @param taglibPath SQL标签库路径
+     * @since 3.2.0
+     */
     public void setSqlTaglibPath(String taglibPath) {
         this.sqlTaglib = new Taglib(taglibPath);
     }
@@ -406,12 +441,22 @@ public class DbPluginContainer {
     /** JavaBean到Map的转换处理类 **/
     private BeanToMapConverter beanToMapConverter;
 
-    /** JavaBean到Map的转换处理类 **/
+    /**
+     * JavaBean到Map的转换处理类
+     * 
+     * @param beanToMapConverter 转换类
+     * @since 3.2.0
+     */
     public void setBeanToMapConverter(BeanToMapConverter beanToMapConverter) {
         this.beanToMapConverter = beanToMapConverter;
     }
 
-    /** JavaBean到Map的转换处理类 **/
+    /**
+     * JavaBean到Map的转换处理类
+     * 
+     * @return 转换类
+     * @since 3.2.0
+     */
     public BeanToMapConverter getBeanToMapConverter() {
         return beanToMapConverter;
     }
@@ -471,12 +516,22 @@ public class DbPluginContainer {
     /** SQL模板扫描接口 **/
     private SqlFileScanner sqlFileScanner;
 
-    /** SQL模板扫描接口 **/
+    /**
+     * 获取SQL模板扫描接口
+     * 
+     * @return SQL模板扫描接口
+     * @since 3.2.0
+     */
     public SqlFileScanner getSqlFileScanner() {
         return sqlFileScanner;
     }
 
-    /** SQL模板扫描接口 **/
+    /**
+     * 设置SQL模板扫描接口
+     * 
+     * @param sqlFileScanner SQL模板扫描接口
+     * @since 3.2.0
+     */
     public void setSqlFileScanner(SqlFileScanner sqlFileScanner) {
         this.sqlFileScanner = sqlFileScanner;
     }

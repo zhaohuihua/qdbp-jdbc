@@ -110,6 +110,7 @@ public interface QdbcBoot {
      * 
      * @param clazz 单表对应的对象类型
      * @return SQL生成工具
+     * @since 3.2.0
      */
     CrudSqlBuilder buildSqlBuilder(Class<?> clazz);
 
@@ -118,6 +119,7 @@ public interface QdbcBoot {
      * 
      * @param clazz 表关联对象
      * @return SQL生成工具
+     * @since 3.2.0
      */
     QuerySqlBuilder buildSqlBuilder(TableJoin tables);
 
@@ -125,6 +127,7 @@ public interface QdbcBoot {
      * 获取SQL执行接口
      * 
      * @return SqlDao
+     * @since 3.2.0
      */
     SqlDao getSqlDao();
 

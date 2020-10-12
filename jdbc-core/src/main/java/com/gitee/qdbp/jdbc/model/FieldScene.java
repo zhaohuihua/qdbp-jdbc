@@ -5,6 +5,7 @@ package com.gitee.qdbp.jdbc.model;
  *
  * @author zhaohuihua
  * @version 20200904
+ * @since 3.2.0
  */
 public enum FieldScene {
 
