@@ -154,41 +154,49 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testGetBacklogTodoQuerySql() throws IOException {
-        SqlDialect dialect = qdbcBoot.getSqlDialect();
-        TableJoin tables = TableJoin.of(ActTask.class, "t", ActProcState.class, "s");
-        QueryFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(tables).helper();
-
         String userName = "U0000001";
         List<String> roleIds = Arrays.asList("R0000001", "R0000006");
         DbWhere where = new DbWhere().on("s.projectCode", "=", "P0000001");
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("userName", userName);
-        params.put("roleIds", roleIds);
-        if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
-        }
-
         String sqlId = "backlog.todo.query";
-        SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
-        String sqlText = buffer.getLoggingSqlString(dialect);
-
-        String fileName = "SqlTemplateParse." + sqlId + ".sql";
-        System.out.println("<<" + fileName + ">>" + '\n' + sqlText);
-        URL resultFile = PathTools.findClassResource(SqlTemplateParseTest.class, fileName);
-        String resultText = PathTools.downloadString(resultFile);
-        AssertTools.assertTextLinesEquals(sqlText, resultText, sqlId);
+        testGetBacklogTodoCountSql(sqlId, userName, roleIds, where);
     }
 
     @Test
     public void testGetBacklogTodoCountSql() throws IOException {
-        SqlDialect dialect = qdbcBoot.getSqlDialect();
-        TableJoin tables = TableJoin.of(ActTask.class, "t", ActProcState.class, "s");
-        QueryFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(tables).helper();
-
         String userName = "U0000001";
         List<String> roleIds = Arrays.asList("R0000001", "R0000006");
         DbWhere where = new DbWhere().on("s.projectCode", "=", "P0000001");
+
+        String sqlId = "backlog.todo.count";
+        testGetBacklogTodoCountSql(sqlId, userName, roleIds, where);
+    }
+
+    @Test
+    public void testGetBacklogTodoQuerySql2() throws IOException {
+        String userName = "U0000001";
+        List<String> roleIds = Arrays.asList("R0000001", "R0000006");
+        DbWhere where = new DbWhere().on("s.projectCode", "=", "P0000001");
+
+        String sqlId = "backlog.todo.query2";
+        testGetBacklogTodoCountSql(sqlId, userName, roleIds, where);
+    }
+
+    @Test
+    public void testGetBacklogTodoCountSql2() throws IOException {
+        String userName = "U0000001";
+        List<String> roleIds = Arrays.asList("R0000001", "R0000006");
+        DbWhere where = new DbWhere().on("s.projectCode", "=", "P0000001");
+
+        String sqlId = "backlog.todo.count2";
+        testGetBacklogTodoCountSql(sqlId, userName, roleIds, where);
+    }
+
+    private void testGetBacklogTodoCountSql(String sqlId, String userName, List<String> roleIds, DbWhere where)
+            throws IOException {
+        SqlDialect dialect = qdbcBoot.getSqlDialect();
+        TableJoin tables = TableJoin.of(ActTask.class, "t", ActProcState.class, "s");
+        QueryFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(tables).helper();
 
         Map<String, Object> params = new HashMap<>();
         params.put("userName", userName);
@@ -197,7 +205,6 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
             params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
         }
 
-        String sqlId = "backlog.todo.count";
         SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
         String sqlText = buffer.getLoggingSqlString(dialect);
 

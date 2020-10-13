@@ -18,6 +18,8 @@ sql:trim      = com.gitee.qdbp.jdbc.tags.TrimTag
 sql:in        = com.gitee.qdbp.jdbc.tags.SqlInTag
 sql:like      = com.gitee.qdbp.jdbc.tags.SqlLikeTag
 
+org:isolation = com.gitee.qdbp.jdbc.test.tags.OrgIsolationTag
+
 fmt:date      = com.gitee.qdbp.staticize.tags.core.DateFormatTag
 
 @DateTools    = com.gitee.qdbp.tools.utils.DateTools
