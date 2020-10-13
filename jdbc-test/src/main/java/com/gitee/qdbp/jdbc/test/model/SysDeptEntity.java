@@ -37,8 +37,6 @@ public class SysDeptEntity implements Serializable {
     private Integer sortIndex;
     /** 创建人ID **/
     private String creatorId;
-    /** 创建人姓名 **/
-    private String creatorName;
     /** 创建时间 **/
     private Date createTime;
     /** 数据状态:1为正常|随机数为已删除 **/
@@ -114,16 +112,6 @@ public class SysDeptEntity implements Serializable {
         this.creatorId = creatorId;
     }
 
-    /** 获取创建人姓名 **/
-    public String getCreatorName() {
-        return creatorName;
-    }
-
-    /** 设置创建人姓名 **/
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
-    }
-
     /** 获取创建时间 **/
     public Date getCreateTime() {
         return createTime;
@@ -165,7 +153,6 @@ public class SysDeptEntity implements Serializable {
         instance.setParentCode(this.getParentCode()); // 上级部门编号
         instance.setSortIndex(this.getSortIndex()); // 排序号(越小越靠前)
         instance.setCreatorId(this.getCreatorId()); // 创建人ID
-        instance.setCreatorName(this.getCreatorName()); // 创建人姓名
         instance.setCreateTime(this.getCreateTime()); // 创建时间
         instance.setDataState(this.getDataState()); // 数据状态:1为正常|随机数为已删除
         return instance;

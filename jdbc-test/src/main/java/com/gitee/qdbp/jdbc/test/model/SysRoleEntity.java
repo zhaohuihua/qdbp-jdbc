@@ -32,9 +32,6 @@ public class SysRoleEntity extends CommEntity {
     /** 创建人ID **/
     @Column
     private String creatorId;
-    /** 创建人姓名 **/
-    @Column
-    private String creatorName;
     /** 默认角色(如果用户没有任何角色,默认会赋予该角色) **/
     @Column
     private Boolean defaults;
@@ -102,16 +99,6 @@ public class SysRoleEntity extends CommEntity {
         this.creatorId = creatorId;
     }
 
-    /** 获取创建人姓名 **/
-    public String getCreatorName() {
-        return creatorName;
-    }
-
-    /** 设置创建人姓名 **/
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
-    }
-
     /** 获取默认角色(如果用户没有任何角色,默认会赋予该角色) **/
     public Boolean getDefaults() {
         return defaults;
@@ -161,7 +148,6 @@ public class SysRoleEntity extends CommEntity {
         instance.setRoleDesc(this.getRoleDesc()); // 描述
         instance.setSortIndex(this.getSortIndex()); // 排序号(越小越靠前)
         instance.setCreatorId(this.getCreatorId()); // 创建人ID
-        instance.setCreatorName(this.getCreatorName()); // 创建人姓名
         instance.setCreateTime(this.getCreateTime()); // 创建时间
         instance.setDefaults(this.getDefaults()); // 默认角色(如果用户没有任何角色,默认会赋予该角色)
         instance.setOptions(this.getOptions()); // 选项
