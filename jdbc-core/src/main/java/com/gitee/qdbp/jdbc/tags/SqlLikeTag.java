@@ -22,6 +22,7 @@ public class SqlLikeTag extends BaseTag {
     private String column;
     private Object value;
     private boolean not = false;
+    private String type; // starts|ends|both
 
     public String getPrefix() {
         return prefix;
@@ -63,6 +64,14 @@ public class SqlLikeTag extends BaseTag {
         this.not = not;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public NextStep doHandle() throws TagException, IOException {
         if (VerifyTools.isBlank(value)) {
@@ -77,7 +86,15 @@ public class SqlLikeTag extends BaseTag {
         if (not) {
             sql.ad("NOT");
         }
-        sql.ad(dialect.buildLikeSql(value));
+        if (type == null) {
+            sql.ad(dialect.buildLikeSql(value));
+        } else if ("starts".equalsIgnoreCase(type) || "StartsWith".equalsIgnoreCase(type)) {
+            sql.ad(dialect.buildStartsWithSql(value));
+        } else if ("ends".equalsIgnoreCase(type) || "EndsWith".equalsIgnoreCase(type)) {
+            sql.ad(dialect.buildEndsWithSql(value));
+        } else {
+            sql.ad(dialect.buildLikeSql(value));
+        }
         if (VerifyTools.isNotBlank(suffix)) {
             sql.ad(suffix);
         }
