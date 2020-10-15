@@ -14,6 +14,9 @@ import com.gitee.qdbp.jdbc.sql.SqlBuilder;
  */
 public class DbTernaryBetweenOperator extends DbAbstractOperator implements DbTernaryOperator {
 
+    /** 版本序列号 **/
+    private static final long serialVersionUID = 1L;
+
     public DbTernaryBetweenOperator() {
         super("Between");
     }

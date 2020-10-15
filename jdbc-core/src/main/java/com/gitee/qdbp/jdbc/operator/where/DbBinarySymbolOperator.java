@@ -14,6 +14,9 @@ import com.gitee.qdbp.jdbc.sql.SqlBuilder;
  */
 public class DbBinarySymbolOperator extends DbAbstractOperator implements DbBinaryOperator {
 
+    /** 版本序列号 **/
+    private static final long serialVersionUID = 1L;
+
     public DbBinarySymbolOperator(String operator, String... aliases) {
         super(operator, aliases);
     }

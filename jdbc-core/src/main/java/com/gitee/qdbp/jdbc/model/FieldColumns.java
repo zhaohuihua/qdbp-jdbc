@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,7 +14,10 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @version 20200905
  * @since 3.2.0
  */
-public class FieldColumns<T extends SimpleFieldColumn> implements Iterable<T> {
+public class FieldColumns<T extends SimpleFieldColumn> implements Iterable<T>, Serializable {
+
+    /** serialVersionUID **/
+    private static final long serialVersionUID = 1L;
 
     private List<T> items;
 

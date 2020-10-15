@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.operator.base;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import com.gitee.qdbp.tools.utils.VerifyTools;
@@ -10,7 +11,10 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 20200126
  */
-public abstract class DbAbstractOperator {
+public abstract class DbAbstractOperator implements Serializable {
+
+    /** serialVersionUID **/
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private String type;

@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,7 +14,10 @@ import com.gitee.qdbp.tools.utils.VerifyTools;
  * @author zhaohuihua
  * @version 190609
  */
-public class AllFieldColumn<T extends SimpleFieldColumn> {
+public class AllFieldColumn<T extends SimpleFieldColumn> implements Serializable {
+
+    /** serialVersionUID **/
+    private static final long serialVersionUID = 1L;
 
     private List<T> items;
     private Map<FieldScene, FieldColumns<T>> sceneItems;

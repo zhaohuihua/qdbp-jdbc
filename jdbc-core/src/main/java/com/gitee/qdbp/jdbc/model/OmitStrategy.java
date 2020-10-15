@@ -1,5 +1,6 @@
 package com.gitee.qdbp.jdbc.model;
 
+import java.io.Serializable;
 import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 
@@ -10,7 +11,10 @@ import com.gitee.qdbp.tools.utils.StringTools;
  * @version 20201005
  * @since 3.2.0
  */
-public class OmitStrategy {
+public class OmitStrategy implements Serializable {
+
+    /** serialVersionUID **/
+    private static final long serialVersionUID = 1L;
 
     /** 至少超过多少项时启用省略 **/
     private final int minSize;

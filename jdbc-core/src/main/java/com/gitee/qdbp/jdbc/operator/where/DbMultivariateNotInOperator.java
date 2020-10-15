@@ -15,6 +15,9 @@ import com.gitee.qdbp.jdbc.sql.SqlTools;
  */
 public class DbMultivariateNotInOperator extends DbAbstractOperator implements DbMultivariateOperator {
 
+    /** 版本序列号 **/
+    private static final long serialVersionUID = 1L;
+
     public DbMultivariateNotInOperator() {
         super("Not In", "NotIn");
     }

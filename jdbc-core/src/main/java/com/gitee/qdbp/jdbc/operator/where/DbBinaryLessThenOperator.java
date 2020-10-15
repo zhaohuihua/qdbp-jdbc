@@ -8,6 +8,9 @@ package com.gitee.qdbp.jdbc.operator.where;
  */
 public class DbBinaryLessThenOperator extends DbBinarySymbolOperator {
 
+    /** 版本序列号 **/
+    private static final long serialVersionUID = 1L;
+
     public DbBinaryLessThenOperator() {
         super("<", "LessThen");
     }

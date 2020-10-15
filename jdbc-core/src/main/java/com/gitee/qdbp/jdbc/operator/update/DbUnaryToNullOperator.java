@@ -14,6 +14,9 @@ import com.gitee.qdbp.jdbc.sql.SqlBuilder;
  */
 public class DbUnaryToNullOperator extends DbAbstractOperator implements DbUnaryOperator {
 
+    /** 版本序列号 **/
+    private static final long serialVersionUID = 1L;
+
     public DbUnaryToNullOperator() {
         super("To Null", "ToNull");
     }

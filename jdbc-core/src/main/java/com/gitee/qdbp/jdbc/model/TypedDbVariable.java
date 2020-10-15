@@ -1,12 +1,17 @@
 package com.gitee.qdbp.jdbc.model;
 
+import java.io.Serializable;
+
 /**
  * 指定SqlType的变量值: 用于where条件/insert值/update值
  *
  * @author zhaohuihua
  * @version 190824
  */
-public class TypedDbVariable {
+public class TypedDbVariable implements Serializable {
+
+    /** serialVersionUID **/
+    private static final long serialVersionUID = 1L;
 
     /** SQL数据类型({@code java.sql.Types}) **/
     private Integer sqlType;
