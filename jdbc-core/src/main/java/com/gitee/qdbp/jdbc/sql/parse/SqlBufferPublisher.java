@@ -1,9 +1,11 @@
 package com.gitee.qdbp.jdbc.sql.parse;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.publish.BasePublisher;
@@ -38,15 +40,26 @@ public class SqlBufferPublisher extends BasePublisher {
      */
     public SqlBuffer publish(Map<String, Object> preset, SqlDialect dialect) throws TagException, IOException {
         SqlBufferContext context = new SqlBufferContext(dialect);
-        context.preset().put("dialect", dialect);
-        context.preset().put("dbVersion", dialect.getDbVersion());
-        context.preset().put("dbType", dialect.getDbVersion().getDbType().name().toLowerCase());
-        context.preset().put("DbType", dialect.getDbVersion().getDbType().name());
+        // 设置预置数据
         if (VerifyTools.isNotBlank(preset)) {
             context.preset().putAll(preset);
         }
-
+        // 设置全局预置变量
+        presetGlobalVariable(context, dialect);
+        // 生成SQL片段
         publish(context);
         return context.getSqlBuffer();
+    }
+
+    protected void presetGlobalVariable(SqlBufferContext context, SqlDialect dialect) {
+        Map<String, Object> global = new HashMap<>();
+        global.put("dialect", dialect);
+        global.put("dbVersion", dialect.getDbVersion());
+        global.put("dbType", dialect.getDbVersion().getDbType().name().toLowerCase());
+        global.put("DbType", dialect.getDbVersion().getDbType().name());
+
+        global.put("config", DbTools.getDbConfig());
+
+        context.preset().put("db", global);
     }
 }

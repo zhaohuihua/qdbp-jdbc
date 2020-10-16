@@ -16,8 +16,8 @@ SELECT * FROM (
    WHERE (
        T.ASSIGNEE_=#{userName}
        OR (
-           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,db.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',db.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -33,8 +33,8 @@ UNION ALL
    WHERE (
        S.ASSIGNEE=#{userName}
        OR (
-           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,db.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',db.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -52,8 +52,8 @@ SELECT SUM(CNT) FROM (
    WHERE (
        T.ASSIGNEE_=#{userName}
        OR (
-           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           #{@SqlTools.buildInSql('T.ASSIGNEE_',roleIds,db.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',db.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -64,8 +64,8 @@ UNION ALL
    WHERE (
        S.ASSIGNEE=#{userName}
        OR (
-           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,dialect)}
-           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',dialect)}</append>
+           #{@SqlTools.buildInSql('S.ASSIGNEE',roleIds,db.dialect)}
+           <append prefix="AND">#{@EntityTools.buildOrgDataPermission('S.ORG_ID',db.dialect)}</append>
        )
    )
    <append prefix="AND">#{whereCondition}</append>
