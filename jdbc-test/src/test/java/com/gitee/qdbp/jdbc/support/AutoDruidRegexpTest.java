@@ -39,8 +39,8 @@ public class AutoDruidRegexpTest {
         // H2 TCP模式
         test("h2.tcp:username:password@127.0.0.1:8082/dbname", "username", "password",
             "jdbc:h2:tcp://127.0.0.1:8082/~/dbname;MODE=MYSQL;AUTO_RECONNECT=TRUE");
-        // H2 嵌入式(不需要ip:port)
-        test("h2.embed:username:password@~/dbname", "username", "password",
+        // H2 嵌入式(不需要username/password/ip:port)
+        test("h2.embed@~/dbname", null, null,
             "jdbc:h2:~/dbname;MODE=MYSQL;AUTO_RECONNECT=TRUE");
         // H2 内存模式(不需要username/password/ip:port)
         test("h2.mem@~/dbname", null, null, "jdbc:h2:mem:dbname;MODE=MYSQL;AUTO_RECONNECT=TRUE");
