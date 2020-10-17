@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.model.MainDbType;
@@ -18,6 +20,8 @@ import com.gitee.qdbp.jdbc.utils.DbTypes;
  * @version 190705
  */
 public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
+
+    private static Logger log = LoggerFactory.getLogger(ConnectionDbVersionFinder.class);
 
     protected DbVersion findDbVersion(Connection connection) {
         try {
@@ -50,6 +54,7 @@ public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
                 return dbType;
             }
         }
+        log.warn("The database type was not recognized, DatabaseProductName={}", productName);
         return MainDbType.Unknown;
     }
 }

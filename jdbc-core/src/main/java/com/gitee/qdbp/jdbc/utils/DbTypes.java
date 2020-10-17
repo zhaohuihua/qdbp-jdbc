@@ -2,6 +2,7 @@ package com.gitee.qdbp.jdbc.utils;
 
 import java.util.List;
 import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.MainDbType;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -65,5 +66,38 @@ public abstract class DbTypes {
             }
         }
         return false;
+    }
+
+    public static boolean isAvailabl(String dbType) {
+        if (dbType == null || dbType.length() == 0) {
+            return false;
+        }
+        List<DbType> dbTypes = DbTools.getAvailableDbTypes();
+        for (DbType item : dbTypes) {
+            if (equals(item, MainDbType.Unknown)) {
+                continue;
+            }
+            if (item.name().equalsIgnoreCase(dbType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static DbType parse(String dbType) {
+        if (dbType == null || dbType.length() == 0) {
+            return null;
+        }
+
+        List<DbType> dbTypes = DbTools.getAvailableDbTypes();
+        for (DbType item : dbTypes) {
+            if (equals(item, MainDbType.Unknown)) {
+                continue;
+            }
+            if (item.name().equalsIgnoreCase(dbType)) {
+                return item;
+            }
+        }
+        return MainDbType.Unknown;
     }
 }

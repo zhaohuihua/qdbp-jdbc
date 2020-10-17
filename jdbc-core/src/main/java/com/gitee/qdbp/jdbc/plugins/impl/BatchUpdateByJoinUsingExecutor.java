@@ -38,7 +38,7 @@ public class BatchUpdateByJoinUsingExecutor implements BatchUpdateExecutor {
     @Override
     public boolean supports(DbVersion version) {
         String key = "qdbc.supports." + this.getClass().getSimpleName();
-        String defvalue = "MySQL;MariaDB";
+        String defvalue = "mysql,mariadb";
         String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
         return version.matchesWith(options);
     }

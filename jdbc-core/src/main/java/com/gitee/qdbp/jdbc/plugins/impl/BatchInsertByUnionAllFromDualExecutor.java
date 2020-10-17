@@ -35,7 +35,7 @@ public class BatchInsertByUnionAllFromDualExecutor implements BatchInsertExecuto
     public boolean supports(DbVersion version) {
         String key = "qdbc.supports." + this.getClass().getSimpleName();
         // DUAL是oracle专用
-        String defvalue = "Oracle";
+        String defvalue = "oracle";
         String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
         return version.matchesWith(options);
     }

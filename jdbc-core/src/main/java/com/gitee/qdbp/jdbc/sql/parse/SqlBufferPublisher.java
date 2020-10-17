@@ -3,8 +3,10 @@ package com.gitee.qdbp.jdbc.sql.parse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.utils.DbConfig;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.staticize.common.IMetaData;
 import com.gitee.qdbp.staticize.exception.TagException;
@@ -61,8 +63,22 @@ public class SqlBufferPublisher extends BasePublisher {
         global.put("dbType", dialect.getDbVersion().getDbType().name().toLowerCase());
         global.put("DbType", dialect.getDbVersion().getDbType().name());
 
-        global.put("config", DbTools.getDbConfig());
+        global.put("config", getDbConfig(dialect.getDbVersion()));
 
         context.preset().put("db", global);
+    }
+
+    private static Map<String, DbConfig> DB_CONFIG_MAPS = new HashMap<>();
+
+    /** 获取与版本相关的数据库配置选项 **/
+    public static DbConfig getDbConfig(DbVersion version) {
+        String versionCode = version.toVersionString();
+        if (DB_CONFIG_MAPS.containsKey(versionCode)) {
+            return DB_CONFIG_MAPS.get(versionCode);
+        } else {
+            DbConfig config = new DbConfig(DbTools.getDbConfig(), version);
+            DB_CONFIG_MAPS.put(versionCode, config);
+            return config;
+        }
     }
 }

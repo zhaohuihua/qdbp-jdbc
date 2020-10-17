@@ -19,7 +19,6 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableJoinFragmentHelper;
-import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 
 /**
  * 基础增删改查对象的构造器
@@ -31,8 +30,6 @@ public class QdbcBootImpl implements QdbcBoot {
 
     /** SqlBuffer数据库操作类 **/
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
-    /** 执行SQL语句的处理接口 **/
-    private SqlDao sqlDao;
 
     private Map<Class<?>, CrudDao<?>> crudDaoCache = new HashMap<>();
     private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
@@ -110,7 +107,7 @@ public class QdbcBootImpl implements QdbcBoot {
     /** {@inheritDoc} **/
     @Override
     public SqlDao getSqlDao() {
-        return sqlDao;
+        return sqlBufferJdbcOperations == null ? null : sqlBufferJdbcOperations.getSqlDao();
     }
 
     private String buildCacheKey(TableJoin tables, Class<?> resultType) {
@@ -131,8 +128,6 @@ public class QdbcBootImpl implements QdbcBoot {
 
     public void setSqlBufferJdbcOperations(SqlBufferJdbcOperations sqlBufferJdbcOperations) {
         this.sqlBufferJdbcOperations = sqlBufferJdbcOperations;
-        SqlFragmentContainer container = SqlFragmentContainer.defaults();
-        this.sqlDao = new SqlDaoImpl(container, sqlBufferJdbcOperations);
     }
 
     /**

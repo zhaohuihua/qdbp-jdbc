@@ -31,6 +31,7 @@ import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.result.IResultMessage;
 import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
@@ -38,6 +39,7 @@ import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
+import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 import com.gitee.qdbp.jdbc.utils.CountSqlParser;
 import com.gitee.qdbp.jdbc.utils.DbTools;
 import com.gitee.qdbp.tools.files.PathTools;
@@ -58,6 +60,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
+    private SqlDao sqlDao;
     private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
     protected CountSqlParser countSqlParser = new CountSqlParser();
@@ -641,6 +644,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     }
 
     @Override
+    public SqlDao getSqlDao() {
+        return sqlDao;
+    }
+
+    @Override
     public JdbcOperations getJdbcOperations() {
         return namedParameterJdbcOperations.getJdbcOperations();
     }
@@ -651,5 +659,9 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
     public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
         this.namedParameterJdbcOperations = namedParameterJdbcOperations;
+        if (this.sqlDao == null) {
+            SqlFragmentContainer container = SqlFragmentContainer.defaults();
+            this.sqlDao = new SqlDaoImpl(container, this);
+        }
     }
 }

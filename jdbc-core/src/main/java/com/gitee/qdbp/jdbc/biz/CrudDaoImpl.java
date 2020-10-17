@@ -4,16 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.able.jdbc.condition.DbUpdate;
 import com.gitee.qdbp.able.jdbc.condition.DbWhere;
 import com.gitee.qdbp.able.jdbc.fields.Fields;
+import com.gitee.qdbp.able.jdbc.fields.IncludeFields;
 import com.gitee.qdbp.able.jdbc.model.PkEntity;
 import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
+import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -28,7 +29,6 @@ import com.gitee.qdbp.jdbc.plugins.EntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.MapToBeanConverter;
 import com.gitee.qdbp.jdbc.result.FirstColumnMapper;
 import com.gitee.qdbp.jdbc.result.RowToBeanMapper;
-import com.gitee.qdbp.jdbc.result.SingleColumnMapper;
 import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.build.CrudSqlBuilder;
@@ -36,7 +36,9 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -118,7 +120,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
         List<String> startCodes = ConvertTools.toList(startCode);
-        return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
+        return doListChildren(startCodes, codeField, parentField, Fields.ALL, readyWhere, orderings, beanClass);
     }
 
     @Override
@@ -127,16 +129,59 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         DbWhere readyWhere = checkWhere(where);
         entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
         entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
-        return doListChildren(startCodes, codeField, parentField, readyWhere, orderings);
+        return doListChildren(startCodes, codeField, parentField, Fields.ALL, readyWhere, orderings, beanClass);
     }
 
-    protected List<T> doListChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            Orderings orderings) throws ServiceException {
+    // ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}
+    // DB2: 使用WITH递归 
+    // MYSQL 8.0+: 使用WITH RECURSIVE递归 
+    // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+    protected <R> List<R> doListChildren(List<String> startCodes, String codeField, String parentField,
+            Fields selectFields, DbWhere where, Orderings orderings, Class<R> resultType) throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
-        List<String> selectFields = sqlHelper.getFieldNames(FieldScene.CONDITION);
-        SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
-            orderings, sqlHelper);
-        return jdbc.query(buffer, this.rowToBeanMapper);
+        String codeColumn = sqlHelper.getColumnName(FieldScene.CONDITION, codeField);
+        String parentColumn = sqlHelper.getColumnName(FieldScene.CONDITION, parentField);
+        SqlBuffer selectColumns = sqlHelper.buildSelectFieldsSql(selectFields);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("codeColumn", codeColumn);
+        params.put("parentColumn", parentColumn);
+        params.put("tableName", sqlHelper.getTableName());
+        params.put("selectColumns", selectColumns);
+        params.put("startCodes", startCodes);
+        if (where != null && !where.isEmpty()) {
+            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
+        }
+        if (orderings != null && !orderings.isEmpty()) {
+            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
+        }
+        
+        SqlDao sqlDao = jdbc.getSqlDao();
+        // 1.优先执行与当前数据库匹配的特定的递归查询模板
+        String specialSqlId = "recursive.find.children.special";
+        if (sqlDao.existSqlTemplate(specialSqlId)) {
+            return sqlDao.listForObjects(specialSqlId, params, resultType);
+        }
+        // 2.根据配置项执行对应的递归查询模板
+        Config config = DbTools.getDbConfig();
+        DbVersion dbVersion = getSqlDialect().getDbVersion();
+        // qdbc.recursive.find.children.options = normal,production
+        String optionsKey = "qdbc.recursive.find.children.options";
+        String optionsValue = config.getStringUseDefValue(optionsKey, "normal,production");
+        String[] optionsList = StringTools.split(optionsValue, ',');
+        for (String item : optionsList) {
+            // qdbc.recursive.find.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver
+            String configKey = StringTools.concat("qdbc.recursive.find.children", item);
+            String configValue = config.getString(configKey);
+            if (dbVersion.matchesWith(configValue)) {
+                // 如 recursive.find.children.normal
+                String configSqlId = StringTools.concat("recursive.find.children", item);
+                return sqlDao.listForObjects(configSqlId, params, resultType);
+            }
+        }
+        // 3.如果未找到配置项, 则调用存储过程
+        String productionSqlId = "recursive.find.children.production";
+        return sqlDao.listForObjects(productionSqlId, params, resultType);
     }
 
     @Override
@@ -158,18 +203,13 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
     }
 
-    // ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}
-    // DB2: 使用WITH递归 
-    // MYSQL 8.0+: 使用WITH RECURSIVE递归 
-    // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
     protected List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
             DbWhere where, Orderings orderings) throws ServiceException {
-        CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
-        Set<String> selectFields = ConvertTools.toSet(codeField);
-        SqlBuffer buffer = dialect.buildFindChildrenSql(startCodes, codeField, parentField, selectFields, where,
-            orderings, sqlHelper);
-        String codeColumn = sqlHelper.getColumnName(FieldScene.CONDITION, codeField);
-        return jdbc.query(buffer, new SingleColumnMapper<>(codeColumn, String.class));
+        DbWhere readyWhere = checkWhere(where);
+        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
+        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+        IncludeFields fields = new IncludeFields(codeField);
+        return doListChildren(startCodes, codeField, parentField, fields, readyWhere, orderings, String.class);
     }
 
     protected static FirstColumnMapper<String> FIRST_COLUMN_STRING_MAPPER = new FirstColumnMapper<>(String.class);

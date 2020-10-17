@@ -34,7 +34,7 @@ public class BatchInsertByMultiRowsExecutor implements BatchInsertExecutor {
     public boolean supports(DbVersion version) {
         String key = "qdbc.supports." + this.getClass().getSimpleName();
         // SQL Server 需要2008以上版本
-        String defvalue = "MySQL;MariaDB;DB2;SqlServer:2008";
+        String defvalue = "mysql,mariadb,db2,sqlserver.2008";
         String options = DbTools.getDbConfig().getStringUseDefValue(key, defvalue);
         return version.matchesWith(options);
     }
