@@ -78,8 +78,8 @@ public class DbVersion implements Serializable {
         if (versionCode == null) {
             this.versionCode = null;
         } else {
-            for (int i = 0, z = versionCode.length(); i < z; i++) {
-
+            if (!isValidVersionCode(versionCode)) {
+                throw new IllegalArgumentException("Version code format error: " + versionCode);
             }
             this.versionCode = versionCode;
         }
@@ -165,7 +165,7 @@ public class DbVersion implements Serializable {
      * 当前数据库类型与版本是否满足指定的最低要求<br>
      * 先对比数据库类型, 如果一致再对比版本号<br>
      * 最低要求是以分号分隔的多个数据库类型与版本号, 当前版本满足任一条件即为匹配<br>
-     * 如: MySql;MySQL;MariaDB.10.2.2;DB2;SqlServer.2008
+     * 如: mysql,mysql,mariadb.10.2.2,db2,sqlserver.2008
      * 
      * @param minRequirement 最低要求
      * @return 是否匹配
@@ -175,7 +175,7 @@ public class DbVersion implements Serializable {
             return false;
         }
         // 按分号拆分, 满足任一条件即为匹配
-        String[] items = StringTools.split(minRequirement, ';');
+        String[] items = StringTools.split(minRequirement, ',');
         for (String item : items) {
             if (itemMatchesWith(item)) {
                 return true;
@@ -204,12 +204,20 @@ public class DbVersion implements Serializable {
         return toString(true);
     }
 
-    public String toString(boolean details) {
+    public String toVersionString() {
+        return toString(false);
+    }
+
+    private String toString(boolean details) {
         if (dbType == null) {
             return "null";
         }
         StringBuilder buffer = new StringBuilder();
-        buffer.append(dbType);
+        if (details) {
+            buffer.append(dbType.name());
+        } else {
+            buffer.append(dbType.name().toLowerCase());
+        }
         if (this.versionCode != null) {
             buffer.append('.').append(this.versionCode);
         } else {
