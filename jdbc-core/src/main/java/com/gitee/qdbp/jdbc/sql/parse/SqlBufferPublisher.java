@@ -48,7 +48,10 @@ public class SqlBufferPublisher extends BasePublisher {
         presetGlobalVariable(context, dialect);
         // 生成SQL片段
         publish(context);
-        return context.getSqlBuffer();
+
+        SqlBuffer sql = context.getSqlBuffer();
+        sql.insertSuffix(null, ";"); // 删除最后一个分号
+        return sql;
     }
 
     protected void presetGlobalVariable(SqlBufferContext context, SqlDialect dialect) {
