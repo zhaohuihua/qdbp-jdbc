@@ -265,6 +265,14 @@ public interface SqlBufferJdbcOperations {
     void executeSqlScript(URL sqlFilePath);
 
     /**
+     * 获取SQL执行接口
+     * 
+     * @return SqlDao
+     * @since 3.2.0
+     */
+    SqlDao getSqlDao();
+
+    /**
      * Expose the classic Spring JdbcTemplate to allow invocation of
      * classic JDBC operations.
      */
