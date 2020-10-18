@@ -94,4 +94,20 @@ public interface SqlDialect {
      */
     SqlBuffer buildEndsWithSql(Object fieldValue);
 
+    /**
+     * SqlDialect创建接口
+     *
+     * @author zhaohuihua
+     * @version 20201018
+     */
+    interface Creator {
+
+        /**
+         * 根据数据库版本创建SQL方言处理对象
+         * 
+         * @param version 数据库版本
+         * @return SQL方言处理对象
+         */
+        SqlDialect create(DbVersion version);
+    }
 }

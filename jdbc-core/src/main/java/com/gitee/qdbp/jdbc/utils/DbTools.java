@@ -39,7 +39,6 @@ import com.gitee.qdbp.jdbc.plugins.TableInfoScans;
 import com.gitee.qdbp.jdbc.plugins.UpdateSqlBuilder;
 import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
-import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.StringTools;
@@ -181,7 +180,8 @@ public abstract class DbTools {
 
     /** 根据DbVersion生成SqlDialect **/
     public static SqlDialect buildSqlDialect(DbVersion version) {
-        return new SimpleSqlDialect(version);
+        SqlDialect.Creator creator = DbPluginContainer.defaults().getSqlDialectCreator();
+        return creator.create(version);
     }
 
     /** 获取自定义WhereSqlBuilder **/

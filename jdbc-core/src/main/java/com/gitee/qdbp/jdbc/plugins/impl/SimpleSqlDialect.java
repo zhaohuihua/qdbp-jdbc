@@ -1,6 +1,8 @@
 package com.gitee.qdbp.jdbc.plugins.impl;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
 import com.gitee.qdbp.jdbc.model.DbType;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -263,4 +265,32 @@ public class SimpleSqlDialect implements SqlDialect {
         }
     }
 
+    /**
+     * SqlDialect创建接口的SimpleSqlDialect实现类
+     *
+     * @author zhaohuihua
+     * @version 20201018
+     */
+    public static class Creator implements SqlDialect.Creator {
+
+        @Override
+        public SqlDialect create(DbVersion version) {
+            return buildSqlDialect(version);
+        }
+
+        // key=DbVersionCode
+        private Map<String, SqlDialect> sqlDialectMaps = new HashMap<>();
+
+        /** 根据DbVersion生成SqlDialect **/
+        public SqlDialect buildSqlDialect(DbVersion version) {
+            String versionCode = version.toVersionString();
+            if (sqlDialectMaps.containsKey(versionCode)) {
+                return sqlDialectMaps.get(versionCode);
+            } else {
+                SqlDialect dialect = new SimpleSqlDialect(version);
+                sqlDialectMaps.put(versionCode, dialect);
+                return dialect;
+            }
+        }
+    }
 }

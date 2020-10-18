@@ -30,6 +30,7 @@ import com.gitee.qdbp.jdbc.plugins.impl.PersistenceAnnotationTableScans;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleDbOperatorContainer;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleEntityFieldFillStrategy;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleRawValueConverter;
+import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlDialect;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFileScanner;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleSqlFormatter;
 import com.gitee.qdbp.jdbc.plugins.impl.SimpleVarToDbValueConverter;
@@ -150,6 +151,9 @@ public class DbPluginContainer {
         }
         if (plugins.getDbVersionFinder() == null) {
             plugins.setDbVersionFinder(new DataSourceDbVersionFinder());
+        }
+        if (plugins.getSqlDialectCreator() == null) {
+            plugins.setSqlDialectCreator(new SimpleSqlDialect.Creator());
         }
         if (plugins.getSqlFileScanner() == null) {
             plugins.setSqlFileScanner(new SimpleSqlFileScanner());
@@ -511,6 +515,19 @@ public class DbPluginContainer {
     /** 数据库版本信息查询接口 **/
     public DbVersionFinder getDbVersionFinder() {
         return dbVersionFinder;
+    }
+
+    /** 数据库方言处理类创建接口 **/
+    private SqlDialect.Creator sqlDialectCreator;
+
+    /** 数据库方言处理类创建接口 **/
+    public void setSqlDialectCreator(SqlDialect.Creator sqlDialectCreator) {
+        this.sqlDialectCreator = sqlDialectCreator;
+    }
+
+    /** 数据库方言处理类创建接口 **/
+    public SqlDialect.Creator getSqlDialectCreator() {
+        return sqlDialectCreator;
     }
 
     /** SQL模板扫描接口 **/
