@@ -155,7 +155,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         if (orderings != null && !orderings.isEmpty()) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
-        
+
         SqlDao sqlDao = jdbc.getSqlDao();
         // 1.优先执行与当前数据库匹配的特定的递归查询模板
         String specialSqlId = "recursive.find.children.special";
@@ -170,12 +170,12 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         String optionsValue = config.getStringUseDefValue(optionsKey, "normal,production");
         String[] optionsList = StringTools.split(optionsValue, ',');
         for (String item : optionsList) {
+            String configSqlId = "recursive.find.children" + '.' + item;
             // qdbc.recursive.find.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver
-            String configKey = StringTools.concat("qdbc.recursive.find.children", item);
+            String configKey = "qdbc" + '.' + configSqlId;
             String configValue = config.getString(configKey);
             if (dbVersion.matchesWith(configValue)) {
                 // 如 recursive.find.children.normal
-                String configSqlId = StringTools.concat("recursive.find.children", item);
                 return sqlDao.listForObjects(configSqlId, params, resultType);
             }
         }

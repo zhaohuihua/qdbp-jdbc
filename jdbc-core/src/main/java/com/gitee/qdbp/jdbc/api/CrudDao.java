@@ -360,6 +360,7 @@ public interface CrudDao<T> {
 
     /**
      * 递归查询所有子节点<br>
+     * 注意: 查询结果包括startCode节点的自身记录, 如果不需要应在where条件排除<br>
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
@@ -384,6 +385,7 @@ public interface CrudDao<T> {
 
     /**
      * 递归查询所有子节点<br>
+     * 注意: 查询结果包括startCode节点的自身记录, 如果不需要应在where条件排除<br>
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
@@ -405,6 +407,7 @@ public interface CrudDao<T> {
 
     /**
      * 递归查询所有子节点编号<br>
+     * 注意: 查询结果包括startCode节点的自身记录, 如果不需要应在where条件排除<br>
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
@@ -430,6 +433,7 @@ public interface CrudDao<T> {
 
     /**
      * 递归查询所有子节点编号<br>
+     * 注意: 查询结果包括startCode节点的自身记录, 如果不需要应在where条件排除<br>
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>

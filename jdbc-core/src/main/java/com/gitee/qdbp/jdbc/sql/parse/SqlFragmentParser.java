@@ -227,14 +227,14 @@ class SqlFragmentParser {
         }
 
         // 如 user.resource.query 或 user.resource.query:*
-        // 如 user.resource.query.mysql 或 user.resource.query:mysql
+        // 或 user.resource.query:mysql 或 user.resource.query:mysql.8
         String originalId = fragmentId;
         String fragmentDbType = null;
         int fragmentColonIndex = fragmentId.indexOf(':');
         if (fragmentColonIndex >= 0) {
             // user.resource.query:mysql 或 user.resource.query:*
-            fragmentId = fragmentId.substring(0, fragmentColonIndex).trim();
-            String tempType = fragmentId.substring(fragmentColonIndex + 1).trim();
+            fragmentId = originalId.substring(0, fragmentColonIndex).trim();
+            String tempType = originalId.substring(fragmentColonIndex + 1).trim();
             if ("*".equals(tempType)) {
                 fragmentDbType = null;
             } else if (dbTypes.containsKey(tempType)) {
@@ -242,16 +242,6 @@ class SqlFragmentParser {
             } else {
                 String msg = "DbType[{}] of the SqlFragment[{}] is unsupported, {} line {}";
                 log.warn(msg, tempType, fragmentId, sqlPath, lineIndex);
-            }
-        } else {
-            int fragmentDotIndex = fragmentId.lastIndexOf('.');
-            if (fragmentDotIndex > 0) {
-                // user.resource.query.mysql
-                String tempType = fragmentId.substring(fragmentDotIndex + 1);
-                if (dbTypes.containsKey(tempType)) {
-                    fragmentDbType = tempType.toLowerCase();
-                    fragmentId = fragmentId.substring(0, fragmentDotIndex);
-                }
             }
         }
         // 文件上指定的DbType与SQL片段指定的是否一致
