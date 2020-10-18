@@ -79,8 +79,8 @@ public class DbVersion implements Serializable {
      */
     public DbVersion(DbType dbType, int majorVersion, int minorVersion) {
         this.dbType = dbType;
-        this.majorVersion = Math.min(majorVersion, 0);
-        this.minorVersion = Math.min(minorVersion, 0);
+        this.majorVersion = Math.max(majorVersion, 0);
+        this.minorVersion = Math.max(minorVersion, 0);
         this.versionCode = this.majorVersion + "." + this.minorVersion;
     }
 
