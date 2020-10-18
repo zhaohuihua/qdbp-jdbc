@@ -14,6 +14,7 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.QdbcBoot;
 import com.gitee.qdbp.jdbc.test.model.SysDeptEntity;
+import com.gitee.qdbp.tools.utils.StringTools;
 
 @Test
 @ContextConfiguration(locations = { "classpath:settings/spring/spring.xml" })
@@ -31,32 +32,47 @@ public class RecursiveFindChildrenTest extends AbstractTestNGSpringContextTests 
             dao.physicalDelete(where);
         }
         List<SysDeptEntity> container = new ArrayList<>();
-        initDepts(1001, 1, container);
+        initDepts("D", 1, container);
         dao.inserts(container);
     }
 
-    private void initDepts(int parent, int level, List<SysDeptEntity> container) {
+    private void initDepts(String parent, int level, List<SysDeptEntity> container) {
         for (int i = 1; i <= level; i++) {
-            int code = parent * 100 + i;
+            String code = parent + StringTools.pad(i, 2);
             SysDeptEntity dept = new SysDeptEntity();
             dept.setTenantCode("depttest"); // 租户编号
-            dept.setDeptCode(String.valueOf(code)); // 部门编号
+            dept.setDeptCode(code); // 部门编号
             dept.setDeptName("部门-" + code); // 部门名称
-            dept.setParentCode(String.valueOf(parent)); // 上级部门编号
+            dept.setParentCode(parent); // 上级部门编号
             dept.setSortIndex(i); // 排序号(越小越靠前)
             container.add(dept);
-            if (level <= 5) {
+            if (level < 5) {
                 initDepts(code, level + 1, container);
             }
         }
     }
 
     @Test
-    public void testListDeptChildren() throws IOException {
+    public void testListDeptChildrenBean() throws IOException {
         CrudDao<SysDeptEntity> dao = qdbcBoot.buildCrudDao(SysDeptEntity.class);
-        DbWhere where = DbWhere.NONE;
+        String startCode = "D0102";
+        DbWhere where = new DbWhere().on("deptCode", "!=", startCode);
         Orderings orderings = Orderings.of("parentCode, sortIndex");
-        List<SysDeptEntity> result = dao.listChildren("100101", "deptCode", "parentCode", where, orderings);
-        Assert.assertTrue(result.size() == 20, "testListDeptChildren");
+        List<SysDeptEntity> result = dao.listChildren(startCode, "deptCode", "parentCode", where, orderings);
+        // 75 = 3 + 3 * 4 + 3 * 4 * 5
+        // D0102是第2级, 每个2级有3个下级, 每个3级有4个下级, 每个4级有5个下级
+        Assert.assertEquals(result.size(), 75, "testListDeptChildren");
+    }
+
+    @Test
+    public void testListDeptChildrenCode() throws IOException {
+        CrudDao<SysDeptEntity> dao = qdbcBoot.buildCrudDao(SysDeptEntity.class);
+        String startCode = "D010203";
+        DbWhere where = new DbWhere().on("deptCode", "!=", startCode);
+        Orderings orderings = Orderings.of("parentCode, sortIndex");
+        List<String> result = dao.listChildrenCodes(startCode, "deptCode", "parentCode", where, orderings);
+        // 24 = 4 + 4 * 5
+        // D010203是第3级, 每个3级有4个下级, 每个4级有5个下级
+        Assert.assertEquals(result.size(), 24, "testListDeptChildren");
     }
 }
