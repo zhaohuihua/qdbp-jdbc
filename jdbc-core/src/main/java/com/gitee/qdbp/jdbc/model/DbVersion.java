@@ -1,6 +1,7 @@
 package com.gitee.qdbp.jdbc.model;
 
 import java.io.Serializable;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 import com.gitee.qdbp.tools.utils.VersionCodeTools;
@@ -17,52 +18,32 @@ public class DbVersion implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 数据库类型 **/
-    private DbType dbType;
+    private final DbType dbType;
     /** 版本编号 (由数字/字母/点/横杠/下划线组成的标准版本编号, 前两段必须与主版本号/次版本号保持一致) **/
-    private String versionCode;
+    private final String versionCode;
     /** 版本字符串 (描述信息) **/
     // 如MySQL.8返回的是8.0.13; DB2.10.5返回的是SQL10051; 
     // Oralce.12c返回的是Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
     private String versionString;
     /** 主版本号 **/
-    private Integer majorVersion = null;
+    private final int majorVersion;
     /** 次版本号 **/
-    private Integer minorVersion = null;
+    private final int minorVersion;
 
     /** 构造函数 **/
     public DbVersion() {
-        this.dbType = MainDbType.Unknown;
+        this(MainDbType.Unknown, null);
     }
 
     /** 构造函数 **/
     public DbVersion(DbType dbType) {
-        this.dbType = dbType;
-    }
-
-    /** 构造函数 **/
-    public DbVersion(DbType dbType, String versionCode) {
-        this.dbType = dbType;
-        this.versionCode = versionCode;
-    }
-
-    /** 数据库类型 **/
-    public DbType getDbType() {
-        return dbType;
-    }
-
-    /** 数据库类型 **/
-    public void setDbType(DbType dbType) {
-        this.dbType = dbType;
-    }
-
-    /** 获取版本编号 (由数字/字母/点/横杠/下划线组成的标准版本编号) **/
-    public String getVersionCode() {
-        return versionCode;
+        this(dbType, null);
     }
 
     /**
-     * 设置版本编号
+     * 构造函数
      * 
+     * @param dbType 数据库类型
      * @param versionCode 由数字/字母/点/横杠/下划线组成的标准版本编号<br>
      *            <b>前2级必须是纯数字</b><br>
      *            4.3.20.RELEASE<br>
@@ -70,15 +51,47 @@ public class DbVersion implements Serializable {
      *            1.0.234_20200708001<br>
      *            1.0.0-R1<br>
      */
-    public void setVersionCode(String versionCode) {
-        if (versionCode == null) {
-            this.versionCode = null;
-        } else {
+    public DbVersion(DbType dbType, String versionCode) {
+        this.dbType = dbType;
+        int majorVersion = 0;
+        int minorVersion = 0;
+        if (versionCode != null) {
             if (!isValidVersionCode(versionCode)) {
                 throw new IllegalArgumentException("Version code format error: " + versionCode);
             }
-            this.versionCode = versionCode;
+            String[] parts = StringTools.split(versionCode, '.');
+            majorVersion = ConvertTools.toInteger(parts[0]);
+            if (parts.length >= 2) {
+                minorVersion = ConvertTools.toInteger(parts[1]);
+            }
         }
+        this.versionCode = versionCode;
+        this.majorVersion = majorVersion;
+        this.minorVersion = minorVersion;
+    }
+
+    /**
+     * 构造函数
+     * 
+     * @param dbType 数据库类型
+     * @param majorVersion 主版本号
+     * @param minorVersion 次版本号
+     */
+    public DbVersion(DbType dbType, int majorVersion, int minorVersion) {
+        this.dbType = dbType;
+        this.majorVersion = Math.min(majorVersion, 0);
+        this.minorVersion = Math.min(minorVersion, 0);
+        this.versionCode = this.majorVersion + "." + this.minorVersion;
+    }
+
+    /** 数据库类型 **/
+    public DbType getDbType() {
+        return dbType;
+    }
+
+    /** 获取版本编号 (由数字/字母/点/横杠/下划线组成的标准版本编号) **/
+    public String getVersionCode() {
+        return versionCode;
     }
 
     /** 版本字符串 **/
@@ -96,19 +109,9 @@ public class DbVersion implements Serializable {
         return majorVersion;
     }
 
-    /** 主版本号 **/
-    public void setMajorVersion(Integer majorVersion) {
-        this.majorVersion = majorVersion;
-    }
-
     /** 次版本号 **/
     public Integer getMinorVersion() {
         return minorVersion;
-    }
-
-    /** 次版本号 **/
-    public void setMinorVersion(Integer minorVersion) {
-        this.minorVersion = minorVersion;
     }
 
     /**
@@ -124,50 +127,8 @@ public class DbVersion implements Serializable {
      */
     public int versionCompareTo(String targetVersionCode) {
         VerifyTools.requireNotBlank(targetVersionCode, "targetVersionCode");
-        if (VerifyTools.isNotBlank(this.versionCode)) {
-            return VersionCodeTools.compare(this.versionCode, targetVersionCode);
-        }
-
-        String[] targets = VersionCodeTools.splitVersionString(targetVersionCode);
-        // 第1级版本号与主版本号对比
-        int majorDiff = compareVersionValue(this.majorVersion, targets[0], targetVersionCode);
-        if (majorDiff != 0) {
-            return majorDiff;
-        }
-        // 第2级版本号与次版本号对比
-        String minorTarget = targets.length <= 1 ? null : targets[1];
-        int minorDiff = compareVersionValue(this.minorVersion, minorTarget, targetVersionCode);
-        if (minorDiff != 0) {
-            return minorDiff;
-        }
-        // 后面的版本号, 只要不是对方不是全0, 都算对方大
-        String[] sources = new String[0];
-        return VersionCodeTools.compareVersions(sources, targets, 2);
-    }
-
-    private static int compareVersionValue(Integer source, String target, String desc) {
-        if (source == null) {
-            source = 0;
-        }
-        if (target == null) {
-            // 0 = null; 1 > null 
-            return source > 0 ? 1 : 0;
-        } else {
-            if (!StringTools.isDigit(target)) {
-                throw new IllegalArgumentException("VersionStringFomatError: " + desc);
-            }
-        }
-        return compareVersionNumber(source, Integer.parseInt(target));
-    }
-
-    private static int compareVersionNumber(int source, int target) {
-        if (source > target) {
-            return 1;
-        } else if (source < target) {
-            return -1;
-        } else {
-            return 0;
-        }
+        String versionCode = this.versionCode == null ? "0.0" : this.versionCode;
+        return VersionCodeTools.compare(versionCode, targetVersionCode);
     }
 
     /**
@@ -229,13 +190,6 @@ public class DbVersion implements Serializable {
         }
         if (this.versionCode != null) {
             buffer.append('.').append(this.versionCode);
-        } else {
-            if (this.majorVersion != null && this.majorVersion >= 0) {
-                buffer.append('.').append(this.majorVersion);
-                if (this.minorVersion != null && this.minorVersion >= 0) {
-                    buffer.append('.').append(this.minorVersion);
-                }
-            }
         }
         if (details && VerifyTools.isNotBlank(versionString)) {
             buffer.append('(').append(versionString).append(')');

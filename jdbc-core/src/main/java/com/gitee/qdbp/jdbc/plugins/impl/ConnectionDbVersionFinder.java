@@ -29,11 +29,10 @@ public abstract class ConnectionDbVersionFinder implements DbVersionFinder {
             // DATABASE_ORACLE, DATABASE_MYSQL, DATABASE_DB2
             String productName = metadata.getDatabaseProductName();
             DbType dbType = parseDbType(productName);
-            DbVersion version = new DbVersion();
-            version.setDbType(dbType);
+            int majorVersion = metadata.getDatabaseMajorVersion();
+            int minorVersion = metadata.getDatabaseMinorVersion();
+            DbVersion version = new DbVersion(dbType, majorVersion, minorVersion);
             version.setVersionString(metadata.getDatabaseProductVersion());
-            version.setMajorVersion(metadata.getDatabaseMajorVersion());
-            version.setMinorVersion(metadata.getDatabaseMinorVersion());
             return version;
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to get database metadata.", e);
