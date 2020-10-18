@@ -54,7 +54,7 @@ public abstract class BaseQueryerImpl<T> {
         this.sqlBuilder = sqlBuilder;
         this.entityFieldFillExecutor = entityFieldFillExecutor;
         this.jdbc = jdbcOperations;
-        this.dialect = jdbcOperations.findSqlDialect();
+        this.dialect = jdbcOperations.getSqlDialect();
     }
 
     /**

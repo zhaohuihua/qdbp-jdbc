@@ -44,7 +44,7 @@ public class SimpleCrudDaoTest extends AbstractTestNGSpringContextTests {
 
     @BeforeClass
     public void testVersionQuery() {
-        DbVersion version = qdbcBoot.getSqlBufferJdbcOperations().findDbVersion();
+        DbVersion version = qdbcBoot.getSqlBufferJdbcOperations().getDbVersion();
         log.debug("DbVersion: {}", version);
         Assert.assertNotNull(version);
     }

@@ -91,7 +91,7 @@ public class QdbcBootImpl implements QdbcBoot {
     /** {@inheritDoc} **/
     @Override
     public CrudSqlBuilder buildSqlBuilder(Class<?> clazz) {
-        SqlDialect dialect = sqlBufferJdbcOperations.findSqlDialect();
+        SqlDialect dialect = sqlBufferJdbcOperations.getSqlDialect();
         CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, dialect);
         return new CrudSqlBuilder(sqlHelper);
     }
@@ -99,7 +99,7 @@ public class QdbcBootImpl implements QdbcBoot {
     /** {@inheritDoc} **/
     @Override
     public QuerySqlBuilder buildSqlBuilder(TableJoin tables) {
-        SqlDialect dialect = sqlBufferJdbcOperations.findSqlDialect();
+        SqlDialect dialect = sqlBufferJdbcOperations.getSqlDialect();
         TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables, dialect);
         return new QuerySqlBuilder(sqlHelper);
     }
@@ -117,7 +117,7 @@ public class QdbcBootImpl implements QdbcBoot {
     /** {@inheritDoc} **/
     @Override
     public SqlDialect getSqlDialect() {
-        return sqlBufferJdbcOperations == null ? null : sqlBufferJdbcOperations.findSqlDialect();
+        return sqlBufferJdbcOperations == null ? null : sqlBufferJdbcOperations.getSqlDialect();
     }
 
     /** {@inheritDoc} **/

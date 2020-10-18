@@ -37,7 +37,7 @@ public class JoinQueryerImpl<T> extends BaseQueryerImpl<T> implements JoinQuerye
     }
 
     private static QuerySqlBuilder newQuerySqlBuilder(TableJoin tables, SqlBufferJdbcOperations jdbc) {
-        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables, jdbc.findSqlDialect());
+        TableJoinFragmentHelper sqlHelper = new TableJoinFragmentHelper(tables, jdbc.getSqlDialect());
         return new QuerySqlBuilder(sqlHelper);
     }
 

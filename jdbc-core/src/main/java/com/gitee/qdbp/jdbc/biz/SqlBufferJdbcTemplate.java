@@ -5,8 +5,6 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +59,6 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     private DbVersion dbVersion;
     private SqlDialect sqlDialect;
     private SqlDao sqlDao;
-    private Lock jdbcInitLock = new ReentrantLock();
     private NamedParameterJdbcOperations namedParameterJdbcOperations;
     protected CountSqlParser countSqlParser = new CountSqlParser();
 
@@ -72,32 +69,16 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         this.setNamedParameterJdbcOperations(jdbcOperations);
     }
 
-    /**
-     * 查找数据库版本信息(从当前数据源查找)
-     * 
-     * @return 数据库版本信息
-     */
-    @Override
-    public DbVersion findDbVersion() {
-        init();
-        return dbVersion;
+    public NamedParameterJdbcOperations getNamedParameterJdbcOperations() {
+        return namedParameterJdbcOperations;
     }
 
-    /**
-     * 查找数据库版本信息并生成SQL方言处理类
-     * 
-     * @return SQL方言处理类
-     */
-    @Override
-    public SqlDialect findSqlDialect() {
-        init();
-        return sqlDialect;
+    public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
+        this.namedParameterJdbcOperations = namedParameterJdbcOperations;
+        this.init(namedParameterJdbcOperations);
     }
 
-    public void init() {
-        if (dbVersion != null) {
-            return;
-        }
+    protected void init(NamedParameterJdbcOperations namedParameterJdbcOperations) {
         JdbcOperations jdbcOperations = namedParameterJdbcOperations.getJdbcOperations();
         if (!(jdbcOperations instanceof JdbcAccessor)) {
             throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
@@ -107,16 +88,30 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         if (datasource == null) {
             throw new IllegalStateException("Datasource is null.");
         }
-        jdbcInitLock.lock();
-        try {
-            if (dbVersion == null) {
-                dbVersion = DbTools.findDbVersion(datasource);
-                sqlDialect = DbTools.buildSqlDialect(dbVersion);
-                log.debug("Database version: {}", dbVersion);
-            }
-        } finally {
-            jdbcInitLock.unlock();
+        if (dbVersion == null) {
+            dbVersion = DbTools.findDbVersion(datasource);
+            sqlDialect = DbTools.buildSqlDialect(dbVersion);
+            log.debug("Database version: {}", dbVersion);
         }
+        if (this.sqlDao == null) {
+            SqlFragmentContainer container = SqlFragmentContainer.defaults();
+            this.sqlDao = new SqlDaoImpl(container, this);
+        }
+    }
+
+    @Override
+    public DbVersion getDbVersion() {
+        return dbVersion;
+    }
+
+    @Override
+    public SqlDialect getSqlDialect() {
+        return sqlDialect;
+    }
+
+    @Override
+    public SqlDao getSqlDao() {
+        return sqlDao;
     }
 
     private <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
@@ -644,24 +639,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
     }
 
     @Override
-    public SqlDao getSqlDao() {
-        return sqlDao;
-    }
-
-    @Override
     public JdbcOperations getJdbcOperations() {
         return namedParameterJdbcOperations.getJdbcOperations();
-    }
-
-    public NamedParameterJdbcOperations getNamedParameterJdbcOperations() {
-        return namedParameterJdbcOperations;
-    }
-
-    public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
-        this.namedParameterJdbcOperations = namedParameterJdbcOperations;
-        if (this.sqlDao == null) {
-            SqlFragmentContainer container = SqlFragmentContainer.defaults();
-            this.sqlDao = new SqlDaoImpl(container, this);
-        }
     }
 }

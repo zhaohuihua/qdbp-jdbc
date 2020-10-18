@@ -59,7 +59,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     private static QuerySqlBuilder newQuerySqlBuilder(Class<?> clazz, SqlBufferJdbcOperations jdbc) {
-        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, jdbc.findSqlDialect());
+        CrudFragmentHelper sqlHelper = new TableCrudFragmentHelper(clazz, jdbc.getSqlDialect());
         return new CrudSqlBuilder(sqlHelper);
     }
 
@@ -305,7 +305,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             contents.add(pe);
         }
 
-        DbVersion version = jdbc.findDbVersion();
+        DbVersion version = jdbc.getDbVersion();
         BatchInsertExecutor batchOperator = DbTools.getBatchInsertExecutor(version);
         // 执行批量数据库插入
         return batchOperator.inserts(contents, jdbc, getSqlBuilder());
@@ -539,7 +539,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             PkEntity pkud = convertAndFillUpdateParams(item, fillUpdateParams);
             contents.add(pkud);
         }
-        DbVersion version = jdbc.findDbVersion();
+        DbVersion version = jdbc.getDbVersion();
         BatchUpdateExecutor batchOperator = DbTools.getBatchUpdateExecutor(version);
         // 执行批量数据库更新
         return batchOperator.updates(contents, jdbc, getSqlBuilder());

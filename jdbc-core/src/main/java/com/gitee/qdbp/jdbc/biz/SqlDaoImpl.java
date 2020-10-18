@@ -34,7 +34,7 @@ public class SqlDaoImpl implements SqlDao {
     public SqlDaoImpl(SqlFragmentContainer container, SqlBufferJdbcOperations jdbcOperations) {
         this.container = container;
         this.jdbc = jdbcOperations;
-        this.dialect = jdbcOperations.findSqlDialect();
+        this.dialect = jdbcOperations.getSqlDialect();
     }
 
     protected <T> RowToBeanMapper<T> newRowToBeanMapper(Class<T> clazz) {
@@ -107,7 +107,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<T>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(sql, paging);
             // 查询数据列表
@@ -132,7 +132,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<T>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(sql, paging);
             // 查询数据列表
@@ -157,7 +157,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<Map<String, Object>>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(sql, paging);
             // 查询数据列表
@@ -184,7 +184,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<T>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(querySql, paging);
             // 查询数据列表
@@ -211,7 +211,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<T>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(querySql, paging);
             // 查询数据列表
@@ -237,7 +237,7 @@ public class SqlDaoImpl implements SqlDao {
         if (total != null && total == 0) {
             list = new ArrayList<Map<String, Object>>(); // 已知无数据, 不需要再查询
         } else {
-            SqlDialect dialect = jdbc.findSqlDialect();
+            SqlDialect dialect = jdbc.getSqlDialect();
             // 处理分页
             dialect.processPagingSql(querySql, paging);
             // 查询数据列表

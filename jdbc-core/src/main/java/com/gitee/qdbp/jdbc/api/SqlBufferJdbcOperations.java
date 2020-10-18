@@ -27,18 +27,26 @@ import com.gitee.qdbp.tools.files.PathTools;
 public interface SqlBufferJdbcOperations {
 
     /**
-     * 查找数据库版本信息(从当前数据源查找)
+     * 获取数据库版本信息
      * 
      * @return 数据库版本信息
      */
-    DbVersion findDbVersion();
+    DbVersion getDbVersion();
 
     /**
-     * 查找数据库版本信息并生成SQL方言处理类
+     * 获取根据数据库版本信息生成的SQL方言处理类
      * 
      * @return SQL方言处理类
      */
-    SqlDialect findSqlDialect();
+    SqlDialect getSqlDialect();
+
+    /**
+     * 获取SQL执行接口
+     * 
+     * @return SqlDao
+     * @since 3.2.0
+     */
+    SqlDao getSqlDao();
 
     /**
      * Execute a JDBC data access operation, implemented as callback action
@@ -263,14 +271,6 @@ public interface SqlBufferJdbcOperations {
      * @since 3.2.0
      */
     void executeSqlScript(URL sqlFilePath);
-
-    /**
-     * 获取SQL执行接口
-     * 
-     * @return SqlDao
-     * @since 3.2.0
-     */
-    SqlDao getSqlDao();
 
     /**
      * Expose the classic Spring JdbcTemplate to allow invocation of
