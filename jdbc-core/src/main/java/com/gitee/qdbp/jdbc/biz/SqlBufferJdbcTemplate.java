@@ -125,7 +125,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL statement:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql statement:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -133,16 +133,16 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.execute(sql, params, action);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
-                log.debug("SQL query returns 0 row.");
+                log.debug("Sql query returns 0 row.");
             }
             return null;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -154,7 +154,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -162,17 +162,17 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.query(sql, params, rse);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+                log.debug("Sql query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -184,7 +184,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -192,10 +192,10 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             namedParameterJdbcOperations.query(sql, params, rch);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query, elapsed time {}ms.", time);
+                log.debug("Sql query, elapsed time {}ms.", time);
             }
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -207,7 +207,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -215,11 +215,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             List<T> list = namedParameterJdbcOperations.query(sql, params, rowMapper);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
             }
             return list;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -231,7 +231,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -239,17 +239,17 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             T result = namedParameterJdbcOperations.queryForObject(sql, params, rowMapper);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+                log.debug("Sql query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -264,7 +264,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         try {
             String sql = sb.getPreparedSqlString(sqlDialect);
@@ -278,11 +278,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+                log.debug("Sql query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -290,19 +290,19 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
     private void queryForObjectLogResult(long time, Object result) {
         if (result == null) {
-            log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+            log.debug("Sql query returns 0 row, elapsed time {}ms.", time);
             return;
         }
         Class<?> resultType = result.getClass();
         if (resultType == String.class) {
             String string = (String) result;
             String desc = string.length() > 100 ? "String(" + string.length() + ")" : string;
-            log.debug("SQL query returns 1 row, the value is {}, elapsed time {}ms.", desc, time);
+            log.debug("Sql query returns 1 row, the value is {}, elapsed time {}ms.", desc, time);
         } else if (ReflectTools.isPrimitive(resultType) || resultType.isEnum()) {
             String string = result.toString();
-            log.debug("SQL query returns 1 row, the value is {}, elapsed time {}ms.", string, time);
+            log.debug("Sql query returns 1 row, the value is {}, elapsed time {}ms.", string, time);
         } else {
-            log.debug("SQL query returns 1 row, elapsed time {}ms.", time);
+            log.debug("Sql query returns 1 row, elapsed time {}ms.", time);
         }
     }
 
@@ -312,7 +312,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -320,17 +320,17 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             Map<String, Object> result = namedParameterJdbcOperations.queryForMap(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", result == null ? 0 : 1, time);
             }
             return result;
         } catch (EmptyResultDataAccessException e) {
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns 0 row, elapsed time {}ms.", time);
+                log.debug("Sql query returns 0 row, elapsed time {}ms.", time);
             }
             return null;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -342,7 +342,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -355,11 +355,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             }
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
             }
             return list;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -371,7 +371,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -379,11 +379,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             List<Map<String, Object>> list = namedParameterJdbcOperations.queryForList(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
+                log.debug("Sql query returns {} rows, elapsed time {}ms.", list == null ? 0 : list.size(), time);
             }
             return list;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -395,7 +395,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL query:\n{}", logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql query:\n{}", logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -403,11 +403,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             SqlRowSet result = namedParameterJdbcOperations.queryForRowSet(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL query, elapsed time {}ms.", time);
+                log.debug("Sql query, elapsed time {}ms.", time);
             }
             return result;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
@@ -441,7 +441,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -449,11 +449,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             int rows = namedParameterJdbcOperations.update(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL {} affected " + rows + " rows, elapsed time {}ms", desc, time);
+                log.debug("Sql {} affected " + rows + " rows, elapsed time {}ms", desc, time);
             }
             return rows;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(errorCode, details, e);
         }
@@ -464,7 +464,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -473,11 +473,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             int rows = namedParameterJdbcOperations.update(sql, msps, generatedKeyHolder);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL {} affected {} rows, elapsed time {}ms", desc, rows, time);
+                log.debug("Sql {} affected {} rows, elapsed time {}ms", desc, rows, time);
             }
             return rows;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(errorCode, details, e);
         }
@@ -495,11 +495,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         return doBatchExecute(sb, "update", ResultCode.DB_UPDATE_ERROR);
     }
 
-    protected int doBatchExecute(SqlBuffer sb, String desc, IResultMessage errorCode) throws ServiceException {
+    protected int doBatchExecute(SqlBuffer sb, String operate, IResultMessage errorCode) throws ServiceException {
         long startTime = System.currentTimeMillis();
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL batch {}:\n{}", desc, logsql = getFormattedSqlString(sb, 1));
+            log.debug("Executing sql batch {}:\n{}", operate, logsql = getFormattedSqlString(sb, 1));
         }
         String sql = sb.getPreparedSqlString(sqlDialect);
         Map<String, Object> params = sb.getPreparedVariables(sqlDialect);
@@ -507,11 +507,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             int rows = namedParameterJdbcOperations.update(sql, params);
             if (log.isDebugEnabled()) {
                 long time = System.currentTimeMillis() - startTime;
-                log.debug("SQL batch {} affected {} rows, elapsed time {}ms.", desc, rows, time);
+                log.debug("Sql batch {} affected {} rows, elapsed time {}ms.", operate, rows, time);
             }
             return rows;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
+            String details = "Sql:\n" + (logsql != null ? logsql : getFormattedSqlString(sb, 1));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(errorCode, details, e);
         }
@@ -553,7 +553,7 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
         // 输出日志
         String logsql = null;
         if (log.isDebugEnabled()) {
-            log.debug("Executing SQL count:\n{}", logsql = getLoggingSqlForHashParamsSql(countSql, paramArray));
+            log.debug("Executing sql count:\n{}", logsql = getLoggingSqlForHashParamsSql(countSql, paramArray));
         }
 
         long countTime = System.currentTimeMillis();
@@ -565,11 +565,11 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
             if (log.isDebugEnabled()) {
                 long parseMills = countTime - startTime;
                 long countMills = System.currentTimeMillis() - countTime;
-                log.debug("SQL count returns {}, parse time {}ms, execute time {}ms.", total, parseMills, countMills);
+                log.debug("Sql count returns {}, parse time {}ms, execute time {}ms.", total, parseMills, countMills);
             }
             return total;
         } catch (DataAccessException e) {
-            String details = "SQL:\n" + (logsql != null ? logsql : getLoggingSqlForHashParamsSql(countSql, paramArray));
+            String details = "Sql:\n" + (logsql != null ? logsql : getLoggingSqlForHashParamsSql(countSql, paramArray));
             details = StringTools.concat('\n', details, e.getCause() == null ? null : e.getCause().getMessage());
             throw new ServiceException(ResultCode.DB_SELECT_ERROR, details, e);
         }
