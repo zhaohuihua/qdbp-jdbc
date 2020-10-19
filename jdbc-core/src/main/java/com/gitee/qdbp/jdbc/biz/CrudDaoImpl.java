@@ -14,7 +14,6 @@ import com.gitee.qdbp.able.jdbc.ordering.Orderings;
 import com.gitee.qdbp.able.result.ResultCode;
 import com.gitee.qdbp.jdbc.api.CrudDao;
 import com.gitee.qdbp.jdbc.api.SqlBufferJdbcOperations;
-import com.gitee.qdbp.jdbc.api.SqlDao;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.AllFieldColumn;
 import com.gitee.qdbp.jdbc.model.DbVersion;
@@ -36,9 +35,7 @@ import com.gitee.qdbp.jdbc.sql.build.QuerySqlBuilder;
 import com.gitee.qdbp.jdbc.sql.fragment.CrudFragmentHelper;
 import com.gitee.qdbp.jdbc.sql.fragment.TableCrudFragmentHelper;
 import com.gitee.qdbp.jdbc.utils.DbTools;
-import com.gitee.qdbp.tools.utils.Config;
 import com.gitee.qdbp.tools.utils.ConvertTools;
-import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
@@ -156,32 +153,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
 
-        SqlDao sqlDao = jdbc.getSqlDao();
-        // 1.优先执行与当前数据库匹配的特定的递归查询模板
-        String specialSqlId = "recursive.find.children.special";
-        if (sqlDao.existSqlTemplate(specialSqlId)) {
-            return sqlDao.listForObjects(specialSqlId, params, resultType);
-        }
-        // 2.根据配置项执行对应的递归查询模板
-        Config config = DbTools.getDbConfig();
-        DbVersion dbVersion = getSqlDialect().getDbVersion();
-        // qdbc.recursive.find.children.options = normal,production
-        String optionsKey = "qdbc.recursive.find.children.options";
-        String optionsValue = config.getStringUseDefValue(optionsKey, "normal,production");
-        String[] optionsList = StringTools.split(optionsValue, ',');
-        for (String item : optionsList) {
-            String configSqlId = "recursive.find.children" + '.' + item;
-            // qdbc.recursive.find.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver
-            String configKey = "qdbc" + '.' + configSqlId;
-            String configValue = config.getString(configKey);
-            if (dbVersion.matchesWith(configValue)) {
-                // 如 recursive.find.children.normal
-                return sqlDao.listForObjects(configSqlId, params, resultType);
-            }
-        }
-        // 3.如果未找到配置项, 则调用存储过程
-        String productionSqlId = "recursive.find.children.production";
-        return sqlDao.listForObjects(productionSqlId, params, resultType);
+        String sqlId = "recursive.find.children";
+        return jdbc.getSqlDao().listForObjects(sqlId, params, resultType);
     }
 
     @Override
