@@ -3,6 +3,8 @@ package com.gitee.qdbp.jdbc.biz;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import com.gitee.qdbp.able.jdbc.paging.PageList;
 import com.gitee.qdbp.able.jdbc.paging.Paging;
@@ -16,6 +18,7 @@ import com.gitee.qdbp.jdbc.result.TableRowToBeanMapper;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
 import com.gitee.qdbp.jdbc.sql.parse.SqlFragmentContainer;
 import com.gitee.qdbp.jdbc.utils.DbTools;
+import com.gitee.qdbp.staticize.common.IMetaData;
 
 /**
  * 执行SQL语句的处理类<br>
@@ -26,6 +29,8 @@ import com.gitee.qdbp.jdbc.utils.DbTools;
  * @since 3.2.0
  */
 public class SqlDaoImpl implements SqlDao {
+
+    private static Logger log = LoggerFactory.getLogger(SqlDaoImpl.class);
 
     protected SqlFragmentContainer container;
     protected SqlBufferJdbcOperations jdbc;
@@ -52,49 +57,49 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> T findForObject(String sqlId, Object params, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.queryForObject(sql, resultType);
     }
 
     @Override
     public <T> T findForObject(String sqlId, Object params, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.queryForObject(sql, rowMapper);
     }
 
     @Override
     public Map<String, Object> findForMap(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.queryForMap(sql);
     }
 
     @Override
     public <T> List<T> listForObjects(String sqlId, Object params, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.queryForList(sql, resultType);
     }
 
     @Override
     public <T> List<T> listForObjects(String sqlId, Object params, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.query(sql, rowMapper);
     }
 
     @Override
     public List<Map<String, Object>> listForMaps(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.queryForList(sql);
     }
 
     @Override
     public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, Class<T> resultType) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
@@ -119,7 +124,7 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public <T> PageList<T> pageForObjects(String sqlId, Object params, Paging paging, RowMapper<T> rowMapper) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
@@ -144,7 +149,7 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public PageList<Map<String, Object>> pageForMaps(String sqlId, Object params, Paging paging) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
 
         // 先查询总数据量
         Integer total = paging.getTotal();
@@ -249,21 +254,21 @@ public class SqlDaoImpl implements SqlDao {
     @Override
     public int insert(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.insert(sql);
     }
 
     @Override
     public int update(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.update(sql);
     }
 
     @Override
     public int delete(String sqlId, Object params) {
         Map<String, Object> map = params == null ? null : beanToMap(params);
-        SqlBuffer sql = container.render(sqlId, map, dialect);
+        SqlBuffer sql = renderSqlTemplate(sqlId, map);
         return jdbc.delete(sql);
     }
 
@@ -278,4 +283,11 @@ public class SqlDaoImpl implements SqlDao {
         return container.render(sqlId, map, dialect);
     }
 
+    protected SqlBuffer renderSqlTemplate(String sqlId, Map<String, Object> params) {
+        IMetaData tags = container.find(sqlId, dialect.getDbVersion());
+        if (log.isDebugEnabled()) {
+            log.debug("Sql fragment from {}", tags.getRealPath());
+        }
+        return container.publish(tags, params, dialect);
+    }
 }

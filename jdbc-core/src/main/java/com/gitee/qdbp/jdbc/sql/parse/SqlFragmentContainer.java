@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.gitee.qdbp.able.beans.KeyString;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.DbType;
@@ -88,7 +89,7 @@ public class SqlFragmentContainer {
                 String sqlKey = sqlId + '(' + dbType + ')';
                 TagData value = new TagData(version, data);
                 if (this.typedCache.containsKey(sqlKey)) {
-                    addToTagDatas(value, this.typedCache.get(sqlKey));
+                    mergeTagDatas(value, this.typedCache.get(sqlKey));
                 } else {
                     this.typedCache.put(sqlKey, ConvertTools.toList(value));
                 }
@@ -97,7 +98,7 @@ public class SqlFragmentContainer {
         }
     }
 
-    private static void addToTagDatas(TagData item, List<TagData> list) {
+    private static void mergeTagDatas(TagData item, List<TagData> list) {
         String version = item.getMinVersion();
         if (version == null || "*".equals(version)) {
             list.add(item);
@@ -123,31 +124,6 @@ public class SqlFragmentContainer {
         }
     }
 
-    public static void main(String[] args) {
-        TagData a65 = new TagData("6.5", null);
-        System.out.println("a65=" + a65);
-        TagData a652 = new TagData("6.5", null);
-        System.out.println("a65-2=" + a652);
-        TagData a80 = new TagData("8.0", null);
-        System.out.println("a80=" + a80);
-        TagData a70 = new TagData("7.0", null);
-        System.out.println("a70=" + a70);
-        TagData a60 = new TagData("6.0", null);
-        System.out.println("a60=" + a60);
-
-        List<TagData> list1 = ConvertTools.toList(a80, a70);
-        addToTagDatas(a65, list1);
-        System.out.println(ConvertTools.joinToString(list1));
-
-        List<TagData> list2 = ConvertTools.toList(a80, a70, a60);
-        addToTagDatas(a65, list2);
-        System.out.println(ConvertTools.joinToString(list2));
-
-        List<TagData> list3 = ConvertTools.toList(a80, a70, a652, a60);
-        addToTagDatas(a65, list3);
-        System.out.println(ConvertTools.joinToString(list3));
-    }
-
     /**
      * 查找SQL模板标签元数据树
      * 
@@ -155,7 +131,7 @@ public class SqlFragmentContainer {
      * @param dbVersion 数据库版本
      * @return 标签元数据树
      */
-    protected IMetaData find(String sqlId, DbVersion dbVersion) {
+    public IMetaData find(String sqlId, DbVersion dbVersion) {
         return find(sqlId, dbVersion, true);
     }
 
@@ -184,16 +160,17 @@ public class SqlFragmentContainer {
 
         IMetaData found = null;
         // 记录下尝试过哪些模板, 用于匹配失败时输出日志
-        List<String> tryedLocations = new ArrayList<>();
+        // key=dbType+dbVersion, value=location
+        List<KeyString> tryedLocations = new ArrayList<>();
         { // 开始查找模板
             this.scanSqlFiles();
             String sqlKey = sqlId + '(' + dbType + ')';
             List<TagData> typedList = typedCache.get(sqlKey);
             if (typedList != null && !typedList.isEmpty()) {
                 for (TagData item : typedList) {
-                    tryedLocations.add(item.getMetaData().getRealPath());
                     // 此模板的最低版本要求
                     String minVersion = item.getMinVersion();
+                    tryedLocations.add(new KeyString(dbType + '.' + minVersion, item.getMetaData().getRealPath()));
                     if (minVersion == null || "*".equals(minVersion)) {
                         found = item.getMetaData(); // 没有最低要求, 则当前数据库为匹配
                         break;
@@ -218,9 +195,11 @@ public class SqlFragmentContainer {
 
         // 未匹配成功
         StringBuilder details = new StringBuilder();
-        details.append("sqlId=").append(sqlId).append(", dbVersion=").append(dbVersion.toVersionString());
-        if (!tryedLocations.isEmpty()) {
-            details.append("\ntryed locations:").append(ConvertTools.joinToString(tryedLocations, "\n\t"));
+        if (tryedLocations.isEmpty()) {
+            details.append("sqlId=").append(sqlId).append(", dbVersion=").append(dbVersion.toVersionString());
+        } else {
+            details.append("\nsqlId=").append(sqlId).append(", dbVersion=").append(dbVersion.toVersionString());
+            details.append("\nmatches tryed locations:\n").append(locationsToString(tryedLocations));
         }
         tmplErrorCache.put(cacheKey, details.toString());
         if (throwOnNotFound) {
@@ -228,6 +207,25 @@ public class SqlFragmentContainer {
         } else {
             return null;
         }
+    }
+
+    private String locationsToString(List<KeyString> locations) {
+        int maxVersionLength = 0;
+        for (KeyString item : locations) {
+            if (maxVersionLength < item.getKey().length()) {
+                maxVersionLength = item.getKey().length();
+            }
+        }
+        StringBuilder buffer = new StringBuilder();
+        for (KeyString item : locations) {
+            if (buffer.length() > 0) {
+                buffer.append('\n');
+            }
+            buffer.append(StringTools.pad(item.getKey(), ' ', false, maxVersionLength));
+            buffer.append(" --> ");
+            buffer.append(item.getValue());
+        }
+        return buffer.toString();
     }
 
     /**
@@ -258,7 +256,8 @@ public class SqlFragmentContainer {
         return publish(tags, data, dialect);
     }
 
-    protected SqlBuffer publish(IMetaData tags, Map<String, Object> data, SqlDialect dialect) {
+    /** 将SQL模板渲染为SqlBuffer对象 **/
+    public SqlBuffer publish(IMetaData tags, Map<String, Object> data, SqlDialect dialect) {
         SqlBufferPublisher publisher = new SqlBufferPublisher(tags);
         try {
             SqlBuffer buffer = publisher.publish(data, dialect);
