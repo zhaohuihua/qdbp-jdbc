@@ -269,7 +269,7 @@ public class SqlDaoImpl implements SqlDao {
 
     @Override
     public boolean existSqlTemplate(String sqlId) {
-        return container.exist(sqlId, dialect.getDbVersion().getDbType());
+        return container.exist(sqlId, dialect.getDbVersion());
     }
 
     @Override

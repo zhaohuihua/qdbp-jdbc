@@ -17,6 +17,7 @@ update:set    = com.gitee.qdbp.jdbc.tags.UpdateSetTag
 sql:trim      = com.gitee.qdbp.jdbc.tags.TrimTag
 sql:in        = com.gitee.qdbp.jdbc.tags.SqlInTag
 sql:like      = com.gitee.qdbp.jdbc.tags.SqlLikeTag
+supports      = com.gitee.qdbp.staticize.tags.base.IgnoreContentTag
 
 fmt:date      = com.gitee.qdbp.staticize.tags.core.DateFormatTag
 

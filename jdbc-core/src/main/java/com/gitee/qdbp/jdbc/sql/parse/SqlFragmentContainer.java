@@ -2,15 +2,17 @@ package com.gitee.qdbp.jdbc.sql.parse;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.gitee.qdbp.able.exception.ServiceException;
 import com.gitee.qdbp.jdbc.exception.DbErrorCode;
 import com.gitee.qdbp.jdbc.model.DbType;
+import com.gitee.qdbp.jdbc.model.DbVersion;
 import com.gitee.qdbp.jdbc.plugins.SqlDialect;
 import com.gitee.qdbp.jdbc.plugins.SqlFileScanner;
 import com.gitee.qdbp.jdbc.sql.SqlBuffer;
@@ -20,6 +22,8 @@ import com.gitee.qdbp.staticize.exception.TagException;
 import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.files.PathTools;
 import com.gitee.qdbp.tools.utils.ConvertTools;
+import com.gitee.qdbp.tools.utils.StringTools;
+import com.gitee.qdbp.tools.utils.VersionCodeTools;
 
 /**
  * Sql片断的容器
@@ -39,7 +43,13 @@ public class SqlFragmentContainer {
     }
 
     private boolean scaned = false;
-    private Map<String, IMetaData> cache = new ConcurrentHashMap<>();
+
+    /** 未指定数据库类型的SQL模板 **/
+    // key=sqlId
+    private Map<String, IMetaData> untypedCache = new HashMap<>();
+    /** 指定了数据库类型的SQL模板 **/
+    // key=sqlId(dbType), value=[{version,IMetaData}], value按版本号从大到小排列, 无版本号的放最后
+    private Map<String, List<TagData>> typedCache = new HashMap<>();
 
     private SqlFragmentContainer() {
     }
@@ -48,33 +58,175 @@ public class SqlFragmentContainer {
      * 注册SQL模板标签元数据树
      * 
      * @param sqlId SQL编号
-     * @param dbType 数据库类型
+     * @param supports 支持哪些数据库版本
      * @param data 解析后的模板标签元数据树
      */
-    protected void register(String sqlId, DbType dbType, IMetaData data) {
-        String sqlKey = sqlId + '(' + (dbType == null ? "*" : dbType.name().toLowerCase()) + ')';
-        this.cache.put(sqlKey, data);
+    protected void register(String sqlId, String supports, IMetaData data) {
+        if (supports == null || "*".equals(supports)) {
+            if (!untypedCache.containsKey(sqlId)) {
+                // 存入未指定数据库类型的SQL模板容器
+                untypedCache.put(sqlId, data);
+            }
+        } else {
+            // <supports>mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3</supports>
+            String[] supportArray = StringTools.split(supports, ',');
+            for (String supportItem : supportArray) {
+                if (supportItem.length() == 0) {
+                    continue;
+                }
+                int dotIndex = supportItem.indexOf('.');
+                String dbType;
+                String version = null;
+                if (dotIndex < 0) { // 不带版本号, 如mariadb
+                    dbType = supportItem.toLowerCase();
+                } else if (dotIndex == 0) { // .10.2.2?
+                    continue;
+                } else { // 带版本号, 如mariadb.10.2.2
+                    dbType = supportItem.substring(0, dotIndex).toLowerCase();
+                    version = supportItem.substring(dotIndex + 1);
+                }
+                String sqlKey = sqlId + '(' + dbType + ')';
+                TagData value = new TagData(version, data);
+                if (this.typedCache.containsKey(sqlKey)) {
+                    addToTagDatas(value, this.typedCache.get(sqlKey));
+                } else {
+                    this.typedCache.put(sqlKey, ConvertTools.toList(value));
+                }
+            }
+
+        }
+    }
+
+    private static void addToTagDatas(TagData item, List<TagData> list) {
+        String version = item.getMinVersion();
+        if (version == null || "*".equals(version)) {
+            list.add(item);
+            return;
+        }
+        boolean inserted = false;
+        for (int index = 0; index < list.size(); index++) {
+            TagData target = list.get(index);
+            String targetVersion = target.getMinVersion();
+            if (targetVersion == null || "*".equals(targetVersion)) {
+                list.add(index, item);
+                inserted = true;
+                break;
+            } else if (VersionCodeTools.compare(targetVersion, version) < 0) {
+                // 插入首个小于当前版本的位置的前面
+                list.add(index, item);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            list.add(item);
+        }
+    }
+
+    public static void main(String[] args) {
+        TagData a65 = new TagData("6.5", null);
+        System.out.println("a65=" + a65);
+        TagData a652 = new TagData("6.5", null);
+        System.out.println("a65-2=" + a652);
+        TagData a80 = new TagData("8.0", null);
+        System.out.println("a80=" + a80);
+        TagData a70 = new TagData("7.0", null);
+        System.out.println("a70=" + a70);
+        TagData a60 = new TagData("6.0", null);
+        System.out.println("a60=" + a60);
+
+        List<TagData> list1 = ConvertTools.toList(a80, a70);
+        addToTagDatas(a65, list1);
+        System.out.println(ConvertTools.joinToString(list1));
+
+        List<TagData> list2 = ConvertTools.toList(a80, a70, a60);
+        addToTagDatas(a65, list2);
+        System.out.println(ConvertTools.joinToString(list2));
+
+        List<TagData> list3 = ConvertTools.toList(a80, a70, a652, a60);
+        addToTagDatas(a65, list3);
+        System.out.println(ConvertTools.joinToString(list3));
     }
 
     /**
      * 查找SQL模板标签元数据树
      * 
      * @param sqlId SQL编号
-     * @param dbType 数据库类型
+     * @param dbVersion 数据库版本
      * @return 标签元数据树
      */
-    protected IMetaData find(String sqlId, DbType dbType) {
-        this.scanSqlFiles();
-        String sqlKey = sqlId + '(' + dbType.name().toLowerCase() + ')';
-        IMetaData sqlData = this.cache.get(sqlKey);
-        if (sqlData == null) {
-            sqlData = this.cache.get(sqlId + "(*)");
+    protected IMetaData find(String sqlId, DbVersion dbVersion) {
+        return find(sqlId, dbVersion, true);
+    }
+
+    // key=sqlId(dbType.version)
+    private Map<String, IMetaData> tmplFondCache = new HashMap<>();
+    // key=sqlId(dbType.version), value=details message
+    private Map<String, String> tmplErrorCache = new HashMap<>();
+
+    protected IMetaData find(String sqlId, DbVersion dbVersion, boolean throwOnNotFound) {
+
+        String dbType = dbVersion.getDbType().name().toLowerCase();
+        String currVersion = dbVersion.getVersionCode();
+
+        String cacheKey = sqlId + '(' + dbType + '.' + currVersion + ')';
+        if (tmplFondCache.containsKey(cacheKey)) {
+            return tmplFondCache.get(cacheKey);
         }
-        if (sqlData != null) {
-            return sqlData;
+        if (tmplErrorCache.containsKey(cacheKey)) {
+            if (throwOnNotFound) {
+                String details = tmplErrorCache.get(cacheKey);
+                throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_NOT_FOUND, details);
+            } else {
+                return null;
+            }
+        }
+
+        IMetaData found = null;
+        // 记录下尝试过哪些模板, 用于匹配失败时输出日志
+        List<String> tryedLocations = new ArrayList<>();
+        { // 开始查找模板
+            this.scanSqlFiles();
+            String sqlKey = sqlId + '(' + dbType + ')';
+            List<TagData> typedList = typedCache.get(sqlKey);
+            if (typedList != null && !typedList.isEmpty()) {
+                for (TagData item : typedList) {
+                    tryedLocations.add(item.getMetaData().getRealPath());
+                    // 此模板的最低版本要求
+                    String minVersion = item.getMinVersion();
+                    if (minVersion == null || "*".equals(minVersion)) {
+                        found = item.getMetaData(); // 没有最低要求, 则当前数据库为匹配
+                        break;
+                    }
+                    if (VersionCodeTools.compare(currVersion, minVersion) >= 0) {
+                        found = item.getMetaData(); // 满足最低要求, 匹配成功
+                        break;
+                    }
+                }
+            }
+
+            // 带版本的模板未匹配成功, 判断是否存在不带版本要求的模板
+            if (found == null && untypedCache.containsKey(sqlId)) {
+                found = untypedCache.get(sqlId);
+            }
+        }
+
+        if (found != null) {
+            tmplFondCache.put(cacheKey, found);
+            return found;
+        }
+
+        // 未匹配成功
+        StringBuilder details = new StringBuilder();
+        details.append("sqlId=").append(sqlId).append(", dbVersion=").append(dbVersion.toVersionString());
+        if (!tryedLocations.isEmpty()) {
+            details.append("\ntryed locations:").append(ConvertTools.joinToString(tryedLocations, "\n\t"));
+        }
+        tmplErrorCache.put(cacheKey, details.toString());
+        if (throwOnNotFound) {
+            throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_NOT_FOUND, details.toString());
         } else {
-            String details = "sqlId=" + sqlId + ", dbType=" + dbType.name().toLowerCase();
-            throw new ServiceException(DbErrorCode.DB_SQL_FRAGMENT_NOT_FOUND, details);
+            return null;
         }
     }
 
@@ -82,22 +234,21 @@ public class SqlFragmentContainer {
      * 判断SQL模板是否存在
      * 
      * @param sqlId SQL编号
-     * @param dbType 数据库类型
+     * @param dbVersion 数据库版本
      * @return 是否存在
      */
-    public boolean exist(String sqlId, DbType dbType) {
+    public boolean exist(String sqlId, DbVersion dbVersion) {
         this.scanSqlFiles();
-        String sqlKey = sqlId + '(' + dbType.name().toLowerCase() + ')';
-        IMetaData sqlData = this.cache.get(sqlKey);
-        if (sqlData == null) {
-            sqlData = this.cache.get(sqlId + "(*)");
+        if (untypedCache.containsKey(sqlId)) {
+            return true;
         }
-        return sqlData != null;
+        IMetaData metadata = find(sqlId, dbVersion, false);
+        return metadata != null;
     }
 
     /** 根据SqlId从缓存中获取SQL模板, 渲染为SqlBuffer对象 **/
     public SqlBuffer render(String sqlId, Map<String, Object> data, SqlDialect dialect) {
-        IMetaData tags = find(sqlId, dialect.getDbVersion().getDbType());
+        IMetaData tags = find(sqlId, dialect.getDbVersion());
         return publish(tags, data, dialect);
     }
 
@@ -152,34 +303,56 @@ public class SqlFragmentContainer {
             }
         }
 
-        List<TagData> tagDatas = parser.parseCachedSqlFragments();
+        List<ParsedFragment> tagDatas = parser.parseCachedSqlFragments();
         if (log.isInfoEnabled()) {
             String msg = "Success to parse sql templates, elapsed time {}, total of {} files and {} fragments.";
             log.info(msg, ConvertTools.toDuration(startTime, true), urls.size(), tagDatas.size());
         }
-        for (TagData item : tagDatas) {
-            this.cache.put(item.getSqlKey(), item.getMetaData());
+        for (ParsedFragment item : tagDatas) {
+            this.register(item.getSqlId(), item.getSupports(), item.getMetaData());
             if (item.getAlias() != null) {
-                this.cache.put(item.getAlias(), item.getMetaData());
+                this.register(item.getAlias(), item.getSupports(), item.getMetaData());
             }
         }
     }
 
     protected static class TagData {
 
-        private final String sqlKey;
-        private final String alias;
+        /** 最低版本要求 **/
+        private final String minVersion;
         private final IMetaData metadata;
 
-        public TagData(String sqlKey, String alias, IMetaData data) {
-            super();
-            this.sqlKey = sqlKey;
-            this.alias = alias;
+        public TagData(String minVersion, IMetaData data) {
+            this.minVersion = minVersion;
             this.metadata = data;
         }
 
-        public String getSqlKey() {
-            return sqlKey;
+        /** 最低版本要求 **/
+        public String getMinVersion() {
+            return minVersion;
+        }
+
+        public IMetaData getMetaData() {
+            return metadata;
+        }
+    }
+
+    protected static class ParsedFragment {
+
+        private final String sqlId;
+        private final String alias;
+        private final String supports;
+        private final IMetaData metadata;
+
+        public ParsedFragment(String sqlId, String alias, String supports, IMetaData data) {
+            this.sqlId = sqlId;
+            this.alias = alias;
+            this.supports = supports;
+            this.metadata = data;
+        }
+
+        public String getSqlId() {
+            return sqlId;
         }
 
         public String getAlias() {
@@ -188,6 +361,10 @@ public class SqlFragmentContainer {
 
         public IMetaData getMetaData() {
             return metadata;
+        }
+
+        public String getSupports() {
+            return supports;
         }
 
     }
