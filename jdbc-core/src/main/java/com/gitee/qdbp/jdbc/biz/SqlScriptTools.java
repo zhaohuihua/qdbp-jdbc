@@ -61,7 +61,7 @@ class SqlScriptTools {
 
         String path = PathTools.getFileName(url.toString());
         try {
-            log.info("Executing SQL script from {}", resource);
+            log.info("Executing sql script from {}", resource);
             long startTime = System.currentTimeMillis();
 
             String script;
@@ -100,13 +100,13 @@ class SqlScriptTools {
 
             long elapsedTime = System.currentTimeMillis() - startTime;
             if (log.isInfoEnabled()) {
-                log.info("Executed {} SQL script fragments in {} ms from {}.", sqlIndex, elapsedTime, resource);
+                log.info("Executed {} sql script fragments in {} ms from {}.", sqlIndex, elapsedTime, resource);
             }
         } catch (Exception e) {
             if (e instanceof ScriptException) {
                 throw (ScriptException) e;
             }
-            throw new UncategorizedScriptException("Failed to execute SQL script from " + resource, e);
+            throw new UncategorizedScriptException("Failed to execute sql script from " + resource, e);
         }
     }
 
@@ -116,10 +116,10 @@ class SqlScriptTools {
             stmt.execute(sql);
             int rowsAffected = stmt.getUpdateCount();
             if (log.isDebugEnabled()) {
-                log.debug(rowsAffected + " returned for SQL: " + sql);
+                log.debug(rowsAffected + " returned for sql: " + sql);
                 SQLWarning warn = stmt.getWarnings();
                 while (warn != null) {
-                    String msg = "SQLWarning ignored, SqlState:{}, ErrorCode:{}, Message:[{}]";
+                    String msg = "Sql warning ignored, SqlState:{}, ErrorCode:{}, Message:[{}]";
                     log.debug(msg, warn.getSQLState(), warn.getErrorCode(), warn.getMessage());
                     warn = warn.getNextWarning();
                 }
@@ -129,12 +129,12 @@ class SqlScriptTools {
             boolean dropStatement = StringUtils.startsWithIgnoreCase(sql.trim(), "drop");
             if (dropStatement && ignoreFailedDrops) {
                 if (log.isDebugEnabled()) {
-                    String msg = "Failed to execute SQL fragment #{} of {}: {}, {}";
+                    String msg = "Failed to execute sql fragment #{} of {}: {}, {}";
                     log.debug(msg, index, path, sql, e.toString());
                 }
             } else if (continueOnError) {
                 if (log.isDebugEnabled()) {
-                    String msg = "Failed to execute SQL fragment #{} of {}: {}";
+                    String msg = "Failed to execute sql fragment #{} of {}: {}";
                     log.debug(msg, index, path, sql, e);
                 }
             } else {
@@ -153,7 +153,7 @@ class SqlScriptTools {
         }
 
         public static String buildErrorMessage(String sql, int index, String path) {
-            String fmt = "Failed to execute SQL fragment #%s of %s: %s";
+            String fmt = "Failed to execute sql fragment #%s of %s: %s";
             return String.format(fmt, index, path, sql);
         }
     }
