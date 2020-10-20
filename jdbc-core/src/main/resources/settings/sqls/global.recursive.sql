@@ -5,7 +5,7 @@
 -- 不支持field AS alias, 于是去掉AS改成field alias
 -- WITH AS中不支持INNER JOIN, 于是改成 A, B WHERE A.PARENT=B.temp_parent
 
--- <<recursive.find.children>> 递归查询所有子节点, 标准递归语法
+-- <<recursive.list.children.query>> 递归查询所有子节点, 标准递归语法
 -- <supports>mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3</supports>
 ${db.config.get('qdbc.recursive.keyword')} recursive_temp_table(temp_parent) AS (
     SELECT ${codeColumn} temp_parent FROM ${tableName} 
@@ -21,7 +21,7 @@ WHERE ${codeColumn} IN ( SELECT temp_parent FROM recursive_temp_table )
 <append prefix="ORDER BY">#{orderByCondition}</append>
 
 
--- <<recursive.find.children:oracle>> 递归查询所有子节点, oracle专用递归语法
+-- <<recursive.list.children.query:oracle>> 递归查询所有子节点, oracle专用递归语法
 SELECT ${selectColumns}
 	FROM ${tableName}
 START WITH <sql:in column="${codeColumn}" value="${startCodes}" />
@@ -30,8 +30,8 @@ START WITH <sql:in column="${codeColumn}" value="${startCodes}" />
 <append prefix="ORDER BY">#{orderByCondition}</append>
 
 
--- <<recursive.find.children>> 递归查询所有子节点, 使用存储过程实现的递归查询
-CALL RECURSIVE_FIND_CHILDREN(
+-- <<recursive.list.children.query>> 递归查询所有子节点, 使用存储过程实现的递归查询
+CALL RECURSIVE_LIST_CHILDREN_QUERY (
       /*startCodes=*/ ${startCodes},
       /*codeColumn=*/ ${codeColumn},
     /*parentColumn=*/ ${parentColumn},

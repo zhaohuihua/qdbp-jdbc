@@ -29,7 +29,7 @@ public class DbConfig implements Serializable {
 
     /**
      * 判断当前数据库是否在配置的支持之列<br>
-     * 如: qdbc.recursive.find.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3<br>
+     * 如: qdbc.recursive.list.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3<br>
      * 则 所列出的数据库调用此方法时将返回true; 其他数据库返回false
      * 
      * @param key KEY
@@ -41,7 +41,7 @@ public class DbConfig implements Serializable {
 
     /**
      * 判断当前数据库是否在配置的支持之列<br>
-     * 如: qdbc.recursive.find.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3<br>
+     * 如: qdbc.recursive.list.children.normal = mysql.8,mariadb.10.2.2,postgresql,db2,sqlserver,sqlite.3.8.3<br>
      * 则 所列出的数据库调用此方法时将返回true; 其他数据库返回false
      * 
      * @param key KEY

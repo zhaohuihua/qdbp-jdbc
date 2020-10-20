@@ -141,7 +141,7 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
         if (VerifyTools.isNotBlank(orderings)) {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
-        String sqlId = "recursive.find.children";
+        String sqlId = "recursive.list.children.query";
         SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);
         String sqlText = buffer.getLoggingSqlString(dialect);
 

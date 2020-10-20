@@ -364,7 +364,7 @@ public interface CrudDao<T> {
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
-     * MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+     * MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
      * 
      * @param startCode 起始编号
      * @param codeField 编号字段名
@@ -389,7 +389,7 @@ public interface CrudDao<T> {
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
-     * MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+     * MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
      * 
      * @param startCodes 起始编号
      * @param codeField 编号字段名
@@ -411,7 +411,7 @@ public interface CrudDao<T> {
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
-     * MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+     * MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
      * 
      * @param startCode 起始编号
      * @param codeField 编号字段名
@@ -437,7 +437,7 @@ public interface CrudDao<T> {
      * ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}<br>
      * DB2/SqlServer: 使用WITH递归<br>
      * MYSQL 8.0+/PostgreSQL: 使用WITH RECURSIVE递归<br>
-     * MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+     * MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
      * 
      * @param startCodes 起始编号
      * @param codeField 编号字段名

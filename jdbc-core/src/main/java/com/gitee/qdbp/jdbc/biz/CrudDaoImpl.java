@@ -132,7 +132,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     // ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}
     // DB2: 使用WITH递归 
     // MYSQL 8.0+: 使用WITH RECURSIVE递归 
-    // MYSQL 8.0-: 使用存储过程RECURSIVE_FIND_CHILDREN
+    // MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
     protected <R> List<R> doListChildren(List<String> startCodes, String codeField, String parentField,
             Fields selectFields, DbWhere where, Orderings orderings, Class<R> resultType) throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
@@ -153,7 +153,7 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
             params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
         }
 
-        String sqlId = "recursive.find.children";
+        String sqlId = "recursive.list.children.query";
         return jdbc.getSqlDao().listForObjects(sqlId, params, resultType);
     }
 

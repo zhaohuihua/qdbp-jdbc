@@ -1,7 +1,7 @@
 -- 递归查询子节点
-DROP PROCEDURE IF EXISTS `RECURSIVE_FIND_CHILDREN`;
+DROP PROCEDURE IF EXISTS `RECURSIVE_LIST_CHILDREN_QUERY`;
 DELIMITER $$
-CREATE PROCEDURE `RECURSIVE_FIND_CHILDREN`(
+CREATE PROCEDURE `RECURSIVE_LIST_CHILDREN_QUERY`(
     TABLE_NAME VARCHAR(100),
     START_CODES TEXT, -- 逗号分隔的起始编号
     CODE_FIELD VARCHAR(100),
@@ -14,7 +14,7 @@ READS SQL DATA
 SQL SECURITY INVOKER
 BEGIN
     -- zhaohuihua 2019-03-10
-    -- CALL RECURSIVE_LIST_CHILDREN("sys_area_division", "340000,350000", "area_code", "parent_code", NULL, "scene_type='default'", "parent_code,sort_index");
+    -- CALL RECURSIVE_LIST_CHILDREN_QUERY("sys_area_division", "340000,350000", "area_code", "parent_code", NULL, "scene_type='default'", "parent_code,sort_index");
 
     -- 创建临时表
     DROP TABLE IF EXISTS `temp_starts`;
