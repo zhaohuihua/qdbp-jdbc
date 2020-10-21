@@ -7,14 +7,28 @@ CREATE PROCEDURE `RECURSIVE_LIST_CHILDREN_QUERY`(
     CODE_FIELD VARCHAR(100),
     PARENT_FIELD VARCHAR(100),
     SELECT_FIELDS TEXT,
-    WHERE_SQL TEXT,
+    FILTER_WHERE_SQL TEXT, -- 数据过滤条件, 过滤哪些数据参与递归 (如数据状态,租户编号等条件)
+    SEARCH_WHERE_SQL TEXT, -- 结果搜索条件 (如用户输入的查询条件)
+                           -- 这些条件如果放在FILTER_WHERE中将无法生成完整的树
     ORDER_BY_SQL TEXT
 )
 READS SQL DATA
 SQL SECURITY INVOKER
 BEGIN
-    -- zhaohuihua 2019-03-10
-    -- CALL RECURSIVE_LIST_CHILDREN_QUERY("sys_area_division", "340000,350000", "area_code", "parent_code", NULL, "scene_type='default'", "parent_code,sort_index");
+    -- zhaohuihua 2019-03-10, 2020-10-21
+    /*
+    -- 调用示例
+    CALL RECURSIVE_LIST_CHILDREN_QUERY(
+    	"gn_area_division",                     -- 行政区划表
+    	"340000,350000",                        -- 安徽,福建
+    	"area_code",                            -- 区域编号
+    	"parent_code",                          -- 上级编号
+    	"area_code,area_name,parent_code,type", -- 结果集字段
+    	"scene_type='default'",                 -- 场景类型=default
+    	"area_code NOT IN ('340000','350000')", -- 只要子集不要本级
+    	"type,sort_index"                       -- 按类型和序号排序
+    );
+    */
 
     -- 创建临时表
     DROP TABLE IF EXISTS `temp_starts`;
@@ -64,8 +78,8 @@ BEGIN
             'FROM `', TABLE_NAME, '` X ',
             'WHERE '
         );
-        IF WHERE_SQL IS NOT NULL AND LENGTH(WHERE_SQL) > 0 THEN
-            SET @sql_insert = CONCAT(@sql_insert, WHERE_SQL, ' AND ');
+        IF FILTER_WHERE_SQL IS NOT NULL AND LENGTH(FILTER_WHERE_SQL) > 0 THEN
+            SET @sql_insert = CONCAT(@sql_insert, FILTER_WHERE_SQL, ' AND ');
         END IF;
         SET @sql_insert = CONCAT(@sql_insert, 'X.`', CODE_FIELD, '` IN ( SELECT `_CODE_` FROM temp_starts ) ');
         IF ORDER_BY_SQL IS NOT NULL AND LENGTH(ORDER_BY_SQL) > 0 THEN
@@ -90,8 +104,8 @@ BEGIN
                 'INNER JOIN `', TABLE_NAME, '` X ',
                 'ON T.`_LEVEL_`=', v_level-1,' AND X.`', PARENT_FIELD, '` = T.`_CODE_` '
             );
-            IF WHERE_SQL IS NOT NULL AND LENGTH(WHERE_SQL) > 0 THEN
-                SET @sql_insert = CONCAT(@sql_insert, 'WHERE ', WHERE_SQL, ' ');
+            IF FILTER_WHERE_SQL IS NOT NULL AND LENGTH(FILTER_WHERE_SQL) > 0 THEN
+                SET @sql_insert = CONCAT(@sql_insert, 'WHERE ', FILTER_WHERE_SQL, ' ');
             END IF;
             IF ORDER_BY_SQL IS NOT NULL AND LENGTH(ORDER_BY_SQL) > 0 THEN
                 SET @sql_insert = CONCAT(@sql_insert, 'ORDER BY ', ORDER_BY_SQL, ' ');
@@ -126,8 +140,8 @@ BEGIN
             'FROM `temp_codes` T INNER JOIN `', TABLE_NAME, '` X ',
             'ON T.`_CODE_`=X.`', CODE_FIELD, '` '
         );
-        IF WHERE_SQL IS NOT NULL AND LENGTH(WHERE_SQL) > 0 THEN
-            SET @sql_query = CONCAT(@sql_query, 'WHERE ', WHERE_SQL, ' ');
+        IF SEARCH_WHERE_SQL IS NOT NULL AND LENGTH(SEARCH_WHERE_SQL) > 0 THEN
+            SET @sql_query = CONCAT(@sql_query, 'WHERE ', SEARCH_WHERE_SQL, ' ');
         END IF;
         SET @sql_query = CONCAT(@sql_query, 'ORDER BY T.`_IDX_` ');
         -- SELECT @sql_query FROM DUAL;
