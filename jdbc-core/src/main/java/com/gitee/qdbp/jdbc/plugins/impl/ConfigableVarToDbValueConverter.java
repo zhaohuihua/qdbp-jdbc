@@ -9,10 +9,10 @@ import com.gitee.qdbp.jdbc.utils.InnerTools;
 
 /**
  * ToDbValueConverter配置实现类<br>
- * 基础类型是指Boolean/Character/Date/Number/String<br>
  * 这个类主要作用是将非基础类型转换为基础类型, 分为枚举类和其他对象两种:<br>
+ * 基础类型是指Boolean/Character/Date/Number/String<br>
  * 枚举类, 哪些使用ordinal, 哪些使用name;<br>
- * 对象作为字段时(对应数据库表的列), 哪些使用json, 哪些使用toString(), 哪些不转换(由JDBC处理)<br>
+ * 其他对象作为字段时(对应数据库表的列), 哪些使用json, 哪些使用toString(), 哪些不转换(由JDBC处理)<br>
  *
  * @author zhaohuihua
  * @version 190705
