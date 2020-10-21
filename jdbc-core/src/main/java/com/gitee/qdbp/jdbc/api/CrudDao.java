@@ -369,10 +369,9 @@ public interface CrudDao<T> {
      * @param startCode 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件<br>
-     *            如果没有查询条件应传入DbWhere.NONE<br>
-     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
-     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param filterWhere 数据过滤条件, 过滤哪些数据参与递归 (如数据状态,租户编号等条件)<br>
+     * @param searchWhere 结果搜索条件 (如用户输入的查询条件)<br>
+     *            这些条件如果放在filterWhere中将无法生成完整的树<br>
      * @param orderings 排序条件<br>
      *            不需要排序时应传入Orderings.NONE<br>
      *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
@@ -381,7 +380,8 @@ public interface CrudDao<T> {
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      * @see Orderings#of(String)
      */
-    List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where, Orderings orderings);
+    List<T> listChildren(String startCode, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings);
 
     /**
      * 递归查询所有子节点<br>
@@ -394,16 +394,15 @@ public interface CrudDao<T> {
      * @param startCodes 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件<br>
-     *            如果没有查询条件应传入DbWhere.NONE<br>
-     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
-     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param filterWhere 数据过滤条件, 过滤哪些数据参与递归 (如数据状态,租户编号等条件)<br>
+     * @param searchWhere 结果搜索条件 (如用户输入的查询条件)<br>
+     *            这些条件如果放在filterWhere中将无法生成完整的树<br>
      * @return 子节点编号
      * @see ParseTools#parseBeanToDbWhere(Object)
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      */
-    List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            Orderings orderings);
+    List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings);
 
     /**
      * 递归查询所有子节点编号<br>
@@ -416,10 +415,9 @@ public interface CrudDao<T> {
      * @param startCode 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件<br>
-     *            如果没有查询条件应传入DbWhere.NONE<br>
-     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
-     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param filterWhere 数据过滤条件, 过滤哪些数据参与递归 (如数据状态,租户编号等条件)<br>
+     * @param searchWhere 结果搜索条件 (如用户输入的查询条件)<br>
+     *            这些条件如果放在filterWhere中将无法生成完整的树<br>
      * @param orderings 排序条件<br>
      *            不需要排序时应传入Orderings.NONE<br>
      *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
@@ -428,8 +426,8 @@ public interface CrudDao<T> {
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      * @see Orderings#of(String)
      */
-    List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
-            Orderings orderings);
+    List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings);
 
     /**
      * 递归查询所有子节点编号<br>
@@ -442,10 +440,9 @@ public interface CrudDao<T> {
      * @param startCodes 起始编号
      * @param codeField 编号字段名
      * @param parentField 上级编号字段名
-     * @param where 查询条件<br>
-     *            如果没有查询条件应传入DbWhere.NONE<br>
-     *            由实体类转换为DbWhere: ParseTools.parseBeanToDbWhere(bean);<br>
-     *            由请求参数转换为DbWhere: ParseTools.parseParamsToDbWhere(request.getParameterMap());<br>
+     * @param filterWhere 数据过滤条件, 过滤哪些数据参与递归 (如数据状态,租户编号等条件)<br>
+     * @param searchWhere 结果搜索条件 (如用户输入的查询条件)<br>
+     *            这些条件如果放在filterWhere中将无法生成完整的树<br>
      * @param orderings 排序条件<br>
      *            不需要排序时应传入Orderings.NONE<br>
      *            由字符串构造排序条件: Orderings.of("name asc, createTime desc");<br>
@@ -454,8 +451,8 @@ public interface CrudDao<T> {
      * @see ParseTools#parseParamsToDbWhere(Map, Class, boolean)
      * @see Orderings#of(String)
      */
-    List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            Orderings orderings);
+    List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings);
 
     /**
      * 根据条件统计实体数量<br>

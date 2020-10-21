@@ -111,22 +111,30 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
-    public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere where,
-            Orderings orderings) {
-        DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+    public List<T> listChildren(String startCode, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings) {
+        DbWhere filter = checkWhere(filterWhere);
+        DbWhere search = checkWhere(searchWhere);
+        // 数据状态填充在filterWhere中
+        entityFieldFillExecutor.fillQueryWhereDataState(filter, getMajorTableAlias());
+        // 数据权限填充在searchWhere中
+        entityFieldFillExecutor.fillQueryWhereParams(search, getMajorTableAlias());
+
         List<String> startCodes = ConvertTools.toList(startCode);
-        return doListChildren(startCodes, codeField, parentField, Fields.ALL, readyWhere, orderings, beanClass);
+        return doListChildren(startCodes, codeField, parentField, Fields.ALL, filter, search, orderings, beanClass);
     }
 
     @Override
-    public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            Orderings orderings) {
-        DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
-        return doListChildren(startCodes, codeField, parentField, Fields.ALL, readyWhere, orderings, beanClass);
+    public List<T> listChildren(List<String> startCodes, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings) {
+        DbWhere filter = checkWhere(filterWhere);
+        DbWhere search = checkWhere(searchWhere);
+        // 数据状态填充在filterWhere中
+        entityFieldFillExecutor.fillQueryWhereDataState(filter, getMajorTableAlias());
+        // 数据权限填充在searchWhere中
+        entityFieldFillExecutor.fillQueryWhereParams(search, getMajorTableAlias());
+
+        return doListChildren(startCodes, codeField, parentField, Fields.ALL, filter, search, orderings, beanClass);
     }
 
     // ORACLE： START WITH {codeField} IN( {startCode} ) CONNECT BY PRIOR {codeField} = {parentField}
@@ -134,7 +142,8 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     // MYSQL 8.0+: 使用WITH RECURSIVE递归 
     // MYSQL 8.0-: 使用存储过程RECURSIVE_LIST_CHILDREN_QUERY
     protected <R> List<R> doListChildren(List<String> startCodes, String codeField, String parentField,
-            Fields selectFields, DbWhere where, Orderings orderings, Class<R> resultType) throws ServiceException {
+            Fields selectFields, DbWhere filterWhere, DbWhere searchWhere, Orderings orderings, Class<R> resultType)
+            throws ServiceException {
         CrudFragmentHelper sqlHelper = getSqlBuilder().helper();
         String codeColumn = sqlHelper.getColumnName(FieldScene.CONDITION, codeField);
         String parentColumn = sqlHelper.getColumnName(FieldScene.CONDITION, parentField);
@@ -146,11 +155,14 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
         params.put("tableName", sqlHelper.getTableName());
         params.put("selectColumns", selectColumns);
         params.put("startCodes", startCodes);
-        if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
+        if (filterWhere != null && !filterWhere.isEmpty()) {
+            params.put("filterWhere", sqlHelper.buildWhereSql(filterWhere, false));
+        }
+        if (searchWhere != null && !searchWhere.isEmpty()) {
+            params.put("searchWhere", sqlHelper.buildWhereSql(searchWhere, false));
         }
         if (orderings != null && !orderings.isEmpty()) {
-            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
+            params.put("orderBy", sqlHelper.buildOrderBySql(orderings, false));
         }
 
         String sqlId = "recursive.list.children.query";
@@ -158,31 +170,43 @@ public class CrudDaoImpl<T> extends BaseQueryerImpl<T> implements CrudDao<T> {
     }
 
     @Override
-    public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere where,
-            Orderings orderings) {
-        DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+    public List<String> listChildrenCodes(String startCode, String codeField, String parentField, DbWhere filterWhere,
+            DbWhere searchWhere, Orderings orderings) {
+        DbWhere filter = checkWhere(filterWhere);
+        DbWhere search = checkWhere(searchWhere);
+        // 数据状态填充在filterWhere中
+        entityFieldFillExecutor.fillQueryWhereDataState(filter, getMajorTableAlias());
+        // 数据权限填充在searchWhere中
+        entityFieldFillExecutor.fillQueryWhereParams(search, getMajorTableAlias());
+
         List<String> startCodes = ConvertTools.toList(startCode);
-        return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
+        return doListChildrenCodes(startCodes, codeField, parentField, filter, search, orderings);
     }
 
     @Override
-    public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField, DbWhere where,
-            Orderings orderings) {
-        DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
-        return doListChildrenCodes(startCodes, codeField, parentField, readyWhere, orderings);
+    public List<String> listChildrenCodes(List<String> startCodes, String codeField, String parentField,
+            DbWhere filterWhere, DbWhere searchWhere, Orderings orderings) {
+        DbWhere filter = checkWhere(filterWhere);
+        DbWhere search = checkWhere(searchWhere);
+        // 数据状态填充在filterWhere中
+        entityFieldFillExecutor.fillQueryWhereDataState(filter, getMajorTableAlias());
+        // 数据权限填充在searchWhere中
+        entityFieldFillExecutor.fillQueryWhereParams(search, getMajorTableAlias());
+
+        return doListChildrenCodes(startCodes, codeField, parentField, filter, search, orderings);
     }
 
     protected List<String> doListChildrenCodes(List<String> startCodes, String codeField, String parentField,
-            DbWhere where, Orderings orderings) throws ServiceException {
-        DbWhere readyWhere = checkWhere(where);
-        entityFieldFillExecutor.fillQueryWhereDataState(readyWhere, getMajorTableAlias());
-        entityFieldFillExecutor.fillQueryWhereParams(readyWhere, getMajorTableAlias());
+            DbWhere filterWhere, DbWhere searchWhere, Orderings orderings) throws ServiceException {
+        DbWhere filter = checkWhere(filterWhere);
+        DbWhere search = checkWhere(searchWhere);
+        // 数据状态填充在filterWhere中
+        entityFieldFillExecutor.fillQueryWhereDataState(filter, getMajorTableAlias());
+        // 数据权限填充在searchWhere中
+        entityFieldFillExecutor.fillQueryWhereParams(search, getMajorTableAlias());
+
         IncludeFields fields = new IncludeFields(codeField);
-        return doListChildren(startCodes, codeField, parentField, fields, readyWhere, orderings, String.class);
+        return doListChildren(startCodes, codeField, parentField, fields, filter, search, orderings, String.class);
     }
 
     protected static FirstColumnMapper<String> FIRST_COLUMN_STRING_MAPPER = new FirstColumnMapper<>(String.class);

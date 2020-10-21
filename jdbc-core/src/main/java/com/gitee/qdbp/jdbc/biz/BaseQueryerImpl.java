@@ -217,11 +217,11 @@ public abstract class BaseQueryerImpl<T> {
     protected static KeyIntegerMapper KEY_INTEGER_MAPPER = new KeyIntegerMapper();
 
     protected DbWhere checkWhere(DbWhere where) {
-        if (where == null || (where.isEmpty() && !(where instanceof EmptiableWhere))) {
+        if (where == null || where == DbWhere.NONE) {
+            return new DbWhere();
+        } else if (where.isEmpty() && !(where instanceof EmptiableWhere)) {
             String details = "If you want to find all records, please use DbWhere.NONE";
             throw new ServiceException(DbErrorCode.DB_WHERE_MUST_NOT_BE_EMPTY, details);
-        } else if (where == DbWhere.NONE) {
-            return new DbWhere();
         } else {
             return where;
         }
