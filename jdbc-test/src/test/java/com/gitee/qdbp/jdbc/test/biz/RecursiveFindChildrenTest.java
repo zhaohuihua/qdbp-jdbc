@@ -56,9 +56,10 @@ public class RecursiveFindChildrenTest extends AbstractTestNGSpringContextTests 
     public void testListDeptChildrenBean() throws IOException {
         CrudDao<SysDeptEntity> dao = qdbcBoot.buildCrudDao(SysDeptEntity.class);
         String startCode = "D0102";
-        DbWhere where = new DbWhere().on("deptCode", "!=", startCode);
+        DbWhere filter = new DbWhere().on("tenantCode", "=", "depttest");
+        DbWhere search = new DbWhere().on("deptCode", "!=", startCode);
         Orderings orderings = Orderings.of("parentCode, sortIndex");
-        List<SysDeptEntity> result = dao.listChildren(startCode, "deptCode", "parentCode", where, orderings);
+        List<SysDeptEntity> result = dao.listChildren(startCode, "deptCode", "parentCode", filter, search, orderings);
         // 75 = 3 + 3 * 4 + 3 * 4 * 5
         // D0102是第2级, 每个2级有3个下级, 每个3级有4个下级, 每个4级有5个下级
         Assert.assertEquals(result.size(), 75, "testListDeptChildren");
@@ -68,9 +69,10 @@ public class RecursiveFindChildrenTest extends AbstractTestNGSpringContextTests 
     public void testListDeptChildrenCode() throws IOException {
         CrudDao<SysDeptEntity> dao = qdbcBoot.buildCrudDao(SysDeptEntity.class);
         String startCode = "D010203";
-        DbWhere where = new DbWhere().on("deptCode", "!=", startCode);
+        DbWhere filter = new DbWhere().on("tenantCode", "=", "depttest");
+        DbWhere search = new DbWhere().on("deptCode", "!=", startCode);
         Orderings orderings = Orderings.of("parentCode, sortIndex");
-        List<String> result = dao.listChildrenCodes(startCode, "deptCode", "parentCode", where, orderings);
+        List<String> result = dao.listChildrenCodes(startCode, "deptCode", "parentCode", filter, search, orderings);
         // 24 = 4 + 4 * 5
         // D010203是第3级, 每个3级有4个下级, 每个4级有5个下级
         Assert.assertEquals(result.size(), 24, "testListDeptChildren");

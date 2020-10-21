@@ -120,6 +120,9 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
     @Test
     public void testGetRecursiveFindChildrenSql() throws IOException {
         SqlDialect dialect = qdbcBoot.getSqlDialect();
+        if (!dialect.getDbVersion().matchesWith("mysql.8.0")) {
+            return; // 此用例只能运行在mysql.8.0以上数据库
+        }
         CrudFragmentHelper sqlHelper = qdbcBoot.buildSqlBuilder(SysDeptEntity.class).helper();
 
         String codeField = "deptCode";
@@ -129,17 +132,16 @@ public class SqlTemplateParseTest extends AbstractTestNGSpringContextTests {
         Orderings orderings = Orderings.of("parentCode, sortIndex");
 
         Map<String, Object> params = new HashMap<>();
-        params.put("keyword", "WITH RECURSIVE");
-        params.put("codeField", sqlHelper.buildByFieldsSql(codeField));
-        params.put("parentField", sqlHelper.buildByFieldsSql(parentCode));
         params.put("tableName", sqlHelper.getTableName());
-        params.put("selectFields", sqlHelper.buildSelectFieldsSql(Fields.ALL));
-        params.put("startCodeCondition", sqlHelper.buildInSql(codeField, startCodes, false));
+        params.put("startCodes", startCodes);
+        params.put("codeColumn", sqlHelper.buildByFieldsSql(codeField));
+        params.put("parentColumn", sqlHelper.buildByFieldsSql(parentCode));
+        params.put("selectColumns", sqlHelper.buildSelectFieldsSql(Fields.ALL));
         if (where != null && !where.isEmpty()) {
-            params.put("whereCondition", sqlHelper.buildWhereSql(where, false));
+            params.put("filterWhere", sqlHelper.buildWhereSql(where, false));
         }
         if (VerifyTools.isNotBlank(orderings)) {
-            params.put("orderByCondition", sqlHelper.buildOrderBySql(orderings, false));
+            params.put("orderBy", sqlHelper.buildOrderBySql(orderings, false));
         }
         String sqlId = "recursive.list.children.query";
         SqlBuffer buffer = SqlFragmentContainer.defaults().render(sqlId, params, dialect);

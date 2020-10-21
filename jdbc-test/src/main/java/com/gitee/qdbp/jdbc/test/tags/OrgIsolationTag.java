@@ -48,7 +48,10 @@ public class OrgIsolationTag extends BaseTag {
 
     @Override
     public NextStep doHandle() throws TagException, IOException {
-        SqlDialect dialect = this.getStackValue("dialect", SqlDialect.class);
+        SqlDialect dialect = this.getStackValue("db.dialect", SqlDialect.class);
+        if (dialect == null) {
+            throw new TagException("Context variable of '${db.dialect}' is null");
+        }
         SqlBuffer sql = EntityTools.buildOrgDataPermission(column, dialect);
         if (sql == null || sql.isBlank()) {
             return NextStep.SKIP_BODY;
