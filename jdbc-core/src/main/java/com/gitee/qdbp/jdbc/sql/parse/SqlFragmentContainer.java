@@ -91,7 +91,9 @@ public class SqlFragmentContainer {
                 if (this.typedCache.containsKey(sqlKey)) {
                     mergeTagDatas(value, this.typedCache.get(sqlKey));
                 } else {
-                    this.typedCache.put(sqlKey, ConvertTools.toList(value));
+                    List<TagData> list = new ArrayList<>();
+                    list.add(value);
+                    this.typedCache.put(sqlKey, list);
                 }
             }
 

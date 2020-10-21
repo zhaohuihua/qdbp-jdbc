@@ -188,7 +188,10 @@ class SqlFragmentParser {
             if (conflicts.containsKey(sqlKeySorted)) {
                 conflicts.get(sqlKeySorted).add(current);
             } else {
-                conflicts.put(sqlKeySorted, ConvertTools.toList(original, current));
+                List<KeyString> list = new ArrayList<>();
+                list.add(original);
+                list.add(current);
+                conflicts.put(sqlKeySorted, list);
             }
             return false;
         }
