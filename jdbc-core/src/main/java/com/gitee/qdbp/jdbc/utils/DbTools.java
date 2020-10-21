@@ -1,7 +1,9 @@
 package com.gitee.qdbp.jdbc.utils;
 
+import java.lang.reflect.Array;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +43,7 @@ import com.gitee.qdbp.jdbc.plugins.VariableToDbValueConverter;
 import com.gitee.qdbp.jdbc.plugins.WhereSqlBuilder;
 import com.gitee.qdbp.staticize.tags.base.Taglib;
 import com.gitee.qdbp.tools.utils.Config;
+import com.gitee.qdbp.tools.utils.ConvertTools;
 import com.gitee.qdbp.tools.utils.StringTools;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
@@ -61,19 +64,35 @@ public abstract class DbTools {
      * @return 转换后的字段值对象
      */
     public static Object variableToDbValue(Object variable, SqlDialect dialect) {
-        VariableToDbValueConverter helper = DbPluginContainer.defaults().getToDbValueConverter();
-        Object result = helper.convert(variable);
-        if (result instanceof TypedDbVariable) {
-            TypedDbVariable temp = (TypedDbVariable) result;
-            return new SqlParameterValue(temp.getSqlType(), temp.getValue());
-        } else if (result instanceof Character) {
-            // Character类型不能自动识别
-            // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
-            // 调用的是PreparedStatement.setObject(int index, Object x)
-            // 而不是PreparedStatement.setObject(int index, Object x, int Types.xxx)
-            return new SqlParameterValue(Types.VARCHAR, variable);
-        } else {
+        if (variable instanceof Collection) {
+            Collection<?> list = (Collection<?>) variable;
+            List<Object> result = new ArrayList<>();
+            for (Object item : list) {
+                result.add(variableToDbValue(item, dialect));
+            }
             return result;
+        } else if (variable != null && variable.getClass().isArray()) {
+            Object[] array = (Object[]) variable;
+            Object[] result = (Object[]) Array.newInstance(variable.getClass().getComponentType(), array.length);
+            for (int i = 0; i < array.length; i++) {
+                result[i] = variableToDbValue(array[i], dialect);
+            }
+            return result;
+        } else {
+            VariableToDbValueConverter converter = DbPluginContainer.defaults().getToDbValueConverter();
+            Object result = converter.convert(variable);
+            if (result instanceof TypedDbVariable) {
+                TypedDbVariable temp = (TypedDbVariable) result;
+                return new SqlParameterValue(temp.getSqlType(), temp.getValue());
+            } else if (result instanceof Character) {
+                // Character类型不能自动识别
+                // @see org.springframework.jdbc.core.StatementCreatorUtils.setValue
+                // 调用的是PreparedStatement.setObject(int index, Object x)
+                // 而不是PreparedStatement.setObject(int index, Object x, int Types.xxx)
+                return new SqlParameterValue(Types.VARCHAR, variable);
+            } else {
+                return result;
+            }
         }
     }
 
@@ -88,29 +107,45 @@ public abstract class DbTools {
      * @return 转换后的字符串
      */
     public static String variableToString(Object variable, SqlDialect dialect) {
-        VariableToDbValueConverter converter = DbPluginContainer.defaults().getToDbValueConverter();
-        Object result = converter.convert(variable);
-        if (result instanceof TypedDbVariable) {
-            TypedDbVariable temp = (TypedDbVariable) result;
-            result = temp.getValue();
-        } else if (result instanceof SqlParameterValue) {
-            SqlParameterValue temp = (SqlParameterValue) result;
-            result = temp.getValue();
-        }
-        if (result == null) {
-            return "NULL";
-        } else if (result instanceof Number) {
-            return result.toString();
-        } else if (result instanceof CharSequence) {
-            return dialect.variableToString(result.toString());
-        } else if (result instanceof Boolean) {
-            return dialect.variableToString((Boolean) result);
-        } else if (result instanceof Date) {
-            return dialect.variableToString((Date) result);
-        } else if (result instanceof Character) {
-            return dialect.variableToString(result.toString());
+        if (variable instanceof Collection) {
+            Collection<?> list = (Collection<?>) variable;
+            List<String> result = new ArrayList<>();
+            for (Object item : list) {
+                result.add(variableToString(item, dialect));
+            }
+            return ConvertTools.joinToString(result, ',', false);
+        } else if (variable != null && variable.getClass().isArray()) {
+            Object[] array = (Object[]) variable;
+            String[] result = new String[array.length];
+            for (int i = 0; i < array.length; i++) {
+                result[i] = variableToString(array[i], dialect);
+            }
+            return ConvertTools.joinToString(result, ',', false);
         } else {
-            return dialect.variableToString(result.toString());
+            VariableToDbValueConverter converter = DbPluginContainer.defaults().getToDbValueConverter();
+            Object result = converter.convert(variable);
+            if (result instanceof TypedDbVariable) {
+                TypedDbVariable temp = (TypedDbVariable) result;
+                result = temp.getValue();
+            } else if (result instanceof SqlParameterValue) {
+                SqlParameterValue temp = (SqlParameterValue) result;
+                result = temp.getValue();
+            }
+            if (result == null) {
+                return "NULL";
+            } else if (result instanceof Number) {
+                return result.toString();
+            } else if (result instanceof CharSequence) {
+                return dialect.variableToString(result.toString());
+            } else if (result instanceof Boolean) {
+                return dialect.variableToString((Boolean) result);
+            } else if (result instanceof Date) {
+                return dialect.variableToString((Date) result);
+            } else if (result instanceof Character) {
+                return dialect.variableToString(result.toString());
+            } else {
+                return dialect.variableToString(result.toString());
+            }
         }
     }
 
