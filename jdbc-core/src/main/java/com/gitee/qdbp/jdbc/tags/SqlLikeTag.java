@@ -78,7 +78,10 @@ public class SqlLikeTag extends BaseTag {
             return NextStep.SKIP_BODY;
         }
 
-        SqlDialect dialect = this.getStackValue("dialect", SqlDialect.class);
+        SqlDialect dialect = this.getStackValue("db.dialect", SqlDialect.class);
+        if (dialect == null) {
+            throw new TagException("Context variable of '${db.dialect}' is null");
+        }
         SqlBuilder sql = new SqlBuilder();
         if (VerifyTools.isNotBlank(prefix)) {
             sql.ad(prefix);
