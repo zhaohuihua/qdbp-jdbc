@@ -1,3 +1,4 @@
+package com.gitee.qdbp.jdbc.test.simple;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,6 +31,9 @@ public class ReadDatabaseMetaData {
         // String jdbcUrl = "mysql:develop:dev2018lop@127.0.0.1:3306/qdbp-general";
         // String jdbcUrl = "oracle:qdbctest:qdbctest@192.168.70.195:1521/plat";
         // String jdbcUrl = "db2:db2inst1:123@192.168.90.7:60006/platform:PLATFORM";
+        // String jdbcUrl = "postgresql:username:password@127.0.0.1:5432/dbname:schema";
+        // String jdbcUrl = "sqlserver:username:password@127.0.0.1:1433/dbname";
+        // String jdbcUrl = "sqlserver.2000:username:password@127.0.0.1:1433/dbname";
 
         int keyMaxLength = 0;
         for (String method : METHODS) {
