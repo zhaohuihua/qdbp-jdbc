@@ -10,6 +10,7 @@
 
 	<bean id="dbPluginContainer" class="com.gitee.qdbp.jdbc.plugins.DbPluginContainer">
 		<property name="dbConfig" ref="setting" />
+		<property name="conversionService" ref="conversionService" />
 		<property name="dbVersionFinder">
 			<bean class="com.gitee.qdbp.jdbc.plugins.impl.DataSourceDbVersionFinder" />
 		</property>
