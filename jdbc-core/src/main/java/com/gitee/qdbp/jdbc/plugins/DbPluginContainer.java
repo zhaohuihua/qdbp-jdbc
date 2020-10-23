@@ -56,15 +56,27 @@ public class DbPluginContainer {
     /** 全局实例 **/
     private static DbPluginContainer DEFAULTS;
 
-    /** 初始化全局实例 **/
+    /** 初始化全局实例, 应在第1次调用defaults()之前执行 **/
     public static void init(DbPluginContainer container) {
+        if (DEFAULTS != null) {
+            // 正确的操作顺序是先调DbPluginContainer.init(), 再使用DbPluginContainer.defaults()
+            log.debug("Default instance already initialized, executing again will override the global instance.");
+        }
         DEFAULTS = container;
         checkAndSetDefaultPorperty(DEFAULTS);
     }
 
-    /** 获取全局实例 **/
+    /**
+     * 获取全局实例<br>
+     * 正确的操作顺序是先调DbPluginContainer.init(), 再使用DbPluginContainer.defaults()<br>
+     * 如果不调init()也可以使用defaults(), 但此时使用的是内部默认实例<br>
+     * 内部默认实例详见checkAndSetDefaultPorperty()
+     * 
+     * @return 全局实例
+     */
     public static DbPluginContainer defaults() {
         if (DEFAULTS == null) {
+            log.debug("Default instance has not been initialized, the internal instance will be used.");
             DEFAULTS = InnerInstance.INSTANCE;
         }
         return DEFAULTS;
