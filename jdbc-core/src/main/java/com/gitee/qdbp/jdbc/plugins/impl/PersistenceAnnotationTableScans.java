@@ -152,6 +152,14 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
         return column;
     }
 
+    protected void scanPrimaryKey(FieldColumn column, Field field, Class<?> clazz) {
+        String fieldName = field.getName();
+        Id idAnnotation = field.getAnnotation(Id.class);
+        if (idAnnotation != null || primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName)) {
+            column.setPrimaryKey(true);
+        }
+    }
+
     /** 解析@Column注解中声明的信息 **/
     protected void parseColumnAnnotation(SimpleFieldColumn column, Column annotation) {
         if (annotation == null) {
@@ -173,20 +181,5 @@ public class PersistenceAnnotationTableScans extends BaseTableInfoScans {
     // columnDefinition="VARCHAR(20) DEFAULT 'N/A'" // 字段串要用单引号括起来
     protected void parseColumnDefinition(SimpleFieldColumn column, String columnDefinition) {
         // TODO 从列定义中解析列属性
-    }
-
-    protected void scanPrimaryKey(FieldColumn column, Field field, Class<?> clazz) {
-        String fieldName = field.getName();
-        Id idAnnotation = field.getAnnotation(Id.class);
-        if (idAnnotation != null || primaryKeyMatcher != null && primaryKeyMatcher.matches(fieldName)) {
-            column.setPrimaryKey(true);
-
-            // 如果主键列没有@Column注解, 则设置insertable/updatable为true
-            // 如果主键列有@Column注解, 就按@Column注解所标注的insertable/updatable, 不作修改
-            if (column.hasColumnAnnotation()) {
-                column.setColumnInsertable(true);
-                column.setColumnUpdatable(true);
-            }
-        }
     }
 }
