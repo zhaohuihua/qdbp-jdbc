@@ -75,10 +75,23 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
     public void setNamedParameterJdbcOperations(NamedParameterJdbcOperations namedParameterJdbcOperations) {
         this.namedParameterJdbcOperations = namedParameterJdbcOperations;
-        this.init(namedParameterJdbcOperations);
     }
 
-    protected void init(NamedParameterJdbcOperations namedParameterJdbcOperations) {
+    private boolean inited = false;
+
+    protected void init() {
+        if (this.inited) {
+            return;
+        }
+        this.doInit();
+    }
+
+    private synchronized void doInit() {
+        if (this.inited) {
+            return;
+        }
+        this.inited = true;
+
         JdbcOperations jdbcOperations = namedParameterJdbcOperations.getJdbcOperations();
         if (!(jdbcOperations instanceof JdbcAccessor)) {
             throw new IllegalStateException("Unsupported JdbcOperations: " + jdbcOperations.getClass().getName());
@@ -101,16 +114,19 @@ public class SqlBufferJdbcTemplate implements SqlBufferJdbcOperations {
 
     @Override
     public DbVersion getDbVersion() {
+        this.init();
         return dbVersion;
     }
 
     @Override
     public SqlDialect getSqlDialect() {
+        this.init();
         return sqlDialect;
     }
 
     @Override
     public SqlDao getSqlDao() {
+        this.init();
         return sqlDao;
     }
 
