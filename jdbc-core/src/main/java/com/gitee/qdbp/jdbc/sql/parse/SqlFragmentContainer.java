@@ -43,8 +43,6 @@ public class SqlFragmentContainer {
         return DEFAULTS;
     }
 
-    private boolean scaned = false;
-
     /** 未指定数据库类型的SQL模板 **/
     // key=sqlId
     private Map<String, IMetaData> untypedCache = new HashMap<>();
@@ -271,13 +269,14 @@ public class SqlFragmentContainer {
         }
     }
 
+    private boolean scaned = false;
+
     /** 扫描SQL模板文件 **/
     public void scanSqlFiles() {
         if (this.scaned) {
             return;
         }
         this.doScanSqlFiles();
-        this.scaned = true;
     }
 
     /** 扫描SQL模板文件 **/
@@ -285,6 +284,7 @@ public class SqlFragmentContainer {
         if (this.scaned) {
             return;
         }
+        this.scaned = true;
         SqlFileScanner scanner = DbTools.getSqlFileScanner();
         List<URL> urls = scanner.scanSqlFiles();
 
