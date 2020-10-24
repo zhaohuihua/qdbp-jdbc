@@ -32,7 +32,7 @@ public class QdbcBootImpl implements QdbcBoot {
     private SqlBufferJdbcOperations sqlBufferJdbcOperations;
 
     private Map<Class<?>, CrudDao<?>> crudDaoCache = new HashMap<>();
-    private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
+    // private Map<String, JoinQueryer<?>> joinQueryCache = new HashMap<>();
     /** 批量执行时的大小限制常量(0为无限制) **/
     protected static int DEFAULT_BATCH_SIZE = 500;
     /** 批量执行时的默认大小限制(0为无限制) **/
@@ -76,16 +76,18 @@ public class QdbcBootImpl implements QdbcBoot {
 
     /** {@inheritDoc} **/
     @Override
-    @SuppressWarnings("unchecked")
+    // @SuppressWarnings("unchecked")
     public <T> JoinQueryer<T> buildJoinQuery(TableJoin tables, Class<T> resultType) {
-        String cacheKey = buildCacheKey(tables, resultType);
-        if (joinQueryCache.containsKey(cacheKey)) {
-            return (JoinQueryer<T>) joinQueryCache.get(cacheKey);
-        } else {
-            JoinQueryer<T> instance = new JoinQueryerImpl<>(tables, resultType, sqlBufferJdbcOperations);
-            joinQueryCache.put(cacheKey, instance);
-            return instance;
-        }
+        return new JoinQueryerImpl<>(tables, resultType, sqlBufferJdbcOperations);
+        // 不能使用缓存, 因为缓存KEY的计算太复杂, TableJoin.buildCacheKey()是错的, 未考虑JoinOn的条件
+        // String cacheKey = buildCacheKey(tables, resultType);
+        // if (joinQueryCache.containsKey(cacheKey)) {
+        //     return (JoinQueryer<T>) joinQueryCache.get(cacheKey);
+        // } else {
+        //     JoinQueryer<T> instance = new JoinQueryerImpl<>(tables, resultType, sqlBufferJdbcOperations);
+        //     joinQueryCache.put(cacheKey, instance);
+        //     return instance;
+        // }
     }
 
     /** {@inheritDoc} **/
@@ -110,9 +112,9 @@ public class QdbcBootImpl implements QdbcBoot {
         return sqlBufferJdbcOperations == null ? null : sqlBufferJdbcOperations.getSqlDao();
     }
 
-    private String buildCacheKey(TableJoin tables, Class<?> resultType) {
-        return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
-    }
+    // private String buildCacheKey(TableJoin tables, Class<?> resultType) {
+    //     return TableJoin.buildCacheKey(tables, false) + '>' + resultType;
+    // }
 
     /** {@inheritDoc} **/
     @Override
