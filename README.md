@@ -18,12 +18,12 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
 如果参数很多，根据日志到数据库中重现问题的时候简直痛苦。
 
 # 特点和独创内容
-* 特点：对于单表增删改查，以及涉及的大于/小于/不等于/like/in等条件，完全不要写sql或xml！《[基本用法简介](https://yuque.com/zhaohuihua/qdbc/vfkzgg)》
-* 特点：多表关联基础查询，以及涉及的大于/小于/不等于/like/in等条件，完全不要写sql或xml！《[表关联查询](https://yuque.com/zhaohuihua/qdbc/ziz5lh)》
-* 独创：通过DbWhere与实体类结合，自动生成兼容多数据库的SQL，《实现原理介绍》(待补充)
-* 独创：日志中打印的SQL，复制到数据库就能执行：《[SQL日志问题排查的痛点](https://yuque.com/zhaohuihua/qdbc/cwk1uf)》
+* 特点：对于单表增删改查，以及涉及的大于/小于/不等于/like/in等条件，不需要写sql或xml！《[基本用法简介](https://yuque.com/zhaohuihua/qdbc/vfkzgg)》
+* 特点：多表关联基础查询，以及涉及的大于/小于/不等于/like/in等条件，不需要写sql或xml！《[表关联查询](https://yuque.com/zhaohuihua/qdbc/ziz5lh)》
 * 独创：SqlBuffer，一行内实现SQL文本与变量的统一：《[关于代码中SQL书写方式的思考](https://yuque.com/zhaohuihua/qdbc/bt2ryu)》
+* 独创：日志中打印的SQL，复制到数据库就能执行：《[SQL日志问题排查的痛点](https://yuque.com/zhaohuihua/qdbc/cwk1uf)》
 * 独创：批量日志采样，批量操作日志只能在开启或关闭之间二选一？《[关于批量日志的思考](https://yuque.com/zhaohuihua/qdbc/kgo239)》
+* 独创：SQL模板中不仅可以判断数据库类型，还可以判断数据库版本：《[多数据库方言支持](https://www.yuque.com/zhaohuihua/qdbc/bdr1d3)》
 
 # SQL模板优化
 复杂的查询或统计，还是要写sql或xml：
@@ -31,11 +31,11 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
 * 二是独立SQL方便DBA审查，而恰恰只有这部分复杂语句才是需要审查的。
 
 这方面也存在一些优化点：
-* MyBatis中大量的单表增删改查语句，对DBA审查来说只是一种干扰，并不会过多关注；
+* MyBatis中大量的单表增删改查语句也要用到SQL模板，对DBA审查来说只是一种干扰，并不会过多关注；
 * 多种数据库就需要多套模板，但实际情况往往是多套模板大体相同，只有少量差异；
 * SQL模板首先应该是SQL，然后其中有一些XML的判断条件和循环语句，而不应该是XML格式。
 
-详见《[SQL模板构思](https://yuque.com/zhaohuihua/qdbc/bvk5gy)》(开发中)。
+详见《[SQL模板说明](https://yuque.com/zhaohuihua/qdbc/bvk5gy)》。
 
 # POM依赖
 * https://mvnrepository.com/artifact/com.gitee.qdbp/qdbp-jdbc-core
@@ -44,11 +44,11 @@ https://yuque.com/zhaohuihua/qdbc 文档中心
     <dependency>
         <groupId>com.gitee.qdbp</groupId>
         <artifactId>qdbp-jdbc-core</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.2</version>
     </dependency>
     <dependency>
         <groupId>com.gitee.qdbp</groupId>
         <artifactId>qdbp-jdbc-spring</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.2</version>
     </dependency>
 ```
