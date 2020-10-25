@@ -1,6 +1,6 @@
 -- 使用标签
 -- <sql:in> IN语句
--- <org:isolation> 机构数据权限
+-- <dept:isolation> 部门数据权限
 
 -- << backlog.todo.query2 >> 待办数据查询
 SELECT * FROM (
@@ -18,7 +18,7 @@ SELECT * FROM (
        T.ASSIGNEE_=#{userName}
        OR (
            <sql:in column="T.ASSIGNEE_" value="${roleIds}" />
-           <org:isolation prefix="AND" column="S.ORG_ID" />
+           <dept:isolation prefix="AND" column="S.DEPT_ID" />
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -35,7 +35,7 @@ UNION ALL
        S.ASSIGNEE=#{userName}
        OR (
            <sql:in column="S.ASSIGNEE" value="${roleIds}" />
-           <org:isolation prefix="AND" column="S.ORG_ID" />
+           <dept:isolation prefix="AND" column="S.DEPT_ID" />
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -54,7 +54,7 @@ SELECT SUM(CNT) FROM (
        T.ASSIGNEE_=#{userName}
        OR (
            <sql:in column="T.ASSIGNEE_" value="${roleIds}" />
-           <org:isolation prefix="AND" column="S.ORG_ID" />
+           <dept:isolation prefix="AND" column="S.DEPT_ID" />
        )
    )
    <append prefix="AND">#{whereCondition}</append>
@@ -66,7 +66,7 @@ UNION ALL
        S.ASSIGNEE=#{userName}
        OR (
            <sql:in column="S.ASSIGNEE" value="${roleIds}" />
-           <org:isolation prefix="AND" column="S.ORG_ID" />
+           <dept:isolation prefix="AND" column="S.DEPT_ID" />
        )
    )
    <append prefix="AND">#{whereCondition}</append>

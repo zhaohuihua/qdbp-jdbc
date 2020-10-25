@@ -14,14 +14,14 @@ import com.gitee.qdbp.jdbc.sql.SqlTools;
  */
 public class EntityTools {
     
-    private static List<String> getCurrOrgIdsFromSession() {
+    private static List<String> getCurrDeptIdsFromSession() {
         // 模拟从SESSION中获取当前登录用户有权限的部门ID
         return Arrays.asList("D0000001", "D0000005", "D0000012");
     }
 
-    /** 生成机构数据权限查询条件 **/
-    public static SqlBuffer buildOrgDataPermission(String orgColumn, SqlDialect dialect) {
-        List<String> orgIds = getCurrOrgIdsFromSession();
-        return SqlTools.buildInSql(orgColumn, orgIds, dialect);
+    /** 生成部门数据权限查询条件 **/
+    public static SqlBuffer buildDeptDataPermission(String orgColumn, SqlDialect dialect) {
+        List<String> deptIds = getCurrDeptIdsFromSession();
+        return SqlTools.buildInSql(orgColumn, deptIds, dialect);
     }
 }

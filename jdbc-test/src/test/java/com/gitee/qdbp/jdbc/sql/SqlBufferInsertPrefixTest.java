@@ -14,71 +14,71 @@ public class SqlBufferInsertPrefixTest {
 
     @Test
     public void testInsertPrefix11() {
-        testInsertPrefix11("", new SqlBuffer("AND ORG_STATE=").addVariable(1));
-        testInsertPrefix11("", new SqlBuffer("ORG_STATE=").addVariable(1));
-        testInsertPrefix11("\n", new SqlBuffer("\nAND ORG_STATE=").addVariable(1));
-        testInsertPrefix11("\n", new SqlBuffer("\nORG_STATE=").addVariable(1));
-        testInsertPrefix11("\n\t", new SqlBuffer("\n\tAND ORG_STATE=").addVariable(1));
-        testInsertPrefix11("\n\t", new SqlBuffer("\n\tORG_STATE=").addVariable(1));
-        testInsertPrefix11("    \n    ", new SqlBuffer("    \n    AND ORG_STATE=").addVariable(1));
-        testInsertPrefix11("    \n    ", new SqlBuffer("    \n    ORG_STATE=").addVariable(1));
+        testInsertPrefix11("", new SqlBuffer("AND DEPT_STATE=").addVariable(1));
+        testInsertPrefix11("", new SqlBuffer("DEPT_STATE=").addVariable(1));
+        testInsertPrefix11("\n", new SqlBuffer("\nAND DEPT_STATE=").addVariable(1));
+        testInsertPrefix11("\n", new SqlBuffer("\nDEPT_STATE=").addVariable(1));
+        testInsertPrefix11("\n\t", new SqlBuffer("\n\tAND DEPT_STATE=").addVariable(1));
+        testInsertPrefix11("\n\t", new SqlBuffer("\n\tDEPT_STATE=").addVariable(1));
+        testInsertPrefix11("    \n    ", new SqlBuffer("    \n    AND DEPT_STATE=").addVariable(1));
+        testInsertPrefix11("    \n    ", new SqlBuffer("    \n    DEPT_STATE=").addVariable(1));
     }
 
     private void testInsertPrefix11(String space, SqlBuffer sql) {
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "AND");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "and");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " AND ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " and ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "AND|OR");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " AND|OR ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "and|or");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " and | or ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "AND");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "and");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " AND ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " and ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "AND|OR");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " AND|OR ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "and|or");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " and | or ");
     }
 
     @Test
     public void testInsertPrefix12() {
-        testInsertPrefix12("", new SqlBuffer("OR ORG_STATE=").addVariable(1));
-        testInsertPrefix12("", new SqlBuffer("ORG_STATE=").addVariable(1));
-        testInsertPrefix12("\n", new SqlBuffer("\nOR ORG_STATE=").addVariable(1));
-        testInsertPrefix12("\n", new SqlBuffer("\nORG_STATE=").addVariable(1));
-        testInsertPrefix12("\n\t", new SqlBuffer("\n\tOR ORG_STATE=").addVariable(1));
-        testInsertPrefix12("\n\t", new SqlBuffer("\n\tORG_STATE=").addVariable(1));
-        testInsertPrefix12("    \n    ", new SqlBuffer("    \n    OR ORG_STATE=").addVariable(1));
-        testInsertPrefix12("    \n    ", new SqlBuffer("    \n    ORG_STATE=").addVariable(1));
+        testInsertPrefix12("", new SqlBuffer("OR DEPT_STATE=").addVariable(1));
+        testInsertPrefix12("", new SqlBuffer("DEPT_STATE=").addVariable(1));
+        testInsertPrefix12("\n", new SqlBuffer("\nOR DEPT_STATE=").addVariable(1));
+        testInsertPrefix12("\n", new SqlBuffer("\nDEPT_STATE=").addVariable(1));
+        testInsertPrefix12("\n\t", new SqlBuffer("\n\tOR DEPT_STATE=").addVariable(1));
+        testInsertPrefix12("\n\t", new SqlBuffer("\n\tDEPT_STATE=").addVariable(1));
+        testInsertPrefix12("    \n    ", new SqlBuffer("    \n    OR DEPT_STATE=").addVariable(1));
+        testInsertPrefix12("    \n    ", new SqlBuffer("    \n    DEPT_STATE=").addVariable(1));
     }
 
     private void testInsertPrefix12(String space, SqlBuffer sql) {
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "OR");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "or");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " OR ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " or ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "AND|OR");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " AND|OR ");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", "and|or");
-        testInsertPrefix(sql.copy(), space + "WHERE ORG_STATE=1", "WHERE", " and | or ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "OR");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "or");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " OR ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " or ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "AND|OR");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " AND|OR ");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", "and|or");
+        testInsertPrefix(sql.copy(), space + "WHERE DEPT_STATE=1", "WHERE", " and | or ");
     }
 
     @Test
     public void testInsertPrefix13() {
-        testInsertPrefix13("", new SqlBuffer("OR ORG_STATE=").addVariable(1));
-        testInsertPrefix13("", new SqlBuffer(" ORG_STATE=").addVariable(1));
-        testInsertPrefix13("\n", new SqlBuffer("\nOR ORG_STATE=").addVariable(1));
-        testInsertPrefix13("\n", new SqlBuffer("\n ORG_STATE=").addVariable(1));
-        testInsertPrefix13("\n\t", new SqlBuffer("\n\tOR ORG_STATE=").addVariable(1));
-        testInsertPrefix13("\n\t", new SqlBuffer("\n\t ORG_STATE=").addVariable(1));
-        testInsertPrefix13("    \n    ", new SqlBuffer("    \n    OR ORG_STATE=").addVariable(1));
-        testInsertPrefix13("    \n    ", new SqlBuffer("    \n     ORG_STATE=").addVariable(1));
+        testInsertPrefix13("", new SqlBuffer("OR DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("", new SqlBuffer(" DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("\n", new SqlBuffer("\nOR DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("\n", new SqlBuffer("\n DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("\n\t", new SqlBuffer("\n\tOR DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("\n\t", new SqlBuffer("\n\t DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("    \n    ", new SqlBuffer("    \n    OR DEPT_STATE=").addVariable(1));
+        testInsertPrefix13("    \n    ", new SqlBuffer("    \n     DEPT_STATE=").addVariable(1));
     }
 
     private void testInsertPrefix13(String space, SqlBuffer sql) {
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, "OR");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, "or");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, " OR ");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, " or ");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, "AND|OR");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, " AND|OR ");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, "and|or");
-        testInsertPrefix(sql.copy(), space + " ORG_STATE=1", null, " and | or ");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, "OR");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, "or");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, " OR ");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, " or ");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, "AND|OR");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, " AND|OR ");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, "and|or");
+        testInsertPrefix(sql.copy(), space + " DEPT_STATE=1", null, " and | or ");
     }
 
     @Test
@@ -155,8 +155,8 @@ public class SqlBufferInsertPrefixTest {
 
     @Test
     public void testNotChanged1() {
-        testNotChanged1(new SqlBuffer("AND ORG_STATE=").addVariable(1));
-        testNotChanged1(new SqlBuffer("ORG_STATE=").addVariable(1));
+        testNotChanged1(new SqlBuffer("AND DEPT_STATE=").addVariable(1));
+        testNotChanged1(new SqlBuffer("DEPT_STATE=").addVariable(1));
         testNotChanged1(new SqlBuffer("AND ").addVariable(1));
         testNotChanged1(new SqlBuffer().addVariable(1));
         testNotChanged1(new SqlBuffer("\n"));

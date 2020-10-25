@@ -15,7 +15,7 @@ public class ActProcState extends IdEntity {
     @Column
     private String projectName;
     @Column
-    private String orgId;
+    private String deptId;
 
     public String getProjectCode() {
         return projectCode;
@@ -33,12 +33,12 @@ public class ActProcState extends IdEntity {
         this.projectName = projectName;
     }
 
-    public String getOrgId() {
-        return orgId;
+    public String getDeptId() {
+        return deptId;
     }
 
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
+    public void setDeptId(String deptId) {
+        this.deptId = deptId;
     }
 
 }

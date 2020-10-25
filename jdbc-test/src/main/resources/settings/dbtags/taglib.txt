@@ -19,7 +19,7 @@ sql:in        = com.gitee.qdbp.jdbc.tags.SqlInTag
 sql:like      = com.gitee.qdbp.jdbc.tags.SqlLikeTag
 supports      = com.gitee.qdbp.staticize.tags.base.IgnoreContentTag
 
-org:isolation = com.gitee.qdbp.jdbc.test.tags.OrgIsolationTag
+org:isolation = com.gitee.qdbp.jdbc.test.tags.DeptIsolationTag
 
 fmt:date      = com.gitee.qdbp.staticize.tags.core.DateFormatTag
 

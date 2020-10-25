@@ -10,13 +10,13 @@ import com.gitee.qdbp.staticize.tags.base.NextStep;
 import com.gitee.qdbp.tools.utils.VerifyTools;
 
 /**
- * 生成机构数据权限隔离条件的标签
+ * 生成部门数据权限隔离条件的标签
  *
  * @author zhaohuihua
  * @version 20201013
  * @since 3.2.0
  */
-public class OrgIsolationTag extends BaseTag {
+public class DeptIsolationTag extends BaseTag {
 
     private String prefix;
     private String suffix;
@@ -52,7 +52,7 @@ public class OrgIsolationTag extends BaseTag {
         if (dialect == null) {
             throw new TagException("Context variable of '${db.dialect}' is null");
         }
-        SqlBuffer sql = EntityTools.buildOrgDataPermission(column, dialect);
+        SqlBuffer sql = EntityTools.buildDeptDataPermission(column, dialect);
         if (sql == null || sql.isBlank()) {
             return NextStep.SKIP_BODY;
         }
